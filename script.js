@@ -57,7 +57,6 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('cbox-theme', theme);
         if (themeToggle) themeToggle.textContent = theme === 'dark' ? '☀️ وضع فاتح' : '🌙 وضع ليلي';
     }
-
     if (themeToggle) {
         const savedTheme = localStorage.getItem('cbox-theme') || 'light';
         applyTheme(savedTheme);
@@ -73,27 +72,19 @@ document.addEventListener('DOMContentLoaded', function() {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             if (!AudioContext) return;
             const ctx = new AudioContext();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
+            const osc = ctx.createOscillator(); const gain = ctx.createGain();
             osc.type = 'sine'; osc.frequency.value = 800; gain.gain.value = 0.1;
-            osc.connect(gain).connect(ctx.destination);
-            osc.start();
+            osc.connect(gain).connect(ctx.destination); osc.start();
             gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.3);
             osc.stop(ctx.currentTime + 0.3);
         } catch (e) {}
     }
-
     function updateNotificationBadge() {
         document.title = unreadCount > 0 ? `(${unreadCount}) ${originalTitle}` : originalTitle;
     }
-
     document.addEventListener('visibilitychange', () => {
         isTabActive = document.visibilityState === 'visible';
-        if (isTabActive && unreadCount > 0) {
-            unreadCount = 0;
-            updateNotificationBadge();
-            if (chatContainer) chatContainer.style.animation = '';
-        }
+        if (isTabActive && unreadCount > 0) { unreadCount = 0; updateNotificationBadge(); if (chatContainer) chatContainer.style.animation = ''; }
     });
 
     // 🔁 مراقبة المصادقة
@@ -126,97 +117,66 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     if (toggleAuth) {
-        toggleAuth.addEventListener('click', e => {
-            e.preventDefault();
-            isLoginMode = !isLoginMode;
-            if (formTitle) formTitle.textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب جديد';
-            if (authBtn) authBtn.textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب';
-        });
+        toggleAuth.addEventListener('click', e => { e.preventDefault(); isLoginMode = !isLoginMode; if (formTitle) formTitle.textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب جديد'; if (authBtn) authBtn.textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب'; });
     }
-
     if (authBtn) {
         authBtn.addEventListener('click', async () => {
-            const email = emailInput?.value.trim() || '';
-            const pass = passInput?.value.trim() || '';
+            const email = emailInput?.value.trim() || ''; const pass = passInput?.value.trim() || '';
             if (!email.includes('@')) return alert('⚠️ أدخل بريد إلكتروني صحيح');
             if (!email || !pass) return alert('⚠️ املأ جميع الحقول');
             authBtn.disabled = true; authBtn.textContent = 'جاري المعالجة...';
             try {
                 if (isLoginMode) await auth.signInWithEmailAndPassword(email, pass);
-                else {
-                    await auth.createUserWithEmailAndPassword(email, pass);
-                    await db.collection('users').doc(auth.currentUser.uid).set({ email, displayName: email.split('@')[0], createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-                }
+                else { await auth.createUserWithEmailAndPassword(email, pass); await db.collection('users').doc(auth.currentUser.uid).set({ email, displayName: email.split('@')[0], createdAt: firebase.firestore.FieldValue.serverTimestamp() }); }
                 await db.collection('sessions').add({ userId: auth.currentUser.uid, email, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
             } catch (err) { alert('❌ ' + (translateFirebaseError(err.code) || err.message)); }
             finally { authBtn.disabled = false; authBtn.textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب'; }
         });
     }
-
     if (qLoginBtn) {
-        qLoginBtn.addEventListener('click', async () => {
-            const qEmail = document.getElementById('q-email')?.value.trim();
-            const qPass = document.getElementById('q-pass')?.value.trim();
-            if (!qEmail || !qPass) return alert('⚠️ املأ حقول الهيدر');
-            try { await auth.signInWithEmailAndPassword(qEmail, qPass); } 
-            catch (err) { alert('❌ ' + translateFirebaseError(err.code)); }
-        });
+        qLoginBtn.addEventListener('click', async () => { const qEmail = document.getElementById('q-email')?.value.trim(); const qPass = document.getElementById('q-pass')?.value.trim(); if (!qEmail || !qPass) return alert('⚠️ املأ حقول الهيدر'); try { await auth.signInWithEmailAndPassword(qEmail, qPass); } catch (err) { alert('❌ ' + translateFirebaseError(err.code)); } });
     }
-
-    if (resetLink) {
-        resetLink.addEventListener('click', async e => {
-            e.preventDefault();
-            const email = prompt('أدخل بريدك الإلكتروني لاستعادة كلمة المرور:');
-            if (email) {
-                try { await auth.sendPasswordResetEmail(email); alert('✅ تم إرسال رابط الاستعادة'); } 
-                catch (err) { alert('❌ ' + err.message); }
-            }
-        });
-    }
-
+    if (resetLink) { resetLink.addEventListener('click', async e => { e.preventDefault(); const email = prompt('أدخل بريدك الإلكتروني لاستعادة كلمة المرور:'); if (email) { try { await auth.sendPasswordResetEmail(email); alert('✅ تم إرسال رابط الاستعادة'); } catch (err) { alert('❌ ' + err.message); } } }); }
     const doLogout = () => auth.signOut();
     if (logoutBtn) logoutBtn.onclick = doLogout;
     if (navLogout) navLogout.onclick = doLogout;
-
     if (navSettings) navSettings.onclick = e => { e.preventDefault(); dashboardSection.style.display='none'; settingsSection.style.display='block'; };
     if (backToDash) backToDash.onclick = e => { e.preventDefault(); settingsSection.style.display='none'; dashboardSection.style.display='block'; };
+    if (saveSettingsBtn) { saveSettingsBtn.addEventListener('click', async () => { const newName = settingsName?.value.trim(); if (!newName) return alert('⚠️ الاسم مطلوب'); try { await auth.currentUser.updateProfile({ displayName: newName }); await db.collection('users').doc(auth.currentUser.uid).update({ displayName: newName }); if (userDisplay) userDisplay.textContent = newName; alert('✅ تم حفظ التغييرات'); } catch (err) { alert('❌ ' + err.message); } }); }
 
-    if (saveSettingsBtn) {
-        saveSettingsBtn.addEventListener('click', async () => {
-            const newName = settingsName?.value.trim();
-            if (!newName) return alert('⚠️ الاسم مطلوب');
-            try {
-                await auth.currentUser.updateProfile({ displayName: newName });
-                await db.collection('users').doc(auth.currentUser.uid).update({ displayName: newName });
-                if (userDisplay) userDisplay.textContent = newName; alert('✅ تم حفظ التغييرات');
-            } catch (err) { alert('❌ ' + err.message); }
-        });
-    }
-
+    // 📊 تحميل بيانات اللوحة (مُصلح ليعمل بدون فهرس مركب)
     async function loadDashboardData(email) {
         if (!loginHistory) return;
         loginHistory.innerHTML = '<li>جاري التحميل...</li>';
         try {
-            const snap = await db.collection('sessions').where('email','==',email).orderBy('timestamp','desc').limit(5).get();
-            if (snap.empty) loginHistory.innerHTML = '<li>لا توجد جلسات سابقة</li>';
-            else {
-                let html = ''; let cnt = 0;
-                snap.forEach(doc => {
+            // جلب أحدث الجلسات وتصفيتها يدوياً لتجنب خطأ الفهرس المركب في Firestore
+            const snap = await db.collection('sessions').orderBy('timestamp', 'desc').limit(50).get();
+            const userSessions = snap.docs.filter(doc => doc.data().email === email).slice(0, 5);
+
+            if (userSessions.length === 0) {
+                loginHistory.innerHTML = '<li>لا توجد جلسات سابقة</li>';
+            } else {
+                let html = '';
+                userSessions.forEach(doc => {
                     const d = doc.data();
                     const t = d.timestamp ? d.timestamp.toDate().toLocaleString('ar-EG') : 'غير معروف';
-                    html += `<li>🟢 دخول في: ${t}</li>`; cnt++;
+                    html += `<li>🟢 دخول في: ${t}</li>`;
                 });
                 loginHistory.innerHTML = html;
-                if (sessionCount) sessionCount.textContent = cnt;
+                if (sessionCount) sessionCount.textContent = userSessions.length;
+                if (lastLogin) lastLogin.textContent = userSessions[0].data().timestamp.toDate().toLocaleString('ar-EG');
             }
-        } catch(e) { loginHistory.innerHTML = '<li>فشل تحميل البيانات</li>'; }
+        } catch(e) {
+            console.error("خطأ تحميل الجلسات:", e);
+            loginHistory.innerHTML = '<li>فشل التحميل (تحقق من Console)</li>';
+        }
     }
 
+    // 💬 الدردشة
     function initChat() {
         if (unsubscribeChat) unsubscribeChat();
         if (messagesList) messagesList.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">جاري تحميل الرسائل...</p>';
         chatInitialized = false; lastKnownTimestamp = null; unreadCount = 0; updateNotificationBadge();
-        
         unsubscribeChat = db.collection('messages').orderBy('timestamp','asc').onSnapshot(snapshot => {
             if (!messagesList) return;
             messagesList.innerHTML = '';
@@ -238,10 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             chatInitialized = true;
             if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
-        }, error => {
-            console.error("❌ خطأ في الدردشة:", error);
-            if (messagesList) messagesList.innerHTML = `<p style="color:#c00;text-align:center;padding:20px;">❌ خطأ: ${error.message}</p>`;
-        });
+        }, error => { console.error("❌ خطأ في الدردشة:", error); if (messagesList) messagesList.innerHTML = `<p style="color:#c00;text-align:center;padding:20px;">❌ خطأ: ${error.message}</p>`; });
     }
 
     if (chatSendBtn) {
@@ -249,10 +206,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const text = chatInput?.value.trim();
             if (!text || !currentUser) return;
             chatSendBtn.disabled = true; chatSendBtn.textContent = '...';
-            try {
-                await db.collection('messages').add({ text, senderName: currentUser.displayName || currentUser.email.split('@')[0], senderEmail: currentUser.email, userId: currentUser.uid, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
-                if (chatInput) chatInput.value = '';
-            } catch (err) { alert('❌ فشل إرسال الرسالة'); }
+            try { await db.collection('messages').add({ text, senderName: currentUser.displayName || currentUser.email.split('@')[0], senderEmail: currentUser.email, userId: currentUser.uid, timestamp: firebase.firestore.FieldValue.serverTimestamp() }); if (chatInput) chatInput.value = ''; }
+            catch (err) { alert('❌ فشل إرسال الرسالة'); }
             finally { chatSendBtn.disabled = false; chatSendBtn.textContent = 'إرسال'; }
         });
         if (chatInput) chatInput.addEventListener('keypress', e => { if (e.key === 'Enter' && !chatSendBtn.disabled) chatSendBtn.click(); });
