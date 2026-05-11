@@ -254,3 +254,7 @@ form[name="logmain"] input[type="submit"]:hover {
 .chat-input-area .txtbox { flex: 1; }
 .loading-msg { text-align: center; color: #888; padding: 20px; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes flashBorder {
+    0%, 100% { border-color: #e2e8f0; }
+    50% { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2); }
+}
