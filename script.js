@@ -82,33 +82,48 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('toggle-auth').onclick = arguments.callee;
         });
     }
+// 🔐 معالجة الدخول/التسجيل (زر عادي لا يرسل النموذج)
+const authBtn = document.getElementById('auth-btn');
+if (authBtn) {
+    authBtn.addEventListener('click', async function(e) {
+        e.preventDefault(); // حاجز إضافي للأمان
+        const email = document.getElementById('email-input').value.trim();
+        const pass = document.getElementById('pass-input').value.trim();
+        
+        if (!email || !pass) return alert('⚠️ يرجى ملء جميع الحقول.');
 
-    // 🔐 معالجة الدخول/التسجيل
-    if (authForm) {
-        authForm.addEventListener('submit', async e => {
-            e.preventDefault();
-            const email = emailInput.value.trim();
-            const pass = passInput.value.trim();
-            if (!email || !pass) return alert('⚠️ يرجى ملء جميع الحقول.');
+        authBtn.disabled = true; 
+        authBtn.textContent = 'جاري المعالجة...';
+        document.getElementById('siteErrorBarCont').textContent = 'جاري الاتصال بـ Firebase...';
 
-            authBtn.disabled = true; authBtn.value = 'جاري المعالجة...';
-            errorBar.textContent = 'جاري الاتصال بـ Firebase...';
-
-            try {
-                if (isLoginMode) {
-                    await auth.signInWithEmailAndPassword(email, pass);
-                    errorBar.textContent = 'تم الدخول بنجاح ✅';
-                } else {
-                    await auth.createUserWithEmailAndPassword(email, pass);
-                    // حفظ بيانات أولية في Firestore
-                    await db.collection('users').doc(auth.currentUser.uid).set({
-                        email: email,
-                        displayName: email.split('@')[0],
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    errorBar.textContent = 'تم إنشاء الحساب وتسجيل الدخول ✅';
-                }
-                // تسجيل جلسة
+        try {
+            if (isLoginMode) {
+                await auth.signInWithEmailAndPassword(email, pass);
+                document.getElementById('siteErrorBarCont').textContent = 'تم الدخول بنجاح ✅';
+            } else {
+                await auth.createUserWithEmailAndPassword(email, pass);
+                await db.collection('users').doc(auth.currentUser.uid).set({
+                    email: email,
+                    displayName: email.split('@')[0],
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                document.getElementById('siteErrorBarCont').textContent = 'تم إنشاء الحساب وتسجيل الدخول ✅';
+            }
+            // تسجيل الجلسة
+            await db.collection('sessions').add({
+                userId: auth.currentUser.uid,
+                email: email,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        } catch (err) {
+            alert('❌ ' + translateFirebaseError(err.code));
+            document.getElementById('siteErrorBarCont').textContent = 'حدث خطأ';
+        } finally {
+            authBtn.disabled = false;
+            authBtn.textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب';
+        }
+    });
+}
                 await db.collection('sessions').add({
                     userId: auth.currentUser.uid,
                     email: email,
