@@ -40,7 +40,6 @@
 
     <div id="main" class="wrap">
         <div id="content">
-            <!-- قسم تسجيل الدخول -->
             <div id="login-section">
                 <h1>لوحة التحكم</h1>
                 <div class="notice" id="main-notice">يرجى تسجيل الدخول أدناه للوصول إلى هذه الصفحة.</div>
@@ -58,14 +57,29 @@
                 <p><a href="#" id="reset-link">نسيت كلمة المرور؟</a> | <a href="/help?id=12">تفعيل ملفات تعريف الارتباط</a></p>
             </div>
 
-            <!-- لوحة التحكم + الدردشة -->
             <div id="dashboard-section" style="display:none;">
                 <h1>👋 مرحباً، <span id="user-name-display">مستخدم</span>!</h1>
                 <div class="notice" style="background:#d1fae5; border-color:#6ee7b7; color:#065f46;">✅ تم تسجيل الدخول بنجاح عبر Firebase</div>
+                
                 <div class="dashboard-grid">
                     <div class="card"><h3>📊 الإحصائيات</h3><p>جلسات مسجلة: <strong id="session-count">0</strong></p></div>
                     <div class="card"><h3>⚙️ الحالة</h3><p>الحساب: <span style="color:#16a34a">نشط</span></p><p>آخر دخول: <span id="last-login">--</span></p></div>
                     <div class="card"><h3>📩 سجل الدخول</h3><ul id="login-history" style="text-align:right; padding-right:20px; margin-top:5px;"></ul></div>
+                </div>
+
+                <!-- 🆕 إحصائيات متقدمة + تصدير -->
+                <div class="dashboard-grid" style="margin-top:15px;">
+                    <div class="card">
+                        <h3>📈 رسائل اليوم</h3>
+                        <p id="today-msg-count" style="font-size:24px; font-weight:bold; color:var(--btn-bg);">0</p>
+                    </div>
+                    <div class="card">
+                        <h3>👥 مستخدمون نشطون (7 أيام)</h3>
+                        <p id="active-users-count" style="font-size:24px; font-weight:bold; color:#16a34a;">0</p>
+                    </div>
+                    <div class="card" style="display:flex; align-items:center; justify-content:center;">
+                        <button id="export-btn" class="export-btn">📥 تصدير الدردشة (CSV)</button>
+                    </div>
                 </div>
 
                 <div class="card" style="margin-top: 20px;">
@@ -83,7 +97,6 @@
                 <button id="logout-btn" class="btn-primary" style="margin-top:20px; background:#dc2626;">تسجيل الخروج</button>
             </div>
 
-            <!-- الإعدادات -->
             <div id="settings-section" style="display:none;">
                 <h1>⚙️ الإعدادات</h1>
                 <div class="notice">إعدادات الحساب متصلة بـ Firebase وتحفظ تلقائياً.</div>
