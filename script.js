@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 🔑 إعدادات Firebase
+    // 🔑 إعدادات Firebase (مخصصة لمشروع cbox22026)
     const firebaseConfig = {
         apiKey: "AIzaSyD_UssZllzECYbTMR_0NCTzEGAIMeZAcos",
         authDomain: "cbox22026.firebaseapp.com",
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let isTabActive = true;
     let lastKnownTimestamp = null;
     let chatInitialized = false;
-    let cachedMessages = []; // لتخزين الرسائل مؤقتاً للتصدير
+    let cachedMessages = [];
     const originalTitle = document.title;
 
     // 🌙 الوضع الليلي
@@ -62,14 +62,33 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('cbox-theme', theme);
         if (themeToggle) themeToggle.textContent = theme === 'dark' ? '☀️ وضع فاتح' : '🌙 وضع ليلي';
     }
-    if (themeToggle) { applyTheme(localStorage.getItem('cbox-theme') || 'light'); themeToggle.addEventListener('click', () => { const current = document.documentElement.getAttribute('data-theme'); applyTheme(current === 'dark' ? 'light' : 'dark'); }); }
+    if (themeToggle) {
+        applyTheme(localStorage.getItem('cbox-theme') || 'light');
+        themeToggle.addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme');
+            applyTheme(current === 'dark' ? 'light' : 'dark');
+        });
+    }
 
     // 🎵 صوت الإشعار
     function playNotificationSound() {
-        try { const AudioContext = window.AudioContext || window.webkitAudioContext; if (!AudioContext) return; const ctx = new AudioContext(); const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.type = 'sine'; osc.frequency.value = 800; gain.gain.value = 0.1; osc.connect(gain).connect(ctx.destination); osc.start(); gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.3); osc.stop(ctx.currentTime + 0.3); } catch (e) {}
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext(); const osc = ctx.createOscillator(); const gain = ctx.createGain();
+            osc.type = 'sine'; osc.frequency.value = 800; gain.gain.value = 0.1;
+            osc.connect(gain).connect(ctx.destination); osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.3);
+            osc.stop(ctx.currentTime + 0.3);
+        } catch (e) {}
     }
-    function updateNotificationBadge() { document.title = unreadCount > 0 ? `(${unreadCount}) ${originalTitle}` : originalTitle; }
-    document.addEventListener('visibilitychange', () => { isTabActive = document.visibilityState === 'visible'; if (isTabActive && unreadCount > 0) { unreadCount = 0; updateNotificationBadge(); if (chatContainer) chatContainer.style.animation = ''; } });
+    function updateNotificationBadge() {
+        document.title = unreadCount > 0 ? `(${unreadCount}) ${originalTitle}` : originalTitle;
+    }
+    document.addEventListener('visibilitychange', () => {
+        isTabActive = document.visibilityState === 'visible';
+        if (isTabActive && unreadCount > 0) { unreadCount = 0; updateNotificationBadge(); if (chatContainer) chatContainer.style.animation = ''; }
+    });
 
     // 🔁 مراقبة المصادقة
     auth.onAuthStateChanged(user => {
@@ -92,7 +111,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // 📝 تبديل الدخول/التسجيل
     if (toggleAuth) { toggleAuth.addEventListener('click', e => { e.preventDefault(); isLoginMode = !isLoginMode; if (formTitle) formTitle.textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب جديد'; if (authBtn) authBtn.textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب'; }); }
+
+    // 🔐 زر الدخول/التسجيل
     if (authBtn) {
         authBtn.addEventListener('click', async () => {
             const email = emailInput?.value.trim() || ''; const pass = passInput?.value.trim() || '';
@@ -107,15 +129,25 @@ document.addEventListener('DOMContentLoaded', function() {
             finally { authBtn.disabled = false; authBtn.textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب'; }
         });
     }
+
+    // 🔑 الدخول السريع من الهيدر
     if (qLoginBtn) { qLoginBtn.addEventListener('click', async () => { const qEmail = document.getElementById('q-email')?.value.trim(); const qPass = document.getElementById('q-pass')?.value.trim(); if (!qEmail || !qPass) return alert('⚠️ املأ حقول الهيدر'); try { await auth.signInWithEmailAndPassword(qEmail, qPass); } catch (err) { alert('❌ ' + translateFirebaseError(err.code)); } }); }
+
+    // 🔗 نسيت كلمة المرور
     if (resetLink) { resetLink.addEventListener('click', async e => { e.preventDefault(); const email = prompt('أدخل بريدك الإلكتروني لاستعادة كلمة المرور:'); if (email) { try { await auth.sendPasswordResetEmail(email); alert('✅ تم إرسال رابط الاستعادة'); } catch (err) { alert('❌ ' + err.message); } } }); }
+
+    // 🚪 تسجيل الخروج
     const doLogout = () => auth.signOut();
     if (logoutBtn) logoutBtn.onclick = doLogout; if (navLogout) navLogout.onclick = doLogout;
+
+    // ⚙️ التنقل
     if (navSettings) navSettings.onclick = e => { e.preventDefault(); dashboardSection.style.display='none'; settingsSection.style.display='block'; };
     if (backToDash) backToDash.onclick = e => { e.preventDefault(); settingsSection.style.display='none'; dashboardSection.style.display='block'; };
+
+    // 💾 حفظ الإعدادات
     if (saveSettingsBtn) { saveSettingsBtn.addEventListener('click', async () => { const newName = settingsName?.value.trim(); if (!newName) return alert('⚠️ الاسم مطلوب'); try { await auth.currentUser.updateProfile({ displayName: newName }); await db.collection('users').doc(auth.currentUser.uid).update({ displayName: newName }); if (userDisplay) userDisplay.textContent = newName; alert('✅ تم حفظ التغييرات'); } catch (err) { alert('❌ ' + err.message); } }); }
 
-    // 📊 تحميل بيانات اللوحة
+    // 📊 تحميل سجل الدخول
     async function loadDashboardData(email) {
         if (!loginHistory) return; loginHistory.innerHTML = '<li>جاري التحميل...</li>';
         try {
@@ -126,44 +158,37 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch(e) { loginHistory.innerHTML = '<li>فشل التحميل</li>'; }
     }
 
-    // 📈 حساب الإحصائيات المتقدمة
+    // 📈 الإحصائيات المتقدمة
     async function loadAdvancedStats() {
         if (!todayMsgCount || !activeUsersCount) return;
         todayMsgCount.textContent = '...'; activeUsersCount.textContent = '...';
         try {
             const now = new Date(); const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             const sevenDaysAgo = new Date(todayStart.getTime() - (7 * 24 * 60 * 60 * 1000));
-            
             const msgsSnap = await db.collection('messages').where('timestamp', '>=', todayStart).get();
             todayMsgCount.textContent = msgsSnap.size;
-
             const sessSnap = await db.collection('sessions').where('timestamp', '>=', sevenDaysAgo).get();
             const uniqueUsers = new Set(sessSnap.docs.map(d => d.data().userId));
             activeUsersCount.textContent = uniqueUsers.size;
         } catch (e) { todayMsgCount.textContent = '0'; activeUsersCount.textContent = '0'; }
     }
 
-    // 📥 تصدير الدردشة لـ CSV
+    // 📥 تصدير CSV
     if (exportBtn) {
         exportBtn.addEventListener('click', async () => {
             exportBtn.disabled = true; exportBtn.textContent = '⏳ جاري التحضير...';
             try {
-                if (cachedMessages.length === 0) {
-                    const snap = await db.collection('messages').orderBy('timestamp', 'asc').get();
-                    cachedMessages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                }
+                if (cachedMessages.length === 0) { const snap = await db.collection('messages').orderBy('timestamp', 'asc').get(); cachedMessages = snap.docs.map(d => ({ id: d.id, ...d.data() })); }
                 let csv = '\uFEFF"التاريخ","الوقت","المرسل","الرسالة"\n';
                 cachedMessages.forEach(m => {
                     const date = m.timestamp ? m.timestamp.toDate() : new Date();
-                    const d = date.toLocaleDateString('ar-EG');
-                    const t = date.toLocaleTimeString('ar-EG');
+                    const d = date.toLocaleDateString('ar-EG'); const t = date.toLocaleTimeString('ar-EG');
                     const name = `"${(m.senderName || 'مستخدم').replace(/"/g, '""')}"`;
                     const text = `"${(m.text || '').replace(/"/g, '""')}"`;
                     csv += `"${d}","${t}",${name},${text}\n`;
                 });
                 const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob); const link = document.createElement('a');
                 link.href = url; link.download = `chat-export-${new Date().toISOString().slice(0,10)}.csv`;
                 document.body.appendChild(link); link.click(); document.body.removeChild(link);
             } catch (err) { alert('❌ فشل التصدير: ' + err.message); }
@@ -171,12 +196,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 💬 الدردشة
+    // 💬 الدردشة الفورية
     function initChat() {
         if (unsubscribeChat) unsubscribeChat();
         if (messagesList) messagesList.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">جاري تحميل الرسائل...</p>';
         chatInitialized = false; lastKnownTimestamp = null; unreadCount = 0; updateNotificationBadge(); cachedMessages = [];
-        loadAdvancedStats(); // تحديث الإحصائيات عند الدخول
+        loadAdvancedStats();
         
         unsubscribeChat = db.collection('messages').orderBy('timestamp','asc').onSnapshot(snapshot => {
             if (!messagesList) return; messagesList.innerHTML = '';
@@ -197,7 +222,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (m.timestamp && (!lastKnownTimestamp || m.timestamp.toMillis() > lastKnownTimestamp.toMillis())) lastKnownTimestamp = m.timestamp;
                 });
                 if (hasNewMessages && !isTabActive) { unreadCount++; updateNotificationBadge(); playNotificationSound(); if (chatContainer) chatContainer.style.animation = 'flashBorder 1s ease-in-out'; }
-                if (hasNewMessages) loadAdvancedStats(); // تحديث الإحصائيات عند وصول رسالة
+                if (hasNewMessages) loadAdvancedStats();
             }
             chatInitialized = true; if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
         }, error => { console.error("❌ خطأ في الدردشة:", error); if (messagesList) messagesList.innerHTML = `<p style="color:#c00;text-align:center;padding:20px;">❌ خطأ: ${error.message}</p>`; });
@@ -215,6 +240,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (chatInput) chatInput.addEventListener('keypress', e => { if (e.key === 'Enter' && !chatSendBtn.disabled) chatSendBtn.click(); });
     }
 
+    // 🛡️ حماية XSS
     function escapeHtml(text) { const div = document.createElement('div'); div.appendChild(document.createTextNode(text)); return div.innerHTML; }
+
+    // 🌍 ترجمة أخطاء Firebase
     function translateFirebaseError(code) { const map = { 'auth/invalid-credential': 'البريد أو كلمة المرور غير صحيحة', 'auth/email-already-in-use': 'البريد مسجل مسبقاً', 'auth/invalid-email': 'صيغة البريد غير صحيحة', 'auth/user-not-found': 'البريد غير مسجل', 'auth/wrong-password': 'كلمة المرور غير صحيحة', 'auth/weak-password': 'كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'auth/too-many-requests': 'محاولات كثيرة، انتظر قليلاً' }; return map[code] || code; }
 });
