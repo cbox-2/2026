@@ -12,6 +12,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // تهيئة الخدمات (Compat - تعمل مباشرة في المتصفح)
     firebase.initializeApp(firebaseConfig);
+   // في ملف script.js
+firebase.initializeApp(firebaseConfig);
+
+// ضبط إعدادات المصادقة
+firebase.auth().settings.appVerificationDisabledForTesting = false; // افتراضي
+
+// لضمان عمل الكوكيز في جميع البيئات (اختياري)
+firebase.auth().useEmulator('http://localhost:9099'); // فقط للتطوير المحلي
     const auth = firebase.auth();
     const db = firebase.firestore();
 
