@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>لوحة التحكم · صندوق التحكم</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Cbox live chat is an embeddable chat app for online communities, groups, and live-streaming events.">
+    <link href="data:image/x-icon;base64,AAABAAEAEBACAAAAAACwAAAAFgAAACgAAAAQAAAAIAAAAAEAAQAAAAAAQAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA" rel="icon" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body id="mainbody">
+
+<script>
+var rcvdformresponse = function () {};
+</script>
+
+<div id="mask"></div>
+
+<div id="bodywrap">
+
+    <!-- 🟦 الهيدر -->
+    <div id="header">
+        <div class="wrap">
+            <a id="logo" href="">
+                <img src="https://via.placeholder.com/200x86?text=صندوق+C" width="200" height="86" alt="صندوق C" border="0">
+            </a>
+            <div id="headerExtras">
+                <form id="qlogin" action="#" method="post" class="header-login-form">
+                    <input type="text" placeholder="اسم البريد الإلكتروني / صندوق البريد" tabindex="1" name="uname" spellcheck="false" value="" maxlength="50" class="txtbox" style="width: 160px">
+                    <input type="password" placeholder="كلمة المرور" tabindex="2" name="pword" maxlength="50" class="txtbox" style="width: 160px;">
+                    <input type="submit" value="تسجيل الدخول" tabindex="3">
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🟩 شريط التنقل -->
+    <div id="topbar">
+        <div class="wrap">
+            <span class="Spacer">&nbsp;</span>
+            <a href="/index" class="button">بيت</a>
+            <a href="/products" class="button">الخطط والأسعار</a>
+            <a href="" class="button">اشتراك</a>
+            <a href="" class="button">يرقي</a>
+            <a href="/help" class="button">يدعم</a>
+        </div>
+    </div>
+
+    <div id="wideimg" style="position: relative; width: 100%; left: 0"></div>
+
+    <!-- 🟨 المحتوى الرئيسي -->
+    <div id="main" class="wrap">
+        <div id="content">
+
+            <!-- نموذج الدخول -->
+            <div id="login-section">
+                <h1>لوحة التحكم</h1>
+                <div class="notice">يرجى تسجيل الدخول أدناه للوصول إلى هذه الصفحة.</div>
+
+                <form id="login-form" name="logmain" method="post" action="#">
+                    <fieldset>
+                        <legend>تسجيل الدخول</legend>
+                        <label>اسم البريد الإلكتروني / صندوق البريد:</label>
+                        <input type="text" name="uname" size="25" maxlength="50" class="txtbox" value="">
+                        <label>كلمة المرور:</label>
+                        <input type="password" name="pword" size="45" maxlength="50" class="txtbox" value="">
+                        <input type="submit" value="تسجيل الدخول">
+                    </fieldset>
+                </form>
+
+                <p>إذا نسيت كلمة مرورك، <a href="/forgotpword">فانقر هنا</a> لاستعادة حسابك.</p>
+                <p>إذا لم يكن لديك حساب تسجيل دخول إلى Cbox حتى الآن، فقم <a href="/getone">بإنشاء حساب</a>.</p>
+                <p>إذا تم إرجاعك بشكل متكرر إلى هذه الصفحة بعد تسجيل الدخول، فتأكد من <a href="/help?id=12">تفعيل ملفات تعريف الارتباط</a> في متصفحك.</p>
+                <p>لوحة تحكم Cbox هي المكان الذي يمكنك من خلاله الحصول على رمز تثبيت Cbox، وضبط إعداداته، وإدارة حسابات المستخدمين والرسائل. كل ما تحتاجه لتشغيل Cbox بكفاءة متاح بسهولة من خلال هذه اللوحة.</p>
+            </div>
+
+            <!-- لوحة التحكم (تظهر بعد الدخول) -->
+            <div id="dashboard-section" style="display: none;">
+                <h1>👋 مرحباً، <span id="user-email-display">مستخدم</span>!</h1>
+                <div class="notice" style="background: #d1fae5; border-color: #6ee7b7; color: #065f46;">
+                    ✅ تم تسجيل الدخول بنجاح. هذا نموذج تجريبي للوحة التحكم.
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <h3>📊 الإحصائيات</h3>
+                        <p>عدد الرسائل: <strong>1,240</strong></p>
+                        <p>المستخدمون النشطون: <strong>48</strong></p>
+                    </div>
+                    <div class="card">
+                        <h3>⚙️ الإعدادات</h3>
+                        <p>حالة الصندوق: <span style="color:#16a34a">نشط</span></p>
+                        <p>الرمز التضميني: <code>&lt;iframe src="..."&gt;&lt;/iframe&gt;</code></p>
+                    </div>
+                    <div class="card">
+                        <h3>📩 الرسائل الأخيرة</h3>
+                        <ul style="text-align:right; padding-right: 20px; margin-top:5px;">
+                            <li>أحمد: مرحباً، كيف حالك؟</li>
+                            <li>سارة: النظام يعمل بشكل ممتاز!</li>
+                            <li>خالد: هل يمكن إضافة ميزة الوضع الليلي؟</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <button id="logout-btn" class="btn-primary" style="margin-top:20px; background:#dc2626;">تسجيل الخروج</button>
+            </div>
+
+        </div>
+        <div style="clear: both"></div>
+    </div>
+
+</div><!-- /bodywrap -->
+
+<div id="siteErrorBar">
+    <div class="wrap" id="siteErrorBarCont">تحميل...</div>
+</div>
+
+<div id="footer">
+    <a href="/">عن</a>
+    <a href="/products">الخطط والأسعار</a>
+    <a href="/terms">الشروط والأحكام</a>
+    <a href="/privacy">سياسة الخصوصية</a>
+    <a href="/notices">إشعارات</a>
+    <a href="/contact">اتصل بنا</a>
+    <div class="verybottom">© 2024 صندوق التحكم</div>
+</div>
+
+<!-- ربط ملف الجافاسكربت -->
+<script src="script.js"></script>
+</body>
+</html>
