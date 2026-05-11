@@ -40,44 +40,53 @@ document.addEventListener('DOMContentLoaded', function() {
     const chatSendBtn = document.getElementById('chat-send-btn');
     const messagesList = document.getElementById('messages-list');
     const chatContainer = document.getElementById('chat-container');
+    const themeToggle = document.getElementById('theme-toggle');
 
     let currentUser = null;
     let unsubscribeChat = null;
     let isLoginMode = true;
-
-    // 🆕 متغيرات نظام الإشعارات
     let unreadCount = 0;
     let isTabActive = true;
     let lastKnownTimestamp = null;
     let chatInitialized = false;
     const originalTitle = document.title;
-    const notificationSound = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA='); // صوت تنبيه خفيف
 
-    // 🎵 تشغيل صوت الإشعار
+    // 🌙 منطق الوضع الليلي
+    function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('cbox-theme', theme);
+        if (themeToggle) themeToggle.textContent = theme === 'dark' ? '☀️ وضع فاتح' : '🌙 وضع ليلي';
+    }
+
+    if (themeToggle) {
+        const savedTheme = localStorage.getItem('cbox-theme') || 'light';
+        applyTheme(savedTheme);
+        themeToggle.addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme');
+            applyTheme(current === 'dark' ? 'light' : 'dark');
+        });
+    }
+
+    // 🎵 صوت الإشعار
     function playNotificationSound() {
         try {
-            // إنشاء نغمة قصيرة باستخدام AudioContext (أكثر موثوقية من الملفات الخارجية)
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             if (!AudioContext) return;
             const ctx = new AudioContext();
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
-            osc.type = 'sine';
-            osc.frequency.value = 800;
-            gain.gain.value = 0.1;
+            osc.type = 'sine'; osc.frequency.value = 800; gain.gain.value = 0.1;
             osc.connect(gain).connect(ctx.destination);
             osc.start();
             gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.3);
             osc.stop(ctx.currentTime + 0.3);
-        } catch (e) { /* تجاهل أخطاء الصوت في المتصفحات القديمة */ }
+        } catch (e) {}
     }
 
-    // 📌 تحديث عنوان المتصفح وعداد الإشعارات
     function updateNotificationBadge() {
         document.title = unreadCount > 0 ? `(${unreadCount}) ${originalTitle}` : originalTitle;
     }
 
-    // 🔍 مراقبة نشاط التبويب
     document.addEventListener('visibilitychange', () => {
         isTabActive = document.visibilityState === 'visible';
         if (isTabActive && unreadCount > 0) {
@@ -87,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 🔁 مراقبة حالة المصادقة
+    // 🔁 مراقبة المصادقة
     auth.onAuthStateChanged(user => {
         currentUser = user;
         if (user) {
@@ -97,11 +106,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (navLogout) navLogout.style.display = 'inline-block';
             if (chatInput) chatInput.disabled = false;
             if (chatSendBtn) chatSendBtn.disabled = false;
-            
             userDisplay.textContent = user.displayName || user.email.split('@')[0];
             if (settingsName) settingsName.value = user.displayName || '';
             if (errorBar) errorBar.textContent = 'متصل بـ Firebase ✅';
-            
             loadDashboardData(user.email);
             initChat();
         } else {
@@ -114,12 +121,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (unsubscribeChat) unsubscribeChat();
             if (errorBar) errorBar.textContent = 'جاهز...';
             if (messagesList) messagesList.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">سجّل الدخول لرؤية الرسائل</p>';
-            unreadCount = 0;
-            updateNotificationBadge();
+            unreadCount = 0; updateNotificationBadge();
         }
     });
 
-    // 📝 تبديل بين الدخول وإنشاء الحساب
     if (toggleAuth) {
         toggleAuth.addEventListener('click', e => {
             e.preventDefault();
@@ -129,39 +134,25 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 🔐 زر الدخول / التسجيل الرئيسي
     if (authBtn) {
         authBtn.addEventListener('click', async () => {
             const email = emailInput?.value.trim() || '';
             const pass = passInput?.value.trim() || '';
             if (!email.includes('@')) return alert('⚠️ أدخل بريد إلكتروني صحيح');
             if (!email || !pass) return alert('⚠️ املأ جميع الحقول');
-
             authBtn.disabled = true; authBtn.textContent = 'جاري المعالجة...';
             try {
-                if (isLoginMode) {
-                    await auth.signInWithEmailAndPassword(email, pass);
-                } else {
+                if (isLoginMode) await auth.signInWithEmailAndPassword(email, pass);
+                else {
                     await auth.createUserWithEmailAndPassword(email, pass);
-                    await db.collection('users').doc(auth.currentUser.uid).set({
-                        email, displayName: email.split('@')[0],
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
+                    await db.collection('users').doc(auth.currentUser.uid).set({ email, displayName: email.split('@')[0], createdAt: firebase.firestore.FieldValue.serverTimestamp() });
                 }
-                await db.collection('sessions').add({
-                    userId: auth.currentUser.uid, email,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            } catch (err) {
-                alert('❌ ' + (translateFirebaseError(err.code) || err.message));
-            } finally {
-                authBtn.disabled = false;
-                authBtn.textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب';
-            }
+                await db.collection('sessions').add({ userId: auth.currentUser.uid, email, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+            } catch (err) { alert('❌ ' + (translateFirebaseError(err.code) || err.message)); }
+            finally { authBtn.disabled = false; authBtn.textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب'; }
         });
     }
 
-    // 🔑 تسجيل الدخول السريع من الهيدر
     if (qLoginBtn) {
         qLoginBtn.addEventListener('click', async () => {
             const qEmail = document.getElementById('q-email')?.value.trim();
@@ -172,7 +163,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 🔗 نسيت كلمة المرور
     if (resetLink) {
         resetLink.addEventListener('click', async e => {
             e.preventDefault();
@@ -184,16 +174,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 🚪 تسجيل الخروج
     const doLogout = () => auth.signOut();
     if (logoutBtn) logoutBtn.onclick = doLogout;
     if (navLogout) navLogout.onclick = doLogout;
 
-    // ⚙️ التنقل بين الأقسام
     if (navSettings) navSettings.onclick = e => { e.preventDefault(); dashboardSection.style.display='none'; settingsSection.style.display='block'; };
     if (backToDash) backToDash.onclick = e => { e.preventDefault(); settingsSection.style.display='none'; dashboardSection.style.display='block'; };
 
-    // 💾 حفظ الإعدادات
     if (saveSettingsBtn) {
         saveSettingsBtn.addEventListener('click', async () => {
             const newName = settingsName?.value.trim();
@@ -201,13 +188,11 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 await auth.currentUser.updateProfile({ displayName: newName });
                 await db.collection('users').doc(auth.currentUser.uid).update({ displayName: newName });
-                if (userDisplay) userDisplay.textContent = newName;
-                alert('✅ تم حفظ التغييرات');
+                if (userDisplay) userDisplay.textContent = newName; alert('✅ تم حفظ التغييرات');
             } catch (err) { alert('❌ ' + err.message); }
         });
     }
 
-    // 📊 تحميل بيانات اللوحة
     async function loadDashboardData(email) {
         if (!loginHistory) return;
         loginHistory.innerHTML = '<li>جاري التحميل...</li>';
@@ -227,116 +212,52 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch(e) { loginHistory.innerHTML = '<li>فشل تحميل البيانات</li>'; }
     }
 
-    // 💬 بدء الدردشة الفورية + نظام الإشعارات
     function initChat() {
         if (unsubscribeChat) unsubscribeChat();
         if (messagesList) messagesList.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">جاري تحميل الرسائل...</p>';
-        chatInitialized = false;
-        lastKnownTimestamp = null;
-        unreadCount = 0;
-        updateNotificationBadge();
+        chatInitialized = false; lastKnownTimestamp = null; unreadCount = 0; updateNotificationBadge();
         
         unsubscribeChat = db.collection('messages').orderBy('timestamp','asc').onSnapshot(snapshot => {
             if (!messagesList) return;
             messagesList.innerHTML = '';
-            
-            if (snapshot.empty) {
-                messagesList.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">🎉 لا توجد رسائل بعد. كن أول من يكتب!</p>';
-            } else {
+            if (snapshot.empty) messagesList.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">🎉 لا توجد رسائل بعد. كن أول من يكتب!</p>';
+            else {
                 let hasNewMessages = false;
                 snapshot.forEach(doc => {
                     const m = doc.data();
                     const time = m.timestamp ? m.timestamp.toDate().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}) : '';
                     const isMe = m.senderEmail === currentUser?.email;
-                    
-                    // كشف الرسائل الجديدة بعد التحميل الأولي
-                    if (chatInitialized && lastKnownTimestamp && m.timestamp && m.timestamp.toMillis() > lastKnownTimestamp.toMillis() && !isMe) {
-                        hasNewMessages = true;
-                    }
-                    
+                    if (chatInitialized && lastKnownTimestamp && m.timestamp && m.timestamp.toMillis() > lastKnownTimestamp.toMillis() && !isMe) hasNewMessages = true;
                     const div = document.createElement('div');
                     div.className = 'message-item' + (isMe ? ' my-message' : '');
                     div.innerHTML = `<div class="sender">${escapeHtml(m.senderName || 'مستخدم')}</div><span class="time">${time}</span><span class="text">${escapeHtml(m.text)}</span>`;
                     messagesList.appendChild(div);
-
-                    // تحديث آخر وقت معروف
-                    if (m.timestamp && (!lastKnownTimestamp || m.timestamp.toMillis() > lastKnownTimestamp.toMillis())) {
-                        lastKnownTimestamp = m.timestamp;
-                    }
+                    if (m.timestamp && (!lastKnownTimestamp || m.timestamp.toMillis() > lastKnownTimestamp.toMillis())) lastKnownTimestamp = m.timestamp;
                 });
-
-                // تفعيل الإشعارات إذا وجدت رسائل جديدة وأنت خارج التبويب
-                if (hasNewMessages && !isTabActive) {
-                    unreadCount++;
-                    updateNotificationBadge();
-                    playNotificationSound();
-                    if (chatContainer) chatContainer.style.animation = 'flashBorder 1s ease-in-out';
-                }
+                if (hasNewMessages && !isTabActive) { unreadCount++; updateNotificationBadge(); playNotificationSound(); if (chatContainer) chatContainer.style.animation = 'flashBorder 1s ease-in-out'; }
             }
-            
             chatInitialized = true;
             if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
-            
         }, error => {
             console.error("❌ خطأ في الدردشة:", error);
-            if (messagesList) {
-                if (error.code === 'permission-denied') {
-                    messagesList.innerHTML = '<p style="color:#c00;text-align:center;padding:20px;">⚠️ صلاحية الوصول مرفوضة.<br>تأكد من تحديث Firestore Rules في Firebase Console.</p>';
-                } else {
-                    messagesList.innerHTML = `<p style="color:#c00;text-align:center;padding:20px;">❌ خطأ: ${error.message}</p>`;
-                }
-            }
+            if (messagesList) messagesList.innerHTML = `<p style="color:#c00;text-align:center;padding:20px;">❌ خطأ: ${error.message}</p>`;
         });
     }
 
-    // 📤 إرسال رسالة
     if (chatSendBtn) {
         chatSendBtn.addEventListener('click', async () => {
             const text = chatInput?.value.trim();
             if (!text || !currentUser) return;
-            
             chatSendBtn.disabled = true; chatSendBtn.textContent = '...';
             try {
-                await db.collection('messages').add({
-                    text,
-                    senderName: currentUser.displayName || currentUser.email.split('@')[0],
-                    senderEmail: currentUser.email,
-                    userId: currentUser.uid,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
+                await db.collection('messages').add({ text, senderName: currentUser.displayName || currentUser.email.split('@')[0], senderEmail: currentUser.email, userId: currentUser.uid, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
                 if (chatInput) chatInput.value = '';
-            } catch (err) {
-                alert('❌ فشل إرسال الرسالة');
-            } finally {
-                chatSendBtn.disabled = false; chatSendBtn.textContent = 'إرسال';
-            }
+            } catch (err) { alert('❌ فشل إرسال الرسالة'); }
+            finally { chatSendBtn.disabled = false; chatSendBtn.textContent = 'إرسال'; }
         });
-
-        if (chatInput) {
-            chatInput.addEventListener('keypress', e => {
-                if (e.key === 'Enter' && !chatSendBtn.disabled) chatSendBtn.click();
-            });
-        }
+        if (chatInput) chatInput.addEventListener('keypress', e => { if (e.key === 'Enter' && !chatSendBtn.disabled) chatSendBtn.click(); });
     }
 
-    // 🛡️ حماية من XSS
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.appendChild(document.createTextNode(text));
-        return div.innerHTML;
-    }
-
-    // 🌍 ترجمة أخطاء Firebase
-    function translateFirebaseError(code) {
-        const map = {
-            'auth/invalid-credential': 'البريد أو كلمة المرور غير صحيحة',
-            'auth/email-already-in-use': 'البريد مسجل مسبقاً',
-            'auth/invalid-email': 'صيغة البريد غير صحيحة',
-            'auth/user-not-found': 'البريد غير مسجل',
-            'auth/wrong-password': 'كلمة المرور غير صحيحة',
-            'auth/weak-password': 'كلمة المرور يجب أن تكون 6 أحرف على الأقل',
-            'auth/too-many-requests': 'محاولات كثيرة، انتظر قليلاً'
-        };
-        return map[code] || code;
-    }
+    function escapeHtml(text) { const div = document.createElement('div'); div.appendChild(document.createTextNode(text)); return div.innerHTML; }
+    function translateFirebaseError(code) { const map = { 'auth/invalid-credential': 'البريد أو كلمة المرور غير صحيحة', 'auth/email-already-in-use': 'البريد مسجل مسبقاً', 'auth/invalid-email': 'صيغة البريد غير صحيحة', 'auth/user-not-found': 'البريد غير مسجل', 'auth/wrong-password': 'كلمة المرور غير صحيحة', 'auth/weak-password': 'كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'auth/too-many-requests': 'محاولات كثيرة، انتظر قليلاً' }; return map[code] || code; }
 });
