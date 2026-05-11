@@ -10,12 +10,11 @@ document.addEventListener('DOMContentLoaded', function() {
         measurementId: "G-0BP0P4KWL8"
     };
 
-    // تهيئة Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // 🖥️ تعريف عناصر الواجهة
+    // 🖥️ عناصر الواجهة
     const loginSection = document.getElementById('login-section');
     const dashboardSection = document.getElementById('dashboard-section');
     const settingsSection = document.getElementById('settings-section');
@@ -46,6 +45,48 @@ document.addEventListener('DOMContentLoaded', function() {
     let unsubscribeChat = null;
     let isLoginMode = true;
 
+    // 🆕 متغيرات نظام الإشعارات
+    let unreadCount = 0;
+    let isTabActive = true;
+    let lastKnownTimestamp = null;
+    let chatInitialized = false;
+    const originalTitle = document.title;
+    const notificationSound = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA='); // صوت تنبيه خفيف
+
+    // 🎵 تشغيل صوت الإشعار
+    function playNotificationSound() {
+        try {
+            // إنشاء نغمة قصيرة باستخدام AudioContext (أكثر موثوقية من الملفات الخارجية)
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = 800;
+            gain.gain.value = 0.1;
+            osc.connect(gain).connect(ctx.destination);
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.3);
+            osc.stop(ctx.currentTime + 0.3);
+        } catch (e) { /* تجاهل أخطاء الصوت في المتصفحات القديمة */ }
+    }
+
+    // 📌 تحديث عنوان المتصفح وعداد الإشعارات
+    function updateNotificationBadge() {
+        document.title = unreadCount > 0 ? `(${unreadCount}) ${originalTitle}` : originalTitle;
+    }
+
+    // 🔍 مراقبة نشاط التبويب
+    document.addEventListener('visibilitychange', () => {
+        isTabActive = document.visibilityState === 'visible';
+        if (isTabActive && unreadCount > 0) {
+            unreadCount = 0;
+            updateNotificationBadge();
+            if (chatContainer) chatContainer.style.animation = '';
+        }
+    });
+
     // 🔁 مراقبة حالة المصادقة
     auth.onAuthStateChanged(user => {
         currentUser = user;
@@ -62,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (errorBar) errorBar.textContent = 'متصل بـ Firebase ✅';
             
             loadDashboardData(user.email);
-            initChat(); // تشغيل الدردشة
+            initChat();
         } else {
             loginSection.style.display = 'block';
             dashboardSection.style.display = 'none';
@@ -70,10 +111,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (navLogout) navLogout.style.display = 'none';
             if (chatInput) chatInput.disabled = true;
             if (chatSendBtn) chatSendBtn.disabled = true;
-            if (unsubscribeChat) unsubscribeChat(); // إيقاف المستمع
-            
+            if (unsubscribeChat) unsubscribeChat();
             if (errorBar) errorBar.textContent = 'جاهز...';
             if (messagesList) messagesList.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">سجّل الدخول لرؤية الرسائل</p>';
+            unreadCount = 0;
+            updateNotificationBadge();
         }
     });
 
@@ -185,10 +227,14 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch(e) { loginHistory.innerHTML = '<li>فشل تحميل البيانات</li>'; }
     }
 
-    // 💬 بدء الدردشة الفورية (النسخة المحدثة مع معالجة الأخطاء)
+    // 💬 بدء الدردشة الفورية + نظام الإشعارات
     function initChat() {
-        if (unsubscribeChat) unsubscribeChat(); // إيقاف أي مستمع سابق
+        if (unsubscribeChat) unsubscribeChat();
         if (messagesList) messagesList.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">جاري تحميل الرسائل...</p>';
+        chatInitialized = false;
+        lastKnownTimestamp = null;
+        unreadCount = 0;
+        updateNotificationBadge();
         
         unsubscribeChat = db.collection('messages').orderBy('timestamp','asc').onSnapshot(snapshot => {
             if (!messagesList) return;
@@ -197,21 +243,38 @@ document.addEventListener('DOMContentLoaded', function() {
             if (snapshot.empty) {
                 messagesList.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">🎉 لا توجد رسائل بعد. كن أول من يكتب!</p>';
             } else {
+                let hasNewMessages = false;
                 snapshot.forEach(doc => {
                     const m = doc.data();
                     const time = m.timestamp ? m.timestamp.toDate().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}) : '';
                     const isMe = m.senderEmail === currentUser?.email;
                     
+                    // كشف الرسائل الجديدة بعد التحميل الأولي
+                    if (chatInitialized && lastKnownTimestamp && m.timestamp && m.timestamp.toMillis() > lastKnownTimestamp.toMillis() && !isMe) {
+                        hasNewMessages = true;
+                    }
+                    
                     const div = document.createElement('div');
                     div.className = 'message-item' + (isMe ? ' my-message' : '');
-                    div.innerHTML = `
-                        <div class="sender">${escapeHtml(m.senderName || 'مستخدم')}</div>
-                        <span class="time">${time}</span>
-                        <span class="text">${escapeHtml(m.text)}</span>
-                    `;
+                    div.innerHTML = `<div class="sender">${escapeHtml(m.senderName || 'مستخدم')}</div><span class="time">${time}</span><span class="text">${escapeHtml(m.text)}</span>`;
                     messagesList.appendChild(div);
+
+                    // تحديث آخر وقت معروف
+                    if (m.timestamp && (!lastKnownTimestamp || m.timestamp.toMillis() > lastKnownTimestamp.toMillis())) {
+                        lastKnownTimestamp = m.timestamp;
+                    }
                 });
+
+                // تفعيل الإشعارات إذا وجدت رسائل جديدة وأنت خارج التبويب
+                if (hasNewMessages && !isTabActive) {
+                    unreadCount++;
+                    updateNotificationBadge();
+                    playNotificationSound();
+                    if (chatContainer) chatContainer.style.animation = 'flashBorder 1s ease-in-out';
+                }
             }
+            
+            chatInitialized = true;
             if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
             
         }, error => {
@@ -249,7 +312,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // إرسال بـ Enter
         if (chatInput) {
             chatInput.addEventListener('keypress', e => {
                 if (e.key === 'Enter' && !chatSendBtn.disabled) chatSendBtn.click();
