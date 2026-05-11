@@ -138,3 +138,9 @@ form input[type="submit"], form button { margin-top: 15px; padding: 4px 20px; ba
 }
 .msg-delete-btn:hover { opacity: 1; transform: scale(1.15); }
 @media (max-width: 768px) { .msg-delete-btn { opacity: 0.7; } }
+/* 📊 تنسيقات الإحصائيات المتقدمة والتصدير */
+.export-btn {
+    background: #16a34a; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; width: 100%;
+}
+.export-btn:hover { background: #15803d; transform: translateY(-2px); }
+.export-btn:disabled { background: #9ca3af; cursor: not-allowed; }
