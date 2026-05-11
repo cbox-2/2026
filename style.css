@@ -1,260 +1,132 @@
-/* إعادة تعيين أساسية */
+/* 🎨 متغيرات الألوان (الوضع الفاتري الافتراضي) */
+:root {
+    --bg-body: #fff;
+    --bg-card: #fff;
+    --bg-header: #f8f8f8;
+    --bg-topbar: #333;
+    --text-primary: #333;
+    --text-secondary: #666;
+    --border-color: #e2e8f0;
+    --input-bg: #fff;
+    --btn-bg: #2563eb;
+    --btn-text: #fff;
+    --notice-bg: #fff8e1;
+    --notice-text: #856404;
+    --chat-bg: #f8f9fa;
+    --msg-me: #e0f2fe;
+    --msg-other: #fff;
+    --shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* 🌙 متغيرات الوضع الليلي */
+[data-theme="dark"] {
+    --bg-body: #0f172a;
+    --bg-card: #1e293b;
+    --bg-header: #0f172a;
+    --bg-topbar: #020617;
+    --text-primary: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --border-color: #334155;
+    --input-bg: #0f172a;
+    --btn-bg: #3b82f6;
+    --btn-text: #fff;
+    --notice-bg: #451a03;
+    --notice-text: #fbbf24;
+    --chat-bg: #0f172a;
+    --msg-me: #1e3a8a;
+    --msg-other: #1e293b;
+    --shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+/* 🔄 انتقال سلس بين الأوضاع */
+* { transition: background-color 0.3s, color 0.3s, border-color 0.3s; }
+
+/* إعادة تعيين */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
     font-family: Tahoma, Arial, sans-serif;
     font-size: 12px;
-    background: #fff;
-    color: #333;
+    background: var(--bg-body);
+    color: var(--text-primary);
     direction: rtl;
     text-align: right;
     line-height: 1.4;
 }
 
-a { color: #0066cc; text-decoration: none; }
+a { color: var(--btn-bg); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
-/* الحاويات */
-.wrap {
-    width: 960px;
-    margin: 0 auto;
-    padding: 0 10px;
-}
+.wrap { width: 960px; margin: 0 auto; padding: 0 10px; }
 
-/* 🟦 الهيدر */
-#header {
-    background: #f8f8f8;
-    border-bottom: 1px solid #ddd;
-    padding: 10px 0;
-}
-
-#header .wrap {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-#logo img { display: block; }
-
+/* الهيدر */
+#header { background: var(--bg-header); border-bottom: 1px solid var(--border-color); padding: 10px 0; }
+#header .wrap { display: flex; justify-content: space-between; align-items: center; }
 #headerExtras { text-align: left; }
+#qlogin .txtbox { padding: 3px 5px; border: 1px solid var(--border-color); font-size: 11px; margin-left: 5px; background: var(--input-bg); color: var(--text-primary); }
+#qlogin input[type="submit"], #qlogin button { padding: 3px 10px; background: #f0f0f0; border: 1px solid #999; font-size: 11px; cursor: pointer; }
 
-#qlogin .txtbox {
-    padding: 3px 5px;
-    border: 1px solid #aaa;
-    font-size: 11px;
-    margin-left: 5px;
-}
-
-#qlogin input[type="submit"] {
-    padding: 3px 10px;
-    background: #f0f0f0;
-    border: 1px solid #999;
-    font-size: 11px;
-    cursor: pointer;
-}
-
-#qlogin input[type="submit"]:hover { background: #e0e0e0; }
-
-/* 🟩 شريط التنقل */
-#topbar {
-    background: #333;
-    padding: 5px 0;
-}
-
-#topbar .wrap { display: flex; align-items: center; }
+/* شريط التنقل */
+#topbar { background: var(--bg-topbar); padding: 5px 0; }
+#topbar .wrap { display: flex; align-items: center; flex-wrap: wrap; }
 .Spacer { flex: 1; }
-
-#topbar .button {
-    color: #fff !important;
-    padding: 4px 12px;
-    margin: 0 2px;
-    font-size: 11px;
-    border: 1px solid #555;
-    background: #444;
-}
-
+#topbar .button { color: #fff !important; padding: 4px 12px; margin: 0 2px; font-size: 11px; border: 1px solid #555; background: #444; cursor: pointer; }
 #topbar .button:hover { background: #555; text-decoration: none !important; }
 
-/* صورة عريضة */
-#wideimg {
-    height: 80px;
-    background: #e8f4f8;
-    border-bottom: 1px solid #ccc;
-}
+#wideimg { height: 80px; background: #e8f4f8; border-bottom: 1px solid #ccc; }
 
-/* 🟨 المحتوى الرئيسي */
+/* المحتوى */
 #main { padding: 20px 0; min-height: 400px; }
+#content h1 { font-size: 18px; color: var(--text-primary); margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+.notice { background: var(--notice-bg); border: 1px solid var(--border-color); color: var(--notice-text); padding: 8px 12px; margin-bottom: 15px; font-size: 12px; border-radius: 6px; }
 
-#content h1 {
-    font-size: 18px;
-    color: #000;
-    margin-bottom: 15px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-}
-
-.notice {
-    background: #fff8e1;
-    border: 1px solid #ffd54f;
-    color: #856404;
-    padding: 8px 12px;
-    margin-bottom: 15px;
-    font-size: 12px;
-}
-
-/* نموذج الدخول */
-form#auth-form fieldset,
-form[name="logmain"] fieldset {
-    border: 1px solid #ccc;
-    padding: 15px;
-    width: 400px;
-    margin-bottom: 15px;
-}
-
-form#auth-form legend,
-form[name="logmain"] legend {
-    font-weight: bold;
-    padding: 0 5px;
-    color: #000;
-}
-
-form#auth-form label,
-form[name="logmain"] label {
-    display: block;
-    margin: 10px 0 4px;
-    font-size: 12px;
-}
-
-form#auth-form .txtbox,
-form[name="logmain"] .txtbox {
-    width: 100%;
-    padding: 4px;
-    border: 1px solid #aaa;
-    font-size: 12px;
-}
-
-form#auth-form input[type="submit"],
-form[name="logmain"] input[type="submit"] {
-    margin-top: 15px;
-    padding: 4px 20px;
-    background: #f0f0f0;
-    border: 1px solid #999;
-    font-size: 12px;
-    cursor: pointer;
-}
-
-form#auth-form input[type="submit"]:hover,
-form[name="logmain"] input[type="submit"]:hover {
-    background: #e0e0e0;
-}
+/* النماذج */
+form fieldset { border: 1px solid var(--border-color); padding: 15px; width: 400px; margin-bottom: 15px; background: var(--bg-card); border-radius: 8px; }
+form legend { font-weight: bold; padding: 0 5px; color: var(--text-primary); }
+form label { display: block; margin: 10px 0 4px; font-size: 12px; }
+form .txtbox { width: 100%; padding: 4px; border: 1px solid var(--border-color); font-size: 12px; background: var(--input-bg); color: var(--text-primary); border-radius: 4px; }
+form input[type="submit"], form button { margin-top: 15px; padding: 4px 20px; background: #f0f0f0; border: 1px solid #999; font-size: 12px; cursor: pointer; border-radius: 4px; }
 
 #content p { margin: 8px 0; font-size: 12px; }
 
-/* 🟥 الفوتر */
-#footer {
-    background: #f5f5f5;
-    border-top: 1px solid #ddd;
-    padding: 15px 0;
-    text-align: center;
-    margin-top: 30px;
-}
+/* الفوتر */
+#footer { background: var(--bg-card); border-top: 1px solid var(--border-color); padding: 15px 0; text-align: center; margin-top: 30px; }
+#footer a { margin: 0 8px; font-size: 11px; color: var(--text-secondary) !important; }
+.verybottom { margin-top: 10px; font-size: 10px; color: var(--text-secondary); }
 
-#footer a { margin: 0 8px; font-size: 11px; color: #666 !important; }
-#footer a:hover { color: #0066cc !important; }
-.verybottom { margin-top: 10px; font-size: 10px; color: #999; }
+#siteErrorBar { background: var(--notice-bg); border-top: 1px solid var(--border-color); padding: 5px 0; text-align: center; font-size: 11px; color: var(--notice-text); }
+#mask { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; }
 
-/* شريط الأخطاء */
-#siteErrorBar {
-    background: #fff3cd;
-    border-top: 1px solid #ffc107;
-    padding: 5px 0;
-    text-align: center;
-    font-size: 11px;
-    color: #856404;
-}
+/* 📦 البطاقات والشبكة */
+.dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 20px; }
+.card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; box-shadow: var(--shadow); }
+.card h3 { margin-bottom: 10px; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 5px; }
+.card p, .card ul { font-size: 13px; line-height: 1.5; color: var(--text-secondary); }
+.btn-primary { padding: 4px 20px; background: var(--btn-bg); color: var(--btn-text); border: none; border-radius: 6px; cursor: pointer; font-weight: 500; }
+.btn-primary:hover { opacity: 0.9; }
 
-#mask {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5);
-    z-index: 999;
-}
-
-/* 🆕 تنسيقات لوحة التحكم */
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 15px;
-    margin-top: 20px;
-}
-.card {
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 15px;
-}
-.card h3 {
-    margin-bottom: 10px;
-    color: #1e293b;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 5px;
-}
-.card p, .card ul { font-size: 13px; line-height: 1.5; }
-#logout-btn { margin-top: 15px; }
-.btn-primary {
-    padding: 4px 20px;
-    background: #2563eb;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
-}
-.btn-primary:hover { background: #1d4ed8; }
-
-/* 📱 تجاوب الجوال */
-@media (max-width: 980px) {
-    .wrap { width: auto; padding: 0 15px; }
-    #header .wrap { flex-direction: column; gap: 10px; }
-    #qlogin .txtbox { width: 100%; margin: 2px 0; }
-    form#auth-form fieldset, form[name="logmain"] fieldset { width: 100%; }
-}
-/* 💬 تنسيقات الدردشة الفورية */
-.chat-box {
-    height: 300px;
-    background: #f8f9fa;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    overflow-y: auto;
-    padding: 10px;
-    margin-bottom: 10px;
-    scroll-behavior: smooth;
-}
-.message-item {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 8px 12px;
-    margin-bottom: 8px;
-    font-size: 13px;
-    position: relative;
-    animation: fadeIn 0.3s ease;
-}
-.message-item.my-message {
-    background: #e0f2fe;
-    border-color: #7dd3fc;
-    margin-left: 20px;
-}
-.message-item .sender { font-weight: bold; color: #2563eb; font-size: 12px; }
+/* 💬 الدردشة */
+.chat-box { height: 300px; background: var(--chat-bg); border: 1px solid var(--border-color); border-radius: 6px; overflow-y: auto; padding: 10px; margin-bottom: 10px; scroll-behavior: smooth; }
+.message-item { background: var(--msg-other); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; margin-bottom: 8px; font-size: 13px; position: relative; animation: fadeIn 0.3s ease; }
+.message-item.my-message { background: var(--msg-me); border-color: #7dd3fc; margin-left: 20px; }
+.message-item .sender { font-weight: bold; color: var(--btn-bg); font-size: 12px; }
 .message-item .time { font-size: 10px; color: #888; float: left; margin-top: 2px; }
 .message-item .text { display: block; margin-top: 4px; line-height: 1.4; word-wrap: break-word; }
 .chat-input-area { display: flex; gap: 8px; }
 .chat-input-area .txtbox { flex: 1; }
-.loading-msg { text-align: center; color: #888; padding: 20px; }
+.loading-msg { text-align: center; color: var(--text-secondary); padding: 20px; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes flashBorder {
-    0%, 100% { border-color: #e2e8f0; }
-    50% { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2); }
+@keyframes flashBorder { 0%, 100% { border-color: var(--border-color); } 50% { border-color: var(--btn-bg); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2); } }
+
+/* 📱 تحسين التجاوب مع الجوال */
+@media (max-width: 980px) {
+    .wrap { width: 100%; padding: 0 15px; }
+    #header .wrap { flex-direction: column; gap: 10px; align-items: stretch; }
+    #headerExtras, #qlogin { width: 100%; }
+    #qlogin .txtbox { width: 100%; margin: 4px 0; }
+    #qlogin button { width: 100%; }
+    #topbar .wrap { justify-content: center; gap: 4px; }
+    form fieldset { width: 100%; }
+    .dashboard-grid { grid-template-columns: 1fr; }
+    .chat-box { height: 250px; }
 }
