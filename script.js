@@ -14,6 +14,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const auth = firebase.auth();
     const db = firebase.firestore();
 
+    const ADMIN_EMAIL = 'admin@cbox.com'; // 🛡️ البريد الإداري
+
     // 🖥️ عناصر الواجهة
     const loginSection = document.getElementById('login-section');
     const dashboardSection = document.getElementById('dashboard-section');
@@ -51,15 +53,14 @@ document.addEventListener('DOMContentLoaded', function() {
     let chatInitialized = false;
     const originalTitle = document.title;
 
-    // 🌙 منطق الوضع الليلي
+    // 🌙 الوضع الليلي
     function applyTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('cbox-theme', theme);
         if (themeToggle) themeToggle.textContent = theme === 'dark' ? '☀️ وضع فاتح' : '🌙 وضع ليلي';
     }
     if (themeToggle) {
-        const savedTheme = localStorage.getItem('cbox-theme') || 'light';
-        applyTheme(savedTheme);
+        applyTheme(localStorage.getItem('cbox-theme') || 'light');
         themeToggle.addEventListener('click', () => {
             const current = document.documentElement.getAttribute('data-theme');
             applyTheme(current === 'dark' ? 'light' : 'dark');
@@ -71,8 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             if (!AudioContext) return;
-            const ctx = new AudioContext();
-            const osc = ctx.createOscillator(); const gain = ctx.createGain();
+            const ctx = new AudioContext(); const osc = ctx.createOscillator(); const gain = ctx.createGain();
             osc.type = 'sine'; osc.frequency.value = 800; gain.gain.value = 0.1;
             osc.connect(gain).connect(ctx.destination); osc.start();
             gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.3);
@@ -133,9 +133,7 @@ document.addEventListener('DOMContentLoaded', function() {
             finally { authBtn.disabled = false; authBtn.textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب'; }
         });
     }
-    if (qLoginBtn) {
-        qLoginBtn.addEventListener('click', async () => { const qEmail = document.getElementById('q-email')?.value.trim(); const qPass = document.getElementById('q-pass')?.value.trim(); if (!qEmail || !qPass) return alert('⚠️ املأ حقول الهيدر'); try { await auth.signInWithEmailAndPassword(qEmail, qPass); } catch (err) { alert('❌ ' + translateFirebaseError(err.code)); } });
-    }
+    if (qLoginBtn) { qLoginBtn.addEventListener('click', async () => { const qEmail = document.getElementById('q-email')?.value.trim(); const qPass = document.getElementById('q-pass')?.value.trim(); if (!qEmail || !qPass) return alert('⚠️ املأ حقول الهيدر'); try { await auth.signInWithEmailAndPassword(qEmail, qPass); } catch (err) { alert('❌ ' + translateFirebaseError(err.code)); } }); }
     if (resetLink) { resetLink.addEventListener('click', async e => { e.preventDefault(); const email = prompt('أدخل بريدك الإلكتروني لاستعادة كلمة المرور:'); if (email) { try { await auth.sendPasswordResetEmail(email); alert('✅ تم إرسال رابط الاستعادة'); } catch (err) { alert('❌ ' + err.message); } } }); }
     const doLogout = () => auth.signOut();
     if (logoutBtn) logoutBtn.onclick = doLogout;
@@ -144,39 +142,30 @@ document.addEventListener('DOMContentLoaded', function() {
     if (backToDash) backToDash.onclick = e => { e.preventDefault(); settingsSection.style.display='none'; dashboardSection.style.display='block'; };
     if (saveSettingsBtn) { saveSettingsBtn.addEventListener('click', async () => { const newName = settingsName?.value.trim(); if (!newName) return alert('⚠️ الاسم مطلوب'); try { await auth.currentUser.updateProfile({ displayName: newName }); await db.collection('users').doc(auth.currentUser.uid).update({ displayName: newName }); if (userDisplay) userDisplay.textContent = newName; alert('✅ تم حفظ التغييرات'); } catch (err) { alert('❌ ' + err.message); } }); }
 
-    // 📊 تحميل بيانات اللوحة (مُصلح ليعمل بدون فهرس مركب)
+    // 📊 تحميل بيانات اللوحة
     async function loadDashboardData(email) {
         if (!loginHistory) return;
         loginHistory.innerHTML = '<li>جاري التحميل...</li>';
         try {
-            // جلب أحدث الجلسات وتصفيتها يدوياً لتجنب خطأ الفهرس المركب في Firestore
             const snap = await db.collection('sessions').orderBy('timestamp', 'desc').limit(50).get();
             const userSessions = snap.docs.filter(doc => doc.data().email === email).slice(0, 5);
-
-            if (userSessions.length === 0) {
-                loginHistory.innerHTML = '<li>لا توجد جلسات سابقة</li>';
-            } else {
+            if (userSessions.length === 0) loginHistory.innerHTML = '<li>لا توجد جلسات سابقة</li>';
+            else {
                 let html = '';
-                userSessions.forEach(doc => {
-                    const d = doc.data();
-                    const t = d.timestamp ? d.timestamp.toDate().toLocaleString('ar-EG') : 'غير معروف';
-                    html += `<li>🟢 دخول في: ${t}</li>`;
-                });
+                userSessions.forEach(doc => { const d = doc.data(); const t = d.timestamp ? d.timestamp.toDate().toLocaleString('ar-EG') : 'غير معروف'; html += `<li>🟢 دخول في: ${t}</li>`; });
                 loginHistory.innerHTML = html;
                 if (sessionCount) sessionCount.textContent = userSessions.length;
                 if (lastLogin) lastLogin.textContent = userSessions[0].data().timestamp.toDate().toLocaleString('ar-EG');
             }
-        } catch(e) {
-            console.error("خطأ تحميل الجلسات:", e);
-            loginHistory.innerHTML = '<li>فشل التحميل (تحقق من Console)</li>';
-        }
+        } catch(e) { loginHistory.innerHTML = '<li>فشل التحميل</li>'; }
     }
 
-    // 💬 الدردشة
+    // 💬 الدردشة + نظام الحذف
     function initChat() {
         if (unsubscribeChat) unsubscribeChat();
         if (messagesList) messagesList.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">جاري تحميل الرسائل...</p>';
         chatInitialized = false; lastKnownTimestamp = null; unreadCount = 0; updateNotificationBadge();
+        
         unsubscribeChat = db.collection('messages').orderBy('timestamp','asc').onSnapshot(snapshot => {
             if (!messagesList) return;
             messagesList.innerHTML = '';
@@ -187,10 +176,27 @@ document.addEventListener('DOMContentLoaded', function() {
                     const m = doc.data();
                     const time = m.timestamp ? m.timestamp.toDate().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}) : '';
                     const isMe = m.senderEmail === currentUser?.email;
+                    const isAdmin = currentUser?.email === ADMIN_EMAIL;
                     if (chatInitialized && lastKnownTimestamp && m.timestamp && m.timestamp.toMillis() > lastKnownTimestamp.toMillis() && !isMe) hasNewMessages = true;
+                    
                     const div = document.createElement('div');
                     div.className = 'message-item' + (isMe ? ' my-message' : '');
                     div.innerHTML = `<div class="sender">${escapeHtml(m.senderName || 'مستخدم')}</div><span class="time">${time}</span><span class="text">${escapeHtml(m.text)}</span>`;
+                    
+                    // 🗑️ زر الحذف (يظهر لصاحب الرسالة أو الأدمن فقط)
+                    if (isMe || isAdmin) {
+                        const delBtn = document.createElement('button');
+                        delBtn.className = 'msg-delete-btn';
+                        delBtn.textContent = '🗑️';
+                        delBtn.title = 'حذف الرسالة';
+                        delBtn.onclick = async () => {
+                            if (confirm('هل تريد حذف هذه الرسالة نهائياً؟')) {
+                                try { await db.collection('messages').doc(doc.id).delete(); } 
+                                catch (err) { alert('❌ فشل الحذف: ' + err.message); }
+                            }
+                        };
+                        div.appendChild(delBtn);
+                    }
                     messagesList.appendChild(div);
                     if (m.timestamp && (!lastKnownTimestamp || m.timestamp.toMillis() > lastKnownTimestamp.toMillis())) lastKnownTimestamp = m.timestamp;
                 });
@@ -201,6 +207,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, error => { console.error("❌ خطأ في الدردشة:", error); if (messagesList) messagesList.innerHTML = `<p style="color:#c00;text-align:center;padding:20px;">❌ خطأ: ${error.message}</p>`; });
     }
 
+    // 📤 إرسال رسالة
     if (chatSendBtn) {
         chatSendBtn.addEventListener('click', async () => {
             const text = chatInput?.value.trim();
