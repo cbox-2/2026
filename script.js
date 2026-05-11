@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 🔑 إعدادات Firebase
+    // 🔑 إعدادات Firebase (تأكد من مطابقتها لمشروعك)
     const firebaseConfig = {
         apiKey: "AIzaSyD_UssZllzECYbTMR_0NCTzEGAIMeZAcos",
         authDomain: "cbox22026.firebaseapp.com",
@@ -14,11 +14,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // 🖥️ عناصر الواجهة
+    // 🖥️ تعريف عناصر الواجهة
     const loginSection = document.getElementById('login-section');
     const dashboardSection = document.getElementById('dashboard-section');
     const settingsSection = document.getElementById('settings-section');
-    const authForm = document.getElementById('auth-form');
     const emailInput = document.getElementById('email-input');
     const passInput = document.getElementById('pass-input');
     const authBtn = document.getElementById('auth-btn');
@@ -36,13 +35,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const loginHistory = document.getElementById('login-history');
     const sessionCount = document.getElementById('session-count');
     const lastLogin = document.getElementById('last-login');
-    const settingsForm = document.getElementById('settings-form');
     const settingsName = document.getElementById('settings-name');
     const saveSettingsBtn = document.getElementById('save-settings-btn');
+    const qLoginBtn = document.getElementById('q-login-btn');
 
     let isLoginMode = true;
 
-    // 🔁 مراقبة حالة المصادقة + حماية الصفحات
+    // 🔁 مراقبة حالة المصادقة + حماية الأقسام
     auth.onAuthStateChanged(user => {
         if (user) {
             loginSection.style.display = 'none';
@@ -50,7 +49,6 @@ document.addEventListener('DOMContentLoaded', function() {
             settingsSection.style.display = 'none';
             navLogout.style.display = 'inline-block';
             
-            // عرض الاسم من Firebase أو من Firestore
             userDisplay.textContent = user.displayName || user.email.split('@')[0];
             settingsName.value = user.displayName || '';
             
@@ -75,55 +73,46 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             isLoginMode = !isLoginMode;
             formTitle.textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب جديد';
-            authBtn.value = isLoginMode ? 'تسجيل الدخول' : 'إنشاء الحساب';
+            authBtn.textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب';
             toggleText.innerHTML = isLoginMode 
                 ? 'ليس لديك حساب؟ <a href="#" id="toggle-auth">إنشاء حساب جديد</a>'
                 : 'لديك حساب بالفعل؟ <a href="#" id="toggle-auth">تسجيل الدخول</a>';
             document.getElementById('toggle-auth').onclick = arguments.callee;
         });
     }
-// 🔐 معالجة الدخول/التسجيل (زر عادي لا يرسل النموذج)
-const authBtn = document.getElementById('auth-btn');
-if (authBtn) {
-    authBtn.addEventListener('click', async function(e) {
-        e.preventDefault(); // حاجز إضافي للأمان
-        const email = document.getElementById('email-input').value.trim();
-        const pass = document.getElementById('pass-input').value.trim();
-        
-        if (!email || !pass) return alert('⚠️ يرجى ملء جميع الحقول.');
 
-        authBtn.disabled = true; 
-        authBtn.textContent = 'جاري المعالجة...';
-        document.getElementById('siteErrorBarCont').textContent = 'جاري الاتصال بـ Firebase...';
-
-        try {
-            if (isLoginMode) {
-                await auth.signInWithEmailAndPassword(email, pass);
-                document.getElementById('siteErrorBarCont').textContent = 'تم الدخول بنجاح ✅';
-            } else {
-                await auth.createUserWithEmailAndPassword(email, pass);
-                await db.collection('users').doc(auth.currentUser.uid).set({
-                    email: email,
-                    displayName: email.split('@')[0],
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                document.getElementById('siteErrorBarCont').textContent = 'تم إنشاء الحساب وتسجيل الدخول ✅';
+    // 🔐 زر الدخول / التسجيل الرئيسي
+    if (authBtn) {
+        authBtn.addEventListener('click', async e => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const email = emailInput ? emailInput.value.trim() : '';
+            const pass = passInput ? passInput.value.trim() : '';
+            
+            if (!email.includes('@')) {
+                alert('⚠️ Firebase يتطلب بريد إلكتروني صحيح.\nمثال: admin@cbox.com');
+                return;
             }
-            // تسجيل الجلسة
-            await db.collection('sessions').add({
-                userId: auth.currentUser.uid,
-                email: email,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        } catch (err) {
-            alert('❌ ' + translateFirebaseError(err.code));
-            document.getElementById('siteErrorBarCont').textContent = 'حدث خطأ';
-        } finally {
-            authBtn.disabled = false;
-            authBtn.textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب';
-        }
-    });
-}
+            if (!email || !pass) return alert('⚠️ يرجى ملء جميع الحقول.');
+
+            authBtn.disabled = true; 
+            authBtn.textContent = 'جاري المعالجة...';
+            errorBar.textContent = 'جاري الاتصال بـ Firebase...';
+
+            try {
+                if (isLoginMode) {
+                    await auth.signInWithEmailAndPassword(email, pass);
+                    errorBar.textContent = 'تم الدخول بنجاح ✅';
+                } else {
+                    await auth.createUserWithEmailAndPassword(email, pass);
+                    await db.collection('users').doc(auth.currentUser.uid).set({
+                        email: email,
+                        displayName: email.split('@')[0],
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    errorBar.textContent = 'تم إنشاء الحساب وتسجيل الدخول ✅';
+                }
                 await db.collection('sessions').add({
                     userId: auth.currentUser.uid,
                     email: email,
@@ -134,7 +123,22 @@ if (authBtn) {
                 errorBar.textContent = 'حدث خطأ';
             } finally {
                 authBtn.disabled = false;
-                authBtn.value = isLoginMode ? 'تسجيل الدخول' : 'إنشاء الحساب';
+                authBtn.textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب';
+            }
+        });
+    }
+
+    // 🔑 تسجيل الدخول السريع من الهيدر
+    if (qLoginBtn) {
+        qLoginBtn.addEventListener('click', async () => {
+            const qEmail = document.getElementById('q-email').value.trim();
+            const qPass = document.getElementById('q-pass').value.trim();
+            if (!qEmail || !qPass) return alert('⚠️ يرجى ملء حقول الهيدر');
+            try {
+                await auth.signInWithEmailAndPassword(qEmail, qPass);
+                errorBar.textContent = 'تم الدخول عبر الهيدر ✅';
+            } catch (err) {
+                alert('❌ ' + translateFirebaseError(err.code));
             }
         });
     }
@@ -160,29 +164,18 @@ if (authBtn) {
     if (navLogout) navLogout.addEventListener('click', handleLogout);
 
     // ⚙️ التنقل بين الأقسام
-    if (navSettings) {
-        navSettings.addEventListener('click', e => {
-            e.preventDefault();
-            dashboardSection.style.display = 'none';
-            settingsSection.style.display = 'block';
-        });
-    }
-    if (backToDash) {
-        backToDash.addEventListener('click', e => {
-            e.preventDefault();
-            settingsSection.style.display = 'none';
-            dashboardSection.style.display = 'block';
-        });
-    }
+    if (navSettings) navSettings.addEventListener('click', e => { e.preventDefault(); dashboardSection.style.display='none'; settingsSection.style.display='block'; });
+    if (backToDash) backToDash.addEventListener('click', e => { e.preventDefault(); settingsSection.style.display='none'; dashboardSection.style.display='block'; });
+    if (document.getElementById('nav-home')) document.getElementById('nav-home').addEventListener('click', e => { e.preventDefault(); settingsSection.style.display='none'; dashboardSection.style.display='block'; });
 
     // 💾 حفظ الإعدادات
-    if (settingsForm) {
-        settingsForm.addEventListener('submit', async e => {
+    if (saveSettingsBtn) {
+        saveSettingsBtn.addEventListener('click', async e => {
             e.preventDefault();
             const newName = settingsName.value.trim();
             if (!newName) return alert('⚠️ الاسم لا يمكن أن يكون فارغاً.');
             
-            saveSettingsBtn.disabled = true; saveSettingsBtn.value = 'جاري الحفظ...';
+            saveSettingsBtn.disabled = true; saveSettingsBtn.textContent = 'جاري الحفظ...';
             try {
                 await auth.currentUser.updateProfile({ displayName: newName });
                 await db.collection('users').doc(auth.currentUser.uid).update({ displayName: newName });
@@ -191,12 +184,12 @@ if (authBtn) {
             } catch (err) {
                 alert('❌ فشل الحفظ: ' + err.message);
             } finally {
-                saveSettingsBtn.disabled = false; saveSettingsBtn.value = 'حفظ التغييرات';
+                saveSettingsBtn.disabled = false; saveSettingsBtn.textContent = 'حفظ التغييرات';
             }
         });
     }
 
-    // 📊 تحميل بيانات اللوحة
+    // 📊 تحميل بيانات اللوحة من Firestore
     async function loadDashboardData(email) {
         if (!loginHistory) return;
         loginHistory.innerHTML = '<li>جاري التحميل...</li>';
@@ -228,7 +221,7 @@ if (authBtn) {
         }
     }
 
-    // 🌍 ترجمة أخطاء Firebase
+    // 🌍 ترجمة أخطاء Firebase للعربية
     function translateFirebaseError(code) {
         const map = {
             'auth/email-already-in-use': 'البريد مسجل مسبقاً',
