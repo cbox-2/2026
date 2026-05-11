@@ -130,3 +130,11 @@ form input[type="submit"], form button { margin-top: 15px; padding: 4px 20px; ba
     .dashboard-grid { grid-template-columns: 1fr; }
     .chat-box { height: 250px; }
 }
+/* 🗑️ زر حذف الرسائل */
+.message-item { position: relative; padding-left: 30px; }
+.msg-delete-btn {
+    position: absolute; left: 8px; top: 8px;
+    background: none; border: none; cursor: pointer; font-size: 14px; opacity: 0.4; transition: 0.2s; padding: 0;
+}
+.msg-delete-btn:hover { opacity: 1; transform: scale(1.15); }
+@media (max-width: 768px) { .msg-delete-btn { opacity: 0.7; } }
