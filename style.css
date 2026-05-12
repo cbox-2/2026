@@ -29,15 +29,21 @@ a { color: var(--btn-bg); text-decoration: none; } a:hover { text-decoration: un
 #topbar .button { color: #fff !important; padding: 4px 12px; margin: 0 2px; font-size: 11px; border: 1px solid #555; background: #444; cursor: pointer; }
 #topbar .button:hover { background: #555; text-decoration: none !important; }
 
-/* 📋 شريط القوائم الفرعية */
-#bar3 { background: var(--bg-bar3); border-bottom: 1px solid var(--border-color); border-top: 1px solid #ccc; padding: 4px 0; }
-#hovmenu { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
-#hovmenu .sublink { display: flex; align-items: center; gap: 6px; padding: 5px 12px; color: var(--text-primary) !important; font-size: 11px; text-decoration: none !important; border: 1px solid transparent; border-radius: 3px; transition: 0.2s; cursor: pointer; }
-#hovmenu .sublink:hover { background: #e0e0e0; border-color: #bbb; }
-#hovmenu .sublink.active { background: #d4e6f1; border-color: #7fb3d5; font-weight: bold; color: #000 !important; }
-#hovmenu .submenuimg { display: inline-block; width: 16px; height: 16px; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="220" height="200"><rect x="198" y="0" width="16" height="16" fill="%23dc2626"/><rect x="0" y="44" width="16" height="16" fill="%2316a34a"/><rect x="0" y="22" width="16" height="16" fill="%23f59e0b"/><rect x="22" y="22" width="16" height="16" fill="%233b82f6"/><rect x="0" y="178" width="16" height="16" fill="%238b5cf6"/></svg>'); background-repeat: no-repeat; flex-shrink: 0; }
-[data-theme="dark"] #hovmenu .sublink:hover { background: #334155; }
-[data-theme="dark"] #hovmenu .sublink.active { background: #1e3a8a; border-color: #3b82f6; }
+/* 📋 القائمة المنسدلة الجديدة */
+#bar3 { background: var(--bg-bar3); border-bottom: 1px solid var(--border-color); border-top: 1px solid #ccc; padding: 4px 0; position: relative; }
+.dropdown-container { position: relative; display: inline-block; }
+.dropdown-btn { display: flex; align-items: center; gap: 6px; padding: 5px 12px; background: transparent; border: 1px solid transparent; border-radius: 3px; cursor: pointer; font-size: 11px; color: var(--text-primary); }
+.dropdown-btn:hover { background: #e0e0e0; border-color: #bbb; }
+.dropdown-arrow { font-size: 8px; margin-right: 4px; transition: transform 0.2s; }
+.dropdown-content { display: none; position: absolute; top: 100%; right: 0; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; box-shadow: var(--shadow); min-width: 180px; z-index: 100; padding: 5px 0; margin-top: 5px; }
+.dropdown-content.show { display: block; animation: fadeInDrop 0.2s ease; }
+@keyframes fadeInDrop { from { opacity:0; transform:translateY(-5px); } to { opacity:1; transform:translateY(0); } }
+.dropdown-content .sublink { display: flex; align-items: center; gap: 8px; padding: 7px 12px; color: var(--text-primary) !important; font-size: 11px; text-decoration: none !important; }
+.dropdown-content .sublink:hover { background: #e0e0e0; }
+.dropdown-content .sublink.active { background: #d4e6f1; font-weight: bold; }
+[data-theme="dark"] .dropdown-btn:hover { background: #334155; }
+[data-theme="dark"] .dropdown-content .sublink:hover { background: #334155; }
+[data-theme="dark"] .dropdown-content .sublink.active { background: #1e3a8a; color: #fff !important; }
 
 #wideimg { height: 80px; background: #e8f4f8; border-bottom: 1px solid #ccc; }
 
@@ -84,7 +90,6 @@ form button { margin-top: 15px; padding: 4px 20px; background: #f0f0f0; border: 
 .export-btn:hover { background: #15803d; transform: translateY(-2px); }
 .export-btn:disabled { background: #9ca3af; cursor: not-allowed; }
 
-/* 📋 تنسيقات الصفحات الفرعية */
 .subpage { margin-top: 10px; }
 .subpage h2 { font-size: 16px; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
 .back-link { display: inline-block; margin-top: 15px; color: var(--btn-bg); cursor: pointer; font-size: 12px; }
@@ -97,9 +102,9 @@ form button { margin-top: 15px; padding: 4px 20px; background: #f0f0f0; border: 
     #qlogin .txtbox { width: 100%; margin: 4px 0; }
     #qlogin button { width: 100%; }
     #topbar .wrap { justify-content: center; gap: 4px; }
-    #hovmenu { justify-content: center; }
     form fieldset { width: 100%; }
     .dashboard-grid { grid-template-columns: 1fr; }
     .chat-box { height: 250px; }
     .msg-delete-btn { opacity: 0.7; }
+    .dropdown-content { width: 100%; right: auto; left: 0; }
 }
