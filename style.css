@@ -70,3 +70,20 @@ footer { text-align: center; padding: 20px; font-size: 11px; color: #64748b; bor
     fieldset { width: 100%; }
     .chat-input { flex-direction: column; }
 }
+/* ... (نفس الـ CSS السابق) ... */
+
+/* دعم القوائم المنسدلة الإضافية */
+#subbar .wrap { gap: 5px; }
+.dropdown { position: relative; cursor: pointer; padding: 5px 10px; font-size: 11px; background: transparent; border: 1px solid transparent; border-radius: 4px; }
+.dropdown:hover { background: #e2e8f0; }
+.dropdown-content { display: none; position: absolute; top: 100%; right: 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 180px; z-index: 1000; padding: 4px 0; margin-top: 2px; }
+.dropdown-content.show { display: block; animation: slideDown 0.2s ease; }
+@keyframes slideDown { from { opacity:0; transform:translateY(-8px) } to { opacity:1; transform:translateY(0) } }
+.dropdown-content a { display: block; padding: 7px 14px; font-size: 11px; color: #334155; }
+.dropdown-content a:hover { background: #f1f5f9; color: #2563eb; }
+
+/* تحسينات إضافية للجوال */
+@media (max-width: 768px) {
+    #subbar .wrap { flex-wrap: wrap; justify-content: center; }
+    .dropdown-content { width: 100%; right: auto; left: 0; }
+}
