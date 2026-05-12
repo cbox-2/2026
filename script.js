@@ -1,58 +1,219 @@
-console.log("🚀 بدء النظام...");
-const $=id=>document.getElementById(id);
-let auth,db,user,unsub,isLogin=true;
+console.log("✅ النظام يبدأ...");
 
-// تهيئة آمنة
-function init() {
+// عناصر الصفحة
+const $ = id => document.getElementById(id);
+let isLoggedIn = false;
+let isLoginMode = true;
+
+// التنقل بين الأقسام
+window.showSection = function(name) {
+    console.log("🔀 الانتقال إلى:", name);
+    // إخفاء كل الأقسام
+    ['login-section', 'dashboard-section', 'publish-section', 'mailbox-section', 'settings-section', 'subpage-section'].forEach(id => {
+        const el = $(id);
+        if (el) el.style.display = 'none';
+    });
+    // عرض القسم المطلوب
+    const target = $(name);
+    if (target) {
+        target.style.display = 'block';
+        console.log("✅ عرض:", name);
+    }
+    // إغلاق القائمة المنسدلة
+    const menu = $('menuContent');
+    if (menu) menu.classList.remove('show');
+};
+
+// تبديل وضع تسجيل الدخول/إنشاء حساب
+window.toggleMode = function() {
+    isLoginMode = !isLoginMode;
+    const btn = $('loginBtn');
+    const form = $('loginForm');
+    if (btn) btn.textContent = isLoginMode ? 'دخول' : 'إنشاء حساب';
+    if (form) form.querySelector('legend').textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب جديد';
+    alert(isLoginMode ? "✓ وضع: تسجيل الدخول" : "✓ وضع: إنشاء حساب");
+};
+
+// معالجة تسجيل الدخول
+window.handleLogin = function(e) {
+    e.preventDefault();
+    const email = $('email')?.value.trim();
+    const password = $('password')?.value.trim();
+    const btn = $('loginBtn');
+    
+    if (!email || !password) {
+        alert("⚠️ يرجى ملء جميع الحقول");
+        return;
+    }
+    if (!email.includes('@')) {
+        alert("⚠️ أدخل بريد إلكتروني صحيح");
+        return;
+    }
+    
+    // محاكاة تسجيل الدخول
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'جاري...';
+    }
+    
+    setTimeout(() => {
+        isLoggedIn = true;
+        const name = email.split('@')[0];
+        if ($('userName')) $('userName').textContent = name;
+        if ($('userEmail')) $('userEmail').textContent = email;
+        showSection('dashboard-section');
+        alert("✅ تم تسجيل الدخول بنجاح!\nمرحباً، " + name);
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = isLoginMode ? 'دخول' : 'إنشاء حساب';
+        }
+        console.log("✅ مستخدم مسجل:", email);
+    }, 500);
+};
+
+// تسجيل الخروج
+window.logout = function() {
+    isLoggedIn = false;
+    showSection('login-section');
+    if ($('userEmail')) $('userEmail').textContent = 'user@example.com';
+    alert("✅ تم تسجيل الخروج");
+    console.log("🚪 تم تسجيل الخروج");
+};
+
+// إرسال رسالة في الدردشة
+window.sendMessage = function() {
+    const input = $('chatInput');
+    const text = input?.value.trim();
+    const messages = $('messages');
+    
+    if (!text || !messages) return;
+    
+    // إضافة الرسالة
+    const div = document.createElement('div');
+    div.className = 'message me';
+    const time = new Date().toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'});
+    div.innerHTML = `<span class="sender">أنت</span><span class="time">${time}</span><span class="text">${text}</span>`;
+    messages.appendChild(div);
+    
+    // مسح الحقل والتمرير للأسفل
+    if (input) input.value = '';
+    messages.scrollTop = messages.scrollHeight;
+    
+    // رد تلقائي بعد ثانية
+    setTimeout(() => {
+        const reply = document.createElement('div');
+        reply.className = 'message';
+        reply.innerHTML = `<span class="sender">النظام</span><span class="time">${new Date().toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'})}</span><span class="text">تم استلام رسالتك! ✅</span>`;
+        messages.appendChild(reply);
+        messages.scrollTop = messages.scrollHeight;
+    }, 1000);
+    
+    console.log("💬 رسالة مرسلة:", text);
+};
+
+// تبديل كود التضمين
+window.switchCode = function() {
+    const type = $('codeType')?.value || 'inline';
+    const box = $('codeBox');
+    if (!box) return;
+    
+    if (type === 'inline') {
+        box.value = '<iframe src="https://example.com/chat" width="400" height="400" frameborder="0"></iframe>';
+    } else {
+        box.value = '<a href="#" onclick="openChat()">افتح الدردشة المنبثقة</a>\n<script>\nfunction openChat(){window.open("https://example.com/chat","Chat","width=400,height=400");}\n</script>';
+    }
+    console.log("🔄 تم تبديل الكود إلى:", type);
+};
+
+// نسخ الكود
+window.copyCode = function() {
+    const box = $('codeBox');
+    if (!box) return;
+    
+    box.select();
+    box.setSelectionRange(0, 99999); // للجوال
+    
     try {
-        if (!window.firebase) return console.warn("⏳ انتظار Firebase...");
-        firebase.initializeApp({
-            apiKey:"AIzaSyD_UssZllzECYbTMR_0NCTzEGAIMeZAcos",
-            authDomain:"cbox22026.firebaseapp.com",
-            projectId:"cbox22026",
-            storageBucket:"cbox22026.firebasestorage.app",
-            messagingSenderId:"175894881657",
-            appId:"1:175894881657:web:ae5e693d843ee594eb7ba8"
+        document.execCommand('copy');
+        alert("✅ تم نسخ الكود إلى الحافظة!");
+        console.log("📋 تم نسخ الكود");
+    } catch (err) {
+        alert("اضغط على الكود ثم اضغط Ctrl+C (أو Cmd+C على Mac) للنسخ");
+    }
+};
+
+// تحديث إحصائيات صندوق البريد
+window.refreshStats = function() {
+    const views = Math.floor(Math.random() * 5000) + 10000;
+    const msgs = Math.floor(Math.random() * 1000) + 2000;
+    const percent = Math.min(100, Math.max(10, msgs / 50));
+    
+    if ($('views')) $('views').textContent = views.toLocaleString('ar-EG');
+    if ($('msgs')) $('msgs').textContent = msgs.toLocaleString('ar-EG');
+    if ($('progress')) $('progress').style.width = percent + '%';
+    
+    alert(`✅ تم التحديث!\n👁️ المشاهدات: ${views.toLocaleString('ar-EG')}\n💬 الرسائل: ${msgs.toLocaleString('ar-EG')}`);
+    console.log("📊 إحصائيات محدثة:", { views, msgs, percent });
+};
+
+// حفظ الإعدادات
+window.saveSettings = function() {
+    const name = $('displayName')?.value.trim();
+    if (!name) {
+        alert("⚠️ يرجى إدخال اسم");
+        return;
+    }
+    if ($('userName')) $('userName').textContent = name;
+    alert("✅ تم حفظ الاسم: " + name);
+    console.log("⚙️ تم حفظ الاسم:", name);
+};
+
+// عرض الصفحات الفرعية
+window.showSubPage = function(page) {
+    showSection('subpage-section');
+    const content = $('subpage-section');
+    if (!content) return;
+    
+    const pages = {
+        'messages': '<div class="card"><h3>📩 إدارة الرسائل</h3><p>لا توجد رسائل جديدة حالياً.</p><p style="margin-top:10px"><a onclick="showSection(\'dashboard-section\');return false">← العودة</a></p></div>',
+        'archive': '<div class="card"><h3>🗄️ الأرشيف</h3><p>الأرشيف فارغ.</p><p style="margin-top:10px"><a onclick="showSection(\'dashboard-section\');return false">← العودة</a></p></div>'
+    };
+    
+    content.innerHTML = pages[page] || '<p>صفحة غير متوفرة</p>';
+    console.log("📄 عرض صفحة:", page);
+};
+
+// اختبار النظام
+window.testJS = function() {
+    const now = new Date().toLocaleString('ar-EG');
+    const result = $('testResult');
+    if (result) {
+        result.innerHTML = `✅ النظام يعمل!<br>⏰ ${now}<br>👤 ${isLoggedIn ? $('userEmail')?.textContent : 'غير مسجل'}`;
+    }
+    alert(`✅ الجافاسكربت يعمل!\nالوقت: ${now}`);
+    console.log("🧪 اختبار ناجح - الوقت:", now);
+};
+
+// القائمة المنسدلة
+document.addEventListener('DOMContentLoaded', function() {
+    const menuBtn = $('menuBtn');
+    const menuContent = $('menuContent');
+    
+    if (menuBtn && menuContent) {
+        menuBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            menuContent.classList.toggle('show');
+            console.log("📋 القائمة:", menuContent.classList.contains('show') ? 'فتحت' : 'أغلقت');
         });
-        auth=firebase.auth(); db=firebase.firestore();
-        console.log("✅ Firebase جاهز");
-        auth.onAuthStateChanged(u=>{ user=u; u?show('dash'):show('login'); if(u)startChat(); });
-    } catch(e){ console.error("❌ Firebase:",e); }
-}
-
-// التنقل
-window.go=name=>{ if(!user&&name!=='login'){alert("⚠️ سجل الدخول أولاً");return show('login')} show(name) };
-function show(n){ ['login','dash','pub','mail','set','sub'].forEach(id=>{const e=$(id);if(e)e.style.display='none'}); const s=$(n); if(s)s.style.display='block'; console.log("🔀 إلى:",n) }
-
-// المصادقة
-window.auth=e=>{ e.preventDefault(); const em=$( 'em').value.trim(), pw=$('pw').value.trim(); if(!em||!pw||!em.includes('@'))return alert("⚠️ بيانات غير صحيحة"); const b=$('authBtn'); b.disabled=true; b.textContent='جاري...'; loadFirebase(async()=>{ try{ isLogin?await auth.signInWithEmailAndPassword(em,pw):(await auth.createUserWithEmailAndPassword(em,pw), await db.collection('users').doc(auth.currentUser.uid).set({email:em,displayName:em.split('@')[0],createdAt:firebase.firestore.FieldValue.serverTimestamp()})); await db.collection('sessions').add({userId:auth.currentUser.uid,email:em,timestamp:firebase.firestore.FieldValue.serverTimestamp()}); }catch(err){alert("❌ "+(err.message||err.code))}finally{b.disabled=false;b.textContent=isLogin?'دخول':'إنشاء'} }) };
-window.toggleAuth=()=>{ isLogin=!isLogin; $('authBtn').textContent=isLogin?'دخول':'إنشاء حساب' };
-window.logout=()=>{ auth?.signOut(); show('login') };
-
-// الدردشة
-function startChat(){ if(!db||!user)return; $('inp')?.removeAttribute('disabled'); $('send')?.removeAttribute('disabled'); unsub=db.collection('messages').orderBy('timestamp','asc').limit(50).onSnapshot(snap=>{ const m=$('msgs'); if(!m)return; m.innerHTML=''; if(snap.empty)m.innerHTML='<p style="text-align:center;color:#888;padding:20px">🎉 لا توجد رسائل</p>'; else snap.forEach(doc=>{ const d=doc.data(), me=d.senderEmail===user.email, div=document.createElement('div'); div.className='msg'+(me?' me':''); div.innerHTML=`<span class="s">${esc(d.senderName||'مستخدم')}</span><span class="t">${d.timestamp?new Date(d.timestamp.toDate()).toLocaleTimeString('ar-EG'):''}</span><span class="x">${esc(d.text)}</span>`; if(me){const btn=document.createElement('button');btn.textContent='🗑️';btn.style.cssText='float:left;background:none;border:none;cursor:pointer;font-size:12px;opacity:.6';btn.onclick=async()=>{if(confirm('حذف؟'))try{await db.collection('messages').doc(doc.id).delete()}catch{alert('❌ فشل')}};div.appendChild(btn)} m.appendChild(div) }); m.scrollTop=m.scrollHeight },err=>{console.error("❌ دردشة:",err); if($('msgs'))$('msgs').innerHTML=`<p style="color:#c00;text-align:center;padding:20px">❌ ${err.message}</p>`}) }
-window.send=async()=>{ const t=$('inp')?.value.trim(); if(!t||!user||!db)return; const b=$('send'); b.disabled=true; b.textContent='...'; try{ await db.collection('messages').add({text:t,senderName:user.displayName||user.email.split('@')[0],senderEmail:user.email,userId:user.uid,timestamp:firebase.firestore.FieldValue.serverTimestamp()}); if($('inp'))$('inp').value=''; }catch{alert('❌ فشل الإرسال')}finally{b.disabled=false;b.textContent='إرسال'} };
-function esc(t){const d=document.createElement('div');d.appendChild(document.createTextNode(t||''));return d.innerHTML}
-
-// صفحة انشر
-window.switchCode=()=>{ const v=$('var')?.value||'d'; ['d','p'].forEach(x=>{const e=$('code-'+x);if(e)e.style.display=x===v?'':'none'}) };
-window.copy=()=>{ const v=$('var')?.value||'d', ta=$('code-'+v); if(!ta)return; ta.focus();ta.select(); try{ document.execCommand('copy')||navigator.clipboard.writeText(ta.value); alert("✅ تم النسخ") }catch{alert("Ctrl+C للنسخ") } };
-
-// صندوق بريدي
-window.upd=()=>{ const v=Math.floor(Math.random()*1000)+100, p=Math.floor(Math.random()*200)+10; if($('v'))$('v').textContent=v.toLocaleString('ar-EG'); if($('p'))$('p').textContent=p.toLocaleString('ar-EG'); if($('bar'))$('bar').style.width=Math.min(100,Math.max(5,p/2))+'%'; alert(`✅ مشاهدات: ${v}\n📩 رسائل: ${p}`) };
-
-// إعدادات
-window.save=()=>{ const n=$('set-name')?.value.trim(); if(!n)return alert("⚠️ اكتب اسماً"); if($('name'))$('name').textContent=n; alert("✅ تم: "+n) };
-
-// صفحات فرعية
-window.subPage=t=>{ show('sub'); const p={posts:'<div class="card"><h3>📩 الرسائل</h3><p>لا توجد رسائل</p></div><a onclick="go(\'dashboard\')">← عودة</a>', archive:'<div class="card"><h3>🗄️ الأرشيف</h3><p>فارغ</p></div><a onclick="go(\'dashboard\')">← عودة</a>'}; $('sub').innerHTML=p[t]||'<p>غير متاح</p>' };
-
-// اختبار
-window.test=()=>{ const now=new Date().toLocaleTimeString('ar-EG'); if($('res'))$('res').innerHTML=`✅ يعمل!<br>⏰ ${now}<br>👤 ${user?.email||'غير مسجل'}`; alert("✅ الجافاسكربت يعمل!\n"+now) };
-
-// قوائم منسدلة
-document.addEventListener('click',e=>{ const d=$('menu4-c'); if(d?.classList.contains('show')&&!$('menu4').contains(e.target)&&!d.contains(e.target))d.classList.remove('show') });
-$('menu4')?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();$('menu4-c')?.classList.toggle('show')});
-
-// بدء
-document.addEventListener('DOMContentLoaded', init);
+    }
+    
+    // إغلاق القائمة عند النقر خارجها
+    document.addEventListener('click', function(e) {
+        if (menuContent?.classList.contains('show') && !menuBtn?.contains(e.target) && !menuContent.contains(e.target)) {
+            menuContent.classList.remove('show');
+        }
+    });
+    
+    console.log("✅ النظام جاهز تماماً!");
+});
