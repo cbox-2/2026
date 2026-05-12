@@ -1,1 +1,37 @@
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Tahoma,Arial,sans-serif;font-size:13px;background:#f8fafc;color:#333;direction:rtl;text-align:right}
+a{color:#2563eb;text-decoration:none;cursor:pointer}
+a:hover{text-decoration:underline}
+.wrap{max-width:900px;margin:0 auto;padding:0 15px}
 
+header{background:#fff;border-bottom:1px solid #e2e8f0;padding:10px 0}
+header .wrap{display:flex;justify-content:space-between;align-items:center}
+header nav a, header nav span{margin-left:12px;font-size:12px}
+
+.menus{background:#f1f5f9;border-bottom:1px solid #cbd5e1;padding:6px 0}
+.menus .wrap{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.menus a{padding:4px 8px;font-size:11px}
+.drop{position:relative;cursor:pointer;padding:4px 8px;font-size:11px;display:inline-block}
+.drop:hover{background:#e2e8f0;border-radius:3px}
+.drop-c{display:none;position:absolute;top:100%;right:0;background:#fff;border:1px solid #cbd5e1;border-radius:4px;min-width:120px;z-index:100;padding:4px 0}
+.drop-c a{display:block;padding:6px 12px;font-size:11px;color:#333}
+.drop-c a:hover{background:#f1f5f9}
+
+main{padding:20px 0;min-height:300px}
+h2{font-size:16px;margin-bottom:12px;border-bottom:1px solid #e2e8f0;padding-bottom:8px}
+section{margin-bottom:20px}
+form{background:#fff;border:1px solid #e2e8f0;padding:15px;border-radius:6px;margin-bottom:15px}
+input{width:100%;padding:8px;margin:5px 0;border:1px solid #cbd5e1;border-radius:4px;font-size:12px}
+.inp{padding:5px 8px;border:1px solid #94a3b8;border-radius:3px;font-size:11px;margin:3px;background:#fff}
+.btn{padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px}
+.btn:hover{opacity:0.9}
+
+.chat{border:1px solid #94a3b8;padding:0;margin:15px 0;background:#fff;border-radius:4px}
+footer{text-align:center;padding:15px;font-size:11px;color:#64748b;border-top:1px solid #e2e8f0;margin-top:20px}
+
+@media(max-width:600px){
+    header .wrap{flex-direction:column;gap:8px}
+    .menus .wrap{justify-content:center}
+    .drop-c{width:100%;right:auto;left:0}
+    .inp{width:100%!important;display:block;margin:4px 0}
+}
