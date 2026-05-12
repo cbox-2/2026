@@ -12,11 +12,14 @@ nav a, nav span{margin-left:12px;font-size:12px}
 /* القوائم */
 .menus{background:#f1f5f9;border-bottom:1px solid #cbd5e1;padding:5px 0}
 .menus .wrap{display:flex;gap:8px;flex-wrap:wrap}
-.drop{position:relative;cursor:pointer;padding:4px 8px}
-.drop-c{display:none;position:absolute;top:100%;right:0;background:#fff;border:1px solid #e2e8f0;border-radius:4px;min-width:120px;z-index:100}
-.drop-c.show{display:block}
-.drop-c a{display:block;padding:6px 12px;font-size:11px}
-.drop-c a:hover{background:#f1f5f9}
+.drop { position: relative; cursor: pointer; padding: 4px 8px; display: inline-block; }
+.drop-c { 
+    display: none; position: absolute; top: 100%; right: 0; 
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 4px; 
+    min-width: 130px; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.drop-c a { display: block; padding: 7px 12px; font-size: 11px; color: #334155; }
+.drop-c a:hover { background: #f1f5f9; color: #2563eb; }
 
 /* المحتوى */
 main{padding:20px 0;min-height:300px}
