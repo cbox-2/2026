@@ -94,6 +94,32 @@ form button { margin-top: 15px; padding: 4px 20px; background: #f0f0f0; border: 
 .back-link { display: inline-block; margin-top: 15px; color: var(--btn-bg); cursor: pointer; font-size: 12px; }
 .back-link:hover { text-decoration: underline; }
 
+/* 📋 تنسيقات صفحة "انشر" */
+#publish-section fieldset { border: 1px solid var(--border-color); padding: 15px; margin-bottom: 15px; background: var(--bg-card); border-radius: 8px; }
+#publish-section legend { font-weight: bold; padding: 0 5px; color: var(--text-primary); }
+#publish-section label { display: block; margin: 10px 0 4px; font-size: 12px; }
+#publish-section .txtbox { width: 100%; padding: 4px; border: 1px solid var(--border-color); font-size: 12px; background: var(--input-bg); color: var(--text-primary); border-radius: 4px; margin-bottom: 8px; }
+#publish-section .txtarea { width: 100%; padding: 8px; border: 1px solid var(--border-color); font-size: 11px; background: var(--input-bg); color: var(--text-primary); border-radius: 4px; font-family: monospace; direction: ltr; text-align: left; }
+#publish-section .slideThree { position: relative; display: inline-block; width: 40px; height: 20px; margin: 5px 0; }
+#publish-section .slideThree input { opacity: 0; width: 0; height: 0; }
+#publish-section .slideThree label { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; border-radius: 20px; transition: 0.3s; }
+#publish-section .slideThree label:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; border-radius: 50%; transition: 0.3s; }
+#publish-section .slideThree input:checked + label { background-color: var(--btn-bg); }
+#publish-section .slideThree input:checked + label:before { transform: translateX(20px); }
+
+#publish-section ol { padding-right: 20px; margin: 10px 0; }
+#publish-section ol li { margin: 5px 0; font-size: 12px; }
+#publish-section code { background: var(--bg-card); padding: 2px 6px; border-radius: 3px; font-size: 11px; direction: ltr; display: inline-block; }
+#publish-section h2 { font-size: 16px; margin: 20px 0 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+#publish-section h3 { font-size: 14px; margin: 15px 0 8px; color: var(--text-primary); }
+#publish-section p { margin: 8px 0; font-size: 12px; color: var(--text-secondary); }
+#publish-section a { color: var(--btn-bg); }
+
+/* 🌙 دعم الوضع الليلي لصفحة انشر */
+[data-theme="dark"] #publish-section .slideThree label { background-color: #475569; }
+[data-theme="dark"] #publish-section .txtarea { background: #0f172a; border-color: #334155; }
+
+/* 📱 تجاوب الجوال */
 @media (max-width: 980px) {
     .wrap { width: 100%; padding: 0 15px; }
     #header .wrap { flex-direction: column; gap: 10px; align-items: stretch; }
@@ -106,4 +132,6 @@ form button { margin-top: 15px; padding: 4px 20px; background: #f0f0f0; border: 
     .chat-box { height: 250px; }
     .msg-delete-btn { opacity: 0.7; }
     .submenu-content { width: 100%; right: auto; left: 0; }
+    #publish-section .txtarea { font-size: 10px; }
+    #publish-section fieldset { padding: 12px; }
 }
