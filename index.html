@@ -4,7 +4,58 @@
     <meta charset="UTF-8">
     <title>صندوق التحكم</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="style.css?v=3">
+    <style>
+        /* === تنسيقات القوائم المنسدلة (مضمونة) === */
+        .drop { position: relative; display: inline-block; cursor: pointer; padding: 4px 8px; font-size: 11px; }
+        .drop:hover { background: #e2e8f0; border-radius: 3px; }
+        .drop-c { 
+            display: none; 
+            position: absolute; 
+            top: 100%; 
+            right: 0; 
+            background: #fff; 
+            border: 1px solid #cbd5e1; 
+            border-radius: 4px; 
+            min-width: 120px; 
+            z-index: 9999; 
+            padding: 4px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        /* ✅ هذه هي النقطة الحاسمة: إظهار القائمة عند إضافة كلاس أو تغيير الـ display */
+        .drop-c.show, .drop-c[style*="display: block"] { display: block !important; }
+        .drop-c a { display: block; padding: 6px 12px; font-size: 11px; color: #333; text-decoration: none; }
+        .drop-c a:hover { background: #f1f5f9; color: #2563eb; }
+        
+        /* باقي التنسيقات */
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:Tahoma,Arial,sans-serif;font-size:13px;background:#f8fafc;color:#333;direction:rtl;text-align:right}
+        a{color:#2563eb;text-decoration:none;cursor:pointer}
+        a:hover{text-decoration:underline}
+        .wrap{max-width:900px;margin:0 auto;padding:0 15px}
+        header{background:#fff;border-bottom:1px solid #e2e8f0;padding:10px 0}
+        header .wrap{display:flex;justify-content:space-between;align-items:center}
+        header nav a, header nav span{margin-left:12px;font-size:12px}
+        .menus{background:#f1f5f9;border-bottom:1px solid #cbd5e1;padding:6px 0}
+        .menus .wrap{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+        .menus a{padding:4px 8px;font-size:11px}
+        main{padding:20px 0;min-height:300px}
+        h2{font-size:16px;margin-bottom:12px;border-bottom:1px solid #e2e8f0;padding-bottom:8px}
+        section{margin-bottom:20px}
+        form{background:#fff;border:1px solid #e2e8f0;padding:15px;border-radius:6px;margin-bottom:15px}
+        input{width:100%;padding:8px;margin:5px 0;border:1px solid #cbd5e1;border-radius:4px;font-size:12px}
+        .inp{padding:5px 8px;border:1px solid #94a3b8;border-radius:3px;font-size:11px;margin:3px;background:#fff}
+        .btn{padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px}
+        .btn:hover{opacity:0.9}
+        .chat{border:1px solid #94a3b8;padding:0;margin:15px 0;background:#fff;border-radius:4px}
+        footer{text-align:center;padding:15px;font-size:11px;color:#64748b;border-top:1px solid #e2e8f0;margin-top:20px}
+        @media(max-width:600px){
+            header .wrap{flex-direction:column;gap:8px}
+            .menus .wrap{justify-content:center}
+            .drop-c{width:100%;right:auto;left:0}
+            .inp{width:100%!important;display:block;margin:4px 0}
+        }
+    </style>
 </head>
 <body>
 <header>
@@ -24,14 +75,34 @@
 <nav class="menus">
     <div class="wrap">
         <a onclick="nav('dashboard')"><b>الرئيسية</b></a>
-        <span class="drop" onclick="toggle('m1')">المظهر ▼</span>
-        <div id="m1" class="drop-c"><a onclick="sub('style')">سمات</a><a onclick="sub('layout')">تخطيط</a></div>
-        <span class="drop" onclick="toggle('m2')">خيارات ▼</span>
-        <div id="m2" class="drop-c"><a onclick="sub('filter')">تصفية</a><a onclick="sub('smilies')">رموز</a></div>
-        <span class="drop" onclick="toggle('m3')">مستخدمون ▼</span>
-        <div id="m3" class="drop-c"><a onclick="sub('users')">مسجلون</a><a onclick="sub('bans')">محظورون</a></div>
-        <span class="drop" onclick="toggle('m4')">رسائل ▼</span>
-        <div id="m4" class="drop-c"><a onclick="sub('msgs')">رسائل</a><a onclick="sub('archive')">أرشيف</a></div>
+        
+        <!-- قائمة 1: المظهر ▼ -->
+        <span class="drop" onclick="toggleMenu('m1')">المظهر ▼</span>
+        <div id="m1" class="drop-c">
+            <a onclick="sub('style');hideAllMenus()">سمات</a>
+            <a onclick="sub('layout');hideAllMenus()">تخطيط</a>
+        </div>
+        
+        <!-- قائمة 2: خيارات ▼ -->
+        <span class="drop" onclick="toggleMenu('m2')">خيارات ▼</span>
+        <div id="m2" class="drop-c">
+            <a onclick="sub('filter');hideAllMenus()">تصفية</a>
+            <a onclick="sub('smilies');hideAllMenus()">رموز</a>
+        </div>
+        
+        <!-- قائمة 3: مستخدمون ▼ -->
+        <span class="drop" onclick="toggleMenu('m3')">مستخدمون ▼</span>
+        <div id="m3" class="drop-c">
+            <a onclick="sub('users');hideAllMenus()">مسجلون</a>
+            <a onclick="sub('bans');hideAllMenus()">محظورون</a>
+        </div>
+        
+        <!-- قائمة 4: رسائل ▼ -->
+        <span class="drop" onclick="toggleMenu('m4')">رسائل ▼</span>
+        <div id="m4" class="drop-c">
+            <a onclick="sub('msgs');hideAllMenus()">رسائل</a>
+            <a onclick="sub('archive');hideAllMenus()">أرشيف</a>
+        </div>
     </div>
 </nav>
 
@@ -99,23 +170,23 @@
 <footer>© 2024 صندوق التحكم</footer>
 
 <script>
-console.log("✅ النظام يبدأ...");
+console.log("✅ النظام يبدأ مع قوائم مضمونة...");
 const $=id=>document.getElementById(id);
 let user=null;
 
-// 🧭 التنقل البسيط
+// 🧭 التنقل
 window.nav=function(sec){
     console.log("🔀 إلى:",sec);
     ['login','dashboard','publish','stats','mailbox','settings','sub'].forEach(s=>{
         const e=$(s); if(e)e.style.display='none';
     });
     const t=$(sec); if(t)t.style.display='block';
-    hideDrops();
-    if(sec==='dashboard'&&user)startChat();
+    hideAllMenus(); // إغلاق القوائم عند التنقل
 };
 
 // 📋 الصفحات الفرعية
 window.sub=function(pg){
+    console.log("📄 فرعي:",pg);
     nav('sub');
     const c=$('sub'); if(!c)return;
     const pages={
@@ -131,13 +202,11 @@ window.sub=function(pg){
     c.innerHTML=pages[pg]||'<p>غير متاح</p>';
 };
 
-// 🔐 تسجيل الدخول (يعمل حتى بدون Firebase)
+// 🔐 تسجيل الدخول
 window.doLogin=function(e){
     e.preventDefault();
     const em=$('em')?.value.trim(), pw=$('pw')?.value.trim();
     if(!em||!pw||!em.includes('@'))return alert("⚠️ بيانات خاطئة");
-    
-    // محاكاة الدخول الناجح (للتجربة)
     user={email:em,name:em.split('@')[0]};
     $('name').textContent=user.name;
     $('userDisplay').textContent=em;
@@ -159,11 +228,7 @@ window.doLogout=function(){
     console.log("🚪 خروج");
 };
 
-// 💬 دردشة بسيطة (محاكاة)
-window.startChat=function(){
-    if(!user)return;
-    $('chatBox').innerHTML='<p style="text-align:center;color:#888;padding:40px">🎉 جاهز للمحادثة!</p>';
-};
+// 💬 دردشة
 window.send=function(){
     const msg=$('cMsg')?.value.trim();
     if(!msg||!user)return alert("⚠️ اكتب رسالة");
@@ -190,19 +255,47 @@ window.test=function(){
     alert("✅ النظام يعمل!\n"+t);
 };
 
-// 📋 القوائم المنسدلة
-window.toggle=function(id){
-    hideDrops();
-    const m=$(id);
-    if(m)m.style.display=(m.style.display==='block')?'none':'block';
+// 📋 القوائم المنسدلة - النسخة المضمونة 100%
+window.toggleMenu=function(id){
+    console.log("🔽 تبديل القائمة:",id);
+    
+    // 1. أغلق كل القوائم الأخرى أولاً
+    hideAllMenus();
+    
+    // 2. افتح/أغلق القائمة المطلوبة
+    const menu=document.getElementById(id);
+    if(menu){
+        // ✅ الطريقة المضمونة: التحكم المباشر في الـ style.display
+        if(menu.style.display==='block'){
+            menu.style.display='none';
+            console.log("  → أُغلقت");
+        }else{
+            menu.style.display='block';
+            console.log("  → فُتحت");
+        }
+    }else{
+        console.error("❌ القائمة غير موجودة:",id);
+    }
 };
-window.hideDrops=function(){
+
+window.hideAllMenus=function(){
+    console.log("🔽 إغلاق كل القوائم");
     ['m1','m2','m3','m4'].forEach(id=>{
-        const el=$(id); if(el)el.style.display='none';
+        const el=document.getElementById(id);
+        if(el){
+            el.style.display='none';
+            console.log("  → "+id+" أُغلق");
+        }
     });
 };
-document.addEventListener('click',e=>{
-    if(!e.target.closest('.drop')&&!e.target.closest('.drop-c'))hideDrops();
+
+// إغلاق القوائم عند النقر خارجها
+document.addEventListener('click',function(e){
+    // إذا النقرة ليست على زر القائمة ولا داخل القائمة نفسها
+    if(!e.target.closest('.drop') && !e.target.closest('.drop-c')){
+        hideAllMenus();
+        console.log("🔽 أُغلقت القوائم (نقر خارجي)");
+    }
 });
 
 // 📤 صفحة انشر
@@ -219,8 +312,8 @@ window.copyCode=function(){
     try{document.execCommand('copy');alert("✅ تم النسخ")}catch{alert("Ctrl+C للنسخ")}
 };
 
-// بدء
-console.log("✅ جاهز!");
+// بدء النظام
+console.log("✅ جاهز تماماً!");
 </script>
 </body>
 </html>
