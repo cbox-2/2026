@@ -4,60 +4,61 @@
     <meta charset="UTF-8">
     <title>صندوق التحكم المتكامل</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <base href="https://cbox-2.github.io/2026/?#">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header>
     <div class="wrap">
-        <strong>📦 صندوق التحكم</strong>
+        <a href="?#"><strong>📦 صندوق التحكم</strong></a>
         <nav>
             <span id="userDisplay">ضيف</span>
-            <a onclick="go('mail')">صناديق</a>
-            <a onclick="go('stats')">إحصائيات</a>
-            <a onclick="go('publish')">انشر</a>
-            <a onclick="go('set')">حسابي</a>
-            <a onclick="logout()">خروج</a>
+            <a href="?#mailbox">صناديق</a>
+            <a href="?#stats">إحصائيات</a>
+            <a href="?#publish">انشر</a>
+            <a href="?#settings">حسابي</a>
+            <a href="?#logout">خروج</a>
         </nav>
     </div>
 </header>
 
 <nav class="menus">
     <div class="wrap">
-        <a onclick="go('dash')"><b>الرئيسية</b></a>
+        <a href="?#dashboard"><b>الرئيسية</b></a>
         
         <div class="menu-wrap">
             <span class="drop-btn" onclick="openMenu('m1')">المظهر ▼</span>
             <div id="m1" class="drop-menu">
-                <a onclick="pick('style');hideAll()">سمات</a>
-                <a onclick="pick('layout');hideAll()">تخطيط</a>
+                <a href="?#style" onclick="hideAll()">سمات</a>
+                <a href="?#layout" onclick="hideAll()">تخطيط</a>
             </div>
         </div>
         <div class="menu-wrap">
             <span class="drop-btn" onclick="openMenu('m2')">خيارات ▼</span>
             <div id="m2" class="drop-menu">
-                <a onclick="pick('filter');hideAll()">تصفية</a>
-                <a onclick="pick('smilies');hideAll()">رموز</a>
+                <a href="?#filter" onclick="hideAll()">تصفية</a>
+                <a href="?#smilies" onclick="hideAll()">رموز</a>
             </div>
         </div>
         <div class="menu-wrap">
             <span class="drop-btn" onclick="openMenu('m3')">مستخدمون ▼</span>
             <div id="m3" class="drop-menu">
-                <a onclick="pick('users');hideAll()">مسجلون</a>
-                <a onclick="pick('bans');hideAll()">محظورون</a>
+                <a href="?#users" onclick="hideAll()">مسجلون</a>
+                <a href="?#bans" onclick="hideAll()">محظورون</a>
             </div>
         </div>
         <div class="menu-wrap">
             <span class="drop-btn" onclick="openMenu('m4')">رسائل ▼</span>
             <div id="m4" class="drop-menu">
-                <a onclick="pick('msgs');hideAll()">رسائل</a>
-                <a onclick="pick('archive');hideAll()">أرشيف</a>
+                <a href="?#messages" onclick="hideAll()">رسائل</a>
+                <a href="?#archive" onclick="hideAll()">أرشيف</a>
             </div>
         </div>
     </div>
 </nav>
 
 <main class="wrap">
-    <!-- تسجيل الدخول -->
+    <!-- جميع الأقسام تستخدم نفس الهيكلية مع معرفات فريدة -->
     <section id="sec-login">
         <h2>تسجيل الدخول</h2>
         <form onsubmit="return doLogin(event)">
@@ -68,7 +69,6 @@
         <p><small style="cursor:pointer;color:#2563eb" onclick="alert('وضع: إنشاء حساب جديد')">إنشاء حساب جديد</small></p>
     </section>
 
-    <!-- لوحة التحكم -->
     <section id="sec-dash" style="display:none">
         <h2>👋 أهلاً، <span id="name">مستخدم</span>! <span id="role-badge" style="font-size:11px;background:#e2e8f0;padding:2px 6px;border-radius:4px">مستخدم</span></h2>
         <div style="background:#fff;border:1px solid #e2e8f0;padding:10px;border-radius:6px;margin-bottom:15px;display:flex;justify-content:space-between;align-items:center">
@@ -97,12 +97,11 @@
         <button onclick="logout()" class="cb" style="background:#dc2626;margin-top:10px">خروج</button>
     </section>
 
-    <!-- 🆕 صفحة "انشر" المتكاملة -->
+    <!-- 📤 صفحة انشر - مولدة أكواد تشير لرابطك -->
     <section id="sec-publish" style="display:none">
         <h2>📤 Publish Your Cbox</h2>
-        <p style="margin-bottom:20px;color:#64748b">If you run your own site, you can embed Cbox directly into the pages of your site.</p>
+        <p style="margin-bottom:20px;color:#64748b">Embed your chat box directly into any website using your own domain.</p>
         
-        <!-- خيارات التضمين -->
         <fieldset style="margin-bottom:20px">
             <legend>Embed options</legend>
             <label style="display:block;margin:10px 0 4px">Your website URL:</label>
@@ -126,7 +125,6 @@
             <button onclick="saveEmbedOpts()" class="cb" style="margin-top:15px">💾 Save options</button>
         </fieldset>
 
-        <!-- الحصول على كود التضمين -->
         <fieldset style="margin-bottom:20px">
             <legend>Get your embed code</legend>
             <label style="display:block;margin:10px 0 4px">Code variation:</label>
@@ -145,7 +143,6 @@
             </div>
         </fieldset>
 
-        <!-- التعليمات -->
         <fieldset>
             <legend>Embed instructions</legend>
             <label style="display:block;margin:10px 0 4px">Instructions for:</label>
@@ -177,56 +174,23 @@
                     <li>Save the changes.</li>
                 </ol>
             </div>
-            <div id="instr-wordpress" class="instructions" style="display:none">
-                <ol style="padding-right:20px;line-height:1.8">
-                    <li>Copy your code to the clipboard.</li>
-                    <li>Log in to your WordPress admin dashboard.</li>
-                    <li>Go to <strong>Appearance → Widgets</strong>.</li>
-                    <li>Add a <strong>Custom HTML</strong> widget.</li>
-                    <li>Paste your code into the widget content box.</li>
-                    <li>Save & Publish.</li>
-                </ol>
-            </div>
-            <div id="instr-forum" class="instructions" style="display:none">
-                <ol style="padding-right:20px;line-height:1.8">
-                    <li>Copy your code to the clipboard.</li>
-                    <li>Go to your forum admin control panel.</li>
-                    <li>Find your <strong>footer</strong> or <strong>template</strong> editor.</li>
-                    <li>Paste your code there and save.</li>
-                </ol>
-            </div>
-            <div id="instr-wix" class="instructions" style="display:none">
-                <ol style="padding-right:20px;line-height:1.8">
-                    <li>Open your Wix editor.</li>
-                    <li>Add the <strong>HTML iFrame/Embed</strong> app from the App Market.</li>
-                    <li>Paste your code or URL into the embed settings.</li>
-                    <li>Adjust size and position, then Publish.</li>
-                </ol>
-            </div>
-            <div id="instr-joomla" class="instructions" style="display:none">
-                <ol style="padding-right:20px;line-height:1.8">
-                    <li>Download our Cbox Joomla module.</li>
-                    <li>Install via <strong>Extensions → Install</strong>.</li>
-                    <li>Enable the module and paste your embed code.</li>
-                    <li>Save and check your site.</li>
-                </ol>
-            </div>
+            <!-- باقي التعليمات مختصرة للتركيز على الأساس -->
             
             <div style="margin-top:20px;padding:15px;background:#fff7ed;border:1px solid #fed7aa;border-radius:6px">
                 <strong style="color:#c2410c">Problems installing?</strong>
                 <ul style="margin-top:8px;padding-right:20px;line-height:1.8;color:#64748b">
                     <li>If you see code on your page instead of your Cbox, your editor may be stripping HTML.</li>
                     <li>Try finding an "iframe" or "embed" app/widget for your platform.</li>
-                    <li>If a URL is required, use: <code style="background:#f1f5f9;padding:2px 4px;border-radius:3px">https://www4.cbox.ws/box/?boxid=4257987&boxtag=52gxr7</code></li>
-                    <li>Remember: You can always use your Quick Link anywhere: <a href="https://my.cbox.ws/MSASDWEC2015HKARNO" target="_blank" style="color:#2563eb">https://my.cbox.ws/MSASDWEC2015HKARNO</a></li>
+                    <li>If a URL is required, use: <code style="background:#f1f5f9;padding:2px 4px;border-radius:3px">https://cbox-2.github.io/2026/?#chat</code></li>
+                    <li>Remember: You can always use your Quick Link anywhere: <a href="https://cbox-2.github.io/2026/?#" target="_blank" style="color:#2563eb">https://cbox-2.github.io/2026/?#</a></li>
                 </ul>
             </div>
         </fieldset>
         
-        <a onclick="go('dash')" style="margin-top:20px;display:inline-block">← Back to Dashboard</a>
+        <a href="?#" onclick="go('dash');return false" style="margin-top:20px;display:inline-block">← Back to Dashboard</a>
     </section>
 
-    <!-- صفحات أخرى -->
+    <!-- باقي الأقسام بنفس الهيكلية -->
     <section id="sec-stats" style="display:none">
         <h2>📊 إحصائيات النظام</h2>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:20px">
@@ -237,14 +201,14 @@
         <h3>📉 النشاط الأسبوعي</h3>
         <div id="chart" style="height:150px;display:flex;align-items:flex-end;gap:8px;background:#f8fafc;padding:15px;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:20px"></div>
         <button onclick="exportCSV()" class="cb">📥 تصدير البيانات (Excel/CSV)</button>
-        <a onclick="go('dash')" style="margin-right:15px">← العودة للرئيسية</a>
+        <a href="?#" onclick="go('dash');return false" style="margin-right:15px">← العودة للرئيسية</a>
     </section>
 
-    <section id="sec-mail" style="display:none"><h2>📦 صندوق بريدي</h2><p>الإحصائيات هنا</p><a onclick="go('stats')">عرض الإحصائيات</a></section>
-    <section id="sec-set" style="display:none"><h2>⚙️ الإعدادات</h2><p>إدارة الحساب والصلاحيات</p><a onclick="go('dash')">← عودة</a></section>
+    <section id="sec-mailbox" style="display:none"><h2>📦 صندوق بريدي</h2><p>الإحصائيات هنا</p><a href="?#" onclick="go('stats');return false">عرض الإحصائيات</a></section>
+    <section id="sec-settings" style="display:none"><h2>⚙️ الإعدادات</h2><p>إدارة الحساب والصلاحيات</p><a href="?#" onclick="go('dash');return false">← عودة</a></section>
     <section id="sec-sub" style="display:none"></section>
 </main>
-<footer>© 2024 صندوق التحكم المتكامل</footer>
+<footer><a href="?#">© 2024 صندوق التحكم المتكامل</a></footer>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
