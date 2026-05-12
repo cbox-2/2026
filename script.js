@@ -1,109 +1,126 @@
-console.log("✅ النظام يبدأ مع 4 قوائم منسدلة...");
+console.log("✅ النظام يبدأ...");
 
-const $ = id => document.getElementById(id);
-let isLoggedIn = false;
-let isLoginMode = true;
+// دالة مساعدة
+const $=id=>document.getElementById(id);
 
-// 🧭 التنقل بين الأقسام الرئيسية
-window.showSection = function(name) {
-    console.log("🔀 إلى:", name);
-    ['login-section','dashboard-section','publish-section','mailbox-section','settings-section','subpage-section'].forEach(id => {
-        const el = $(id); if(el) el.style.display = 'none';
+// 🧭 التنقل الرئيسي
+window.go=function(sec){
+    console.log("🔀 إلى:",sec);
+    // إخفاء الكل
+    ['sec-login','sec-dash','sec-pub','sec-mail','sec-set','sec-sub'].forEach(s=>{
+        const e=$(s); if(e)e.style.display='none';
     });
-    const target = $(name); if(target) target.style.display = 'block';
-    closeAllMenus();
+    // إظهار المطلوب
+    const t=$( 'sec-'+sec); if(t)t.style.display='block';
+    // إغلاق كل المجموعات
+    closeGroups();
 };
 
-// 📋 عرض الصفحات الفرعية للقوائم المنسدلة
-window.showSubPage = function(page) {
-    showSection('subpage-section');
-    const content = $('subpage-section');
-    if(!content) return;
+// 📋 عرض الصفحات الفرعية
+window.showPage=function(pg){
+    console.log("📄 صفحة:",pg);
+    go('sub'); // إظهار قسم الصفحات الفرعية
+    const c=$('sec-sub'); if(!c)return;
     
-    const pages = {
-        // 🎨 المظهر والملمس
-        'style': `<div class="card"><h3>🎨 محرر السمات</h3><p>تخصيص الألوان والخطوط</p><label>لون الخلفية: <input type="color" value="#ffffff" class="input" style="width:60px"></label><button class="btn" style="margin-top:10px" onclick="alert('✅ تم تطبيق السمة')">معاينة</button><p style="margin-top:15px"><a onclick="showSection('dashboard');return false">← العودة</a></p></div>`,
-        'layout': `<div class="card"><h3>📐 خيارات التخطيط</h3><label>عرض الصندوق:<select class="input"><option>كامل</option><option>متوسط</option><option>ضيق</option></select></label><button class="btn" style="margin-top:10px" onclick="alert('✅ تم تطبيق التخطيط')">تطبيق</button><p style="margin-top:15px"><a onclick="showSection('dashboard');return false">← العودة</a></p></div>`,
-        
-        // ⚙️ خيارات
-        'filter': `<div class="card"><h3>🔍 تصفية المحتوى</h3><textarea class="input" rows="3" placeholder="كلمات محظورة (مفصولة بفاصلة)..."></textarea><button class="btn" style="margin-top:10px" onclick="alert('✅ تم حفظ الفلاتر')">حفظ</button><p style="margin-top:15px"><a onclick="showSection('dashboard');return false">← العودة</a></p></div>`,
-        'smilies': `<div class="card"><h3>😊 الرموز التعبيرية</h3><label><input type="checkbox" checked> تفعيل الرموز تلقائياً</label><button class="btn" style="margin-top:10px" onclick="alert('✅ تم حفظ الإعدادات')">حفظ</button><p style="margin-top:15px"><a onclick="showSection('dashboard');return false">← العودة</a></p></div>`,
-        'date': `<div class="card"><h3>📅 خيارات التاريخ</h3><label>التنسيق:<select class="input"><option>24 ساعة (14:30)</option><option>12 ساعة (2:30 م)</option><option>منذ (منذ 5 دقائق)</option></select></label><button class="btn" style="margin-top:10px" onclick="alert('✅ تم تطبيق التنسيق')">تطبيق</button><p style="margin-top:15px"><a onclick="showSection('dashboard');return false">← العودة</a></p></div>`,
-        'post': `<div class="card"><h3>📝 خيارات النشر</h3><label>حد الأحرف:<input type="number" class="input" value="500"></label><button class="btn" style="margin-top:10px" onclick="alert('✅ تم حفظ الإعدادات')">حفظ</button><p style="margin-top:15px"><a onclick="showSection('dashboard');return false">← العودة</a></p></div>`,
-        
-        // 👥 المستخدمون
-        'users': `<div class="card"><h3>👥 المستخدمون المسجلون</h3><p style="color:#888">لا يوجد مستخدمون مسجلون حالياً</p><button class="btn" style="margin-top:10px" onclick="alert('✅ سيتم تحديث القائمة')">تحديث</button><p style="margin-top:15px"><a onclick="showSection('dashboard');return false">← العودة</a></p></div>`,
-        'bans': `<div class="card"><h3>🚫 المستخدمون المحظورون</h3><p style="color:#888">لا يوجد مستخدمون محظورون</p><button class="btn" style="margin-top:10px" onclick="alert('✅ إضافة حظر جديد')">إضافة حظر</button><p style="margin-top:15px"><a onclick="showSection('dashboard');return false">← العودة</a></p></div>`,
-        'integrate': `<div class="card"><h3>🔗 تكامل المستخدم</h3><p>🔌 Discord: <span style="color:#c00">غير متصل</span></p><p>🔌 Telegram: <span style="color:#16a34a">متصل</span></p><button class="btn" style="margin-top:10px" onclick="alert('✅ إدارة التكاملات')">إدارة</button><p style="margin-top:15px"><a onclick="showSection('dashboard');return false">← العودة</a></p></div>`,
-        
-        // 💬 رسائل
-        'messages': `<div class="card"><h3>📩 إدارة الرسائل</h3><p style="color:#888">لا توجد رسائل جديدة</p><p style="margin-top:15px"><a onclick="showSection('dashboard');return false">← العودة</a></p></div>`,
-        'archive': `<div class="card"><h3>🗄️ الأرشيف</h3><p style="color:#888">الأرشيف فارغ</p><p style="margin-top:15px"><a onclick="showSection('dashboard');return false">← العودة</a></p></div>`,
-        'sticky': `<div class="card"><h3>📌 رسالة لاصقة</h3><textarea class="input" rows="3" placeholder="نص الرسالة التي تريد تثبيتها..."></textarea><button class="btn" style="margin-top:10px" onclick="alert('✅ تم تثبيت الرسالة')">تثبيت</button><p style="margin-top:15px"><a onclick="showSection('dashboard');return false">← العودة</a></p></div>`,
-        'channels': `<div class="card"><h3>📺 القنوات</h3><p>🟢 <strong>عام</strong> <span style="color:#888;font-size:11px">(افتراضي)</span></p><button class="btn" style="margin-top:10px" onclick="alert('✅ إنشاء قناة جديدة')">+ قناة جديدة</button><p style="margin-top:15px"><a onclick="showSection('dashboard');return false">← العودة</a></p></div>`,
-        'webhook': `<div class="card"><h3>🔗 رابط الويب</h3><input type="text" class="input" value="https://your-webhook.com/endpoint" readonly><button class="btn" style="margin-top:10px" onclick="navigator.clipboard.writeText(this.previousElementSibling.value);alert('✅ تم نسخ الرابط')">📋 نسخ</button><p style="margin-top:15px"><a onclick="showSection('dashboard');return false">← العودة</a></p></div>`
+    const pages={
+        'style':'<div class="card"><h3>🎨 محرر السمات</h3><p>تخصيص الألوان</p><label>لون: <input type="color" value="#2563eb"></label><button class="btn" style="margin-top:10px" onclick="alert(\'✅ تم\')">حفظ</button><p style="margin-top:15px"><a onclick="go(\'dash\')">← عودة</a></p></div>',
+        'layout':'<div class="card"><h3>📐 التخطيط</h3><select class="txt"><option>كامل</option><option>متوسط</option></select><button class="btn" style="margin-top:10px" onclick="alert(\'✅ تم\')">تطبيق</button><p style="margin-top:15px"><a onclick="go(\'dash\')">← عودة</a></p></div>',
+        'filter':'<div class="card"><h3>🔍 التصفية</h3><textarea class="txt" rows="3" placeholder="كلمات محظورة..."></textarea><button class="btn" style="margin-top:10px" onclick="alert(\'✅ تم\')">حفظ</button><p style="margin-top:15px"><a onclick="go(\'dash\')">← عودة</a></p></div>',
+        'smilies':'<div class="card"><h3>😊 الرموز</h3><label><input type="checkbox" checked> تفعيل</label><button class="btn" style="margin-top:10px" onclick="alert(\'✅ تم\')">حفظ</button><p style="margin-top:15px"><a onclick="go(\'dash\')">← عودة</a></p></div>',
+        'date':'<div class="card"><h3>📅 التاريخ</h3><select class="txt"><option>24 ساعة</option><option>12 ساعة</option></select><button class="btn" style="margin-top:10px" onclick="alert(\'✅ تم\')">تطبيق</button><p style="margin-top:15px"><a onclick="go(\'dash\')">← عودة</a></p></div>',
+        'post':'<div class="card"><h3>📝 النشر</h3><input type="number" class="txt" value="500" placeholder="حد الأحرف"><button class="btn" style="margin-top:10px" onclick="alert(\'✅ تم\')">حفظ</button><p style="margin-top:15px"><a onclick="go(\'dash\')">← عودة</a></p></div>',
+        'users-list':'<div class="card"><h3>👥 المسجلون</h3><p style="color:#888">لا يوجد مستخدمون</p><p style="margin-top:15px"><a onclick="go(\'dash\')">← عودة</a></p></div>',
+        'bans':'<div class="card"><h3>🚫 المحظورون</h3><p style="color:#888">لا يوجد محظورون</p><p style="margin-top:15px"><a onclick="go(\'dash\')">← عودة</a></p></div>',
+        'integrate':'<div class="card"><h3>🔗 التكامل</h3><p>🔌 Telegram: <span style="color:#16a34a">متصل</span></p><p style="margin-top:15px"><a onclick="go(\'dash\')">← عودة</a></p></div>',
+        'msgs':'<div class="card"><h3>📩 الرسائل</h3><p style="color:#888">لا توجد رسائل</p><p style="margin-top:15px"><a onclick="go(\'dash\')">← عودة</a></p></div>',
+        'archive':'<div class="card"><h3>🗄️ الأرشيف</h3><p style="color:#888">فارغ</p><p style="margin-top:15px"><a onclick="go(\'dash\')">← عودة</a></p></div>',
+        'sticky':'<div class="card"><h3>📌 لاصقة</h3><textarea class="txt" rows="3" placeholder="نص الرسالة..."></textarea><button class="btn" style="margin-top:10px" onclick="alert(\'✅ تم\')">تثبيت</button><p style="margin-top:15px"><a onclick="go(\'dash\')">← عودة</a></p></div>',
+        'channels':'<div class="card"><h3>📺 القنوات</h3><p>🟢 <strong>عام</strong></p><p style="margin-top:15px"><a onclick="go(\'dash\')">← عودة</a></p></div>',
+        'webhook':'<div class="card"><h3>🔗 الويب</h3><input type="text" class="txt" value="https://example.com/webhook" readonly><button class="btn" style="margin-top:10px" onclick="navigator.clipboard.writeText(this.previousElementSibling.value);alert(\'✅ نسخ\')">📋 نسخ</button><p style="margin-top:15px"><a onclick="go(\'dash\')">← عودة</a></p></div>'
     };
     
-    content.innerHTML = pages[page] || '<p class="card">صفحة غير متوفرة <a onclick="showSection(\'dashboard\');return false">← عودة</a></p>';
-    console.log("📄 عرض:", page);
+    c.innerHTML = pages[pg] || '<p class="card">غير متاح <a onclick="go(\'dash\')">← عودة</a></p>';
 };
 
-// 🔐 تسجيل الدخول
-window.handleLogin = function(e) {
+// 🔐 الدخول
+window.doLogin=function(e){
     e.preventDefault();
-    const email = $('email')?.value.trim(), pw = $('password')?.value.trim();
-    if(!email || !pw || !email.includes('@')) return alert("⚠️ بيانات غير صحيحة");
-    const btn = $('loginBtn'); if(btn){btn.disabled=true; btn.textContent='جاري...'}
+    const em=$('inp-em')?.value.trim(), pw=$('inp-pw')?.value.trim();
+    if(!em||!pw||!em.includes('@'))return alert("⚠️ بيانات خاطئة");
+    const b=$('sec-login')?.querySelector('button[type="submit"]');
+    if(b){b.disabled=true; b.textContent='جاري...'}
     setTimeout(()=>{
-        isLoggedIn = true;
-        const name = email.split('@')[0];
-        if($('userName')) $('userName').textContent = name;
-        if($('userEmail')) $('userEmail').textContent = email;
-        showSection('dashboard-section');
-        alert("✅ مرحباً، "+name+"!");
-        if(btn){btn.disabled=false; btn.textContent=isLoginMode?'دخول':'إنشاء حساب'}
-    }, 400);
+        if($('lbl-name'))$('lbl-name').textContent=em.split('@')[0];
+        if($('userEmail'))$('userEmail').textContent=em;
+        go('dash');
+        alert("✅ أهلاً، "+em.split('@')[0]+"!");
+        if(b){b.disabled=false; b.textContent='دخول'}
+    },300);
+    return false;
 };
 
-window.toggleMode = ()=>{ isLoginMode=!isLoginMode; const b=$('loginBtn'); if(b)b.textContent=isLoginMode?'دخول':'إنشاء حساب'; alert(isLoginMode?"✓ تسجيل الدخول":"✓ إنشاء حساب") };
-window.logout = ()=>{ isLoggedIn=false; showSection('login-section'); if($('userEmail'))$('userEmail').textContent='user@example.com'; alert("✅ تم الخروج") };
+window.toggleAuthMode=function(){ alert(isLoginMode?"✓ إنشاء حساب":"✓ تسجيل الدخول") };
+window.logout=function(){ go('login'); if($('userEmail'))$('userEmail').textContent='user@example.com'; alert("✅ خروج") };
 
 // 💬 الدردشة
-window.sendMessage = function(){
-    const inp=$('chatInput'), txt=inp?.value.trim(), msgs=$('messages');
-    if(!txt||!msgs)return;
-    const div=document.createElement('div'); div.className='message me';
-    div.innerHTML=`<span class="sender">أنت</span><span class="time">${new Date().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})}</span><span class="text">${txt}</span>`;
-    msgs.appendChild(div); inp.value=''; msgs.scrollTop=msgs.scrollHeight;
-    setTimeout(()=>{const r=document.createElement('div');r.className='message';r.innerHTML=`<span class="sender">النظام</span><span class="time">${new Date().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})}</span><span class="text">✅ تم الاستلام</span>`;msgs.appendChild(r);msgs.scrollTop=msgs.scrollHeight},800);
+window.sendChat=function(){
+    const t=$('chat-txt')?.value.trim(), m=$('chat-msgs');
+    if(!t||!m)return;
+    const d=document.createElement('div'); d.className='msg me';
+    d.innerHTML=`<span class="s">أنت</span><span class="t">${new Date().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})}</span><span class="x">${t}</span>`;
+    m.appendChild(d); $('chat-txt').value=''; m.scrollTop=m.scrollHeight;
+    setTimeout(()=>{const r=document.createElement('div');r.className='msg';r.innerHTML=`<span class="s">النظام</span><span class="t">${new Date().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})}</span><span class="x">✅ وصل</span>`;m.appendChild(r);m.scrollTop=m.scrollHeight},600);
 };
 
 // 📤 انشر
-window.switchCode = ()=>{ const t=$('codeType')?.value||'inline', b=$('codeBox'); if(!b)return; b.value=t==='inline'?'<iframe src="https://example.com/chat" width="400" height="400"></iframe>':'<a href="#" onclick="openPop()">افتح الدردشة</a>'; };
-window.copyCode = ()=>{ const b=$('codeBox'); if(!b)return; b.select(); try{document.execCommand('copy');alert("✅ تم النسخ")}catch{alert("Ctrl+C للنسخ")} };
+window.swapCode=function(){
+    const v=$('sel-code')?.value||'inline', b=$('txt-code');
+    if(!b)return;
+    b.value = v==='inline' ? '<iframe src="https://example.com/chat" width="400" height="400"></iframe>' : '<a href="#" onclick="openPop()">افتح</a>';
+};
+window.copyCode=function(){
+    const b=$('txt-code'); if(!b)return;
+    b.select(); try{document.execCommand('copy');alert("✅ نسخ")}catch{alert("Ctrl+C")}
+};
 
 // 📦 صندوق بريدي
-window.refreshStats = ()=>{ const v=Math.floor(Math.random()*5000)+10000, m=Math.floor(Math.random()*1000)+2000, p=Math.min(100,Math.max(10,m/50)); if($('views'))$('views').textContent=v.toLocaleString('ar-EG'); if($('msgs'))$('msgs').textContent=m.toLocaleString('ar-EG'); if($('progress'))$('progress').style.width=p+'%'; alert(`✅ المشاهدات: ${v.toLocaleString('ar-EG')}\n📩 الرسائل: ${m.toLocaleString('ar-EG')}`) };
+window.updStats=function(){
+    const v=Math.floor(Math.random()*5000)+10000, m=Math.floor(Math.random()*1000)+2000;
+    if($('stat-v'))$('stat-v').textContent=v.toLocaleString('ar-EG');
+    if($('stat-m'))$('stat-m').textContent=m.toLocaleString('ar-EG');
+    if($('bar-fill'))$('bar-fill').style.width=Math.min(100,Math.max(10,m/20))+'%';
+    alert(`✅ مشاهدات: ${v.toLocaleString('ar-EG')}\n📩 رسائل: ${m.toLocaleString('ar-EG')}`);
+};
 
 // ⚙️ إعدادات
-window.saveSettings = ()=>{ const n=$('displayName')?.value.trim(); if(!n)return alert("⚠️ اكتب اسماً"); if($('userName'))$('userName').textContent=n; alert("✅ تم: "+n) };
+window.saveSet=function(){
+    const n=$('inp-name')?.value.trim(); if(!n)return alert("⚠️ اكتب اسماً");
+    if($('lbl-name'))$('lbl-name').textContent=n;
+    alert("✅ تم: "+n);
+};
 
 // 🧪 اختبار
-window.testJS = ()=>{ const now=new Date().toLocaleString('ar-EG'); if($('testResult'))$('testResult').innerHTML=`✅ يعمل!<br>⏰ ${now}<br>👤 ${isLoggedIn?$('userEmail')?.textContent:'غير مسجل'}`; alert("✅ الجافاسكربت يعمل!\n"+now) };
+window.testSys=function(){
+    const now=new Date().toLocaleString('ar-EG');
+    if($('test-out'))$('test-out').innerHTML=`✅ يعمل!<br>⏰ ${now}`;
+    alert("✅ الجافاسكربت يعمل!\n"+now);
+};
 
-// 📋 إدارة القوائم المنسدلة
-function closeAllMenus(){ ['menu1-c','menu2-c','menu3-c','menu4-c'].forEach(id=>{const m=$(id);if(m)m.classList.remove('show')}) }
-
-document.addEventListener('DOMContentLoaded', function(){
-    // تفعيل جميع القوائم
-    ['menu1','menu2','menu3','menu4'].forEach(btnId=>{
-        const btn=$(btnId), content=$(btnId+'-c');
-        if(btn&&content){
-            btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();closeAllMenus();content.classList.toggle('show');console.log("📋 "+btn.textContent.trim()+": "+(content.classList.contains('show')?'فتح':'إغلاق'))});
-        }
+// 📋 إدارة مجموعات الأزرار
+function closeGroups(){
+    ['grp-appearance','grp-options','grp-users','grp-messages'].forEach(id=>{
+        const g=$(id); if(g)g.style.display='none';
     });
-    // إغلاق عند النقر خارج القائمة
-    document.addEventListener('click',e=>{ if(!e.target.closest('.dropdown')&&!e.target.closest('.dropdown-content'))closeAllMenus() });
-    
-    console.log("✅ النظام جاهز مع 4 قوائم منسدلة!");
-});
+}
+window.toggleGroup=function(grp){
+    console.log("📋 مجموعة:",grp);
+    closeGroups(); // إغلاق الكل أولاً
+    const g=$('grp-'+grp);
+    if(g){
+        g.style.display = (g.style.display==='none'||!g.style.display) ? 'block' : 'none';
+        console.log("  → "+(g.style.display==='block'?'فتح':'إغلاق'));
+    }
+};
+
+// بدء
+console.log("✅ النظام جاهز!");
