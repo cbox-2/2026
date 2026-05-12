@@ -15,12 +15,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const loginSection = document.getElementById('login-section');
     const dashboardSection = document.getElementById('dashboard-section');
     const settingsSection = document.getElementById('settings-section');
+    const publishSection = document.getElementById('publish-section');
     const subpageView = document.getElementById('subpage-view');
     const emailInput = document.getElementById('email-input'); const passInput = document.getElementById('pass-input');
     const authBtn = document.getElementById('auth-btn'); const formTitle = document.getElementById('form-title');
     const toggleAuth = document.getElementById('toggle-auth'); const resetLink = document.getElementById('reset-link');
     const userDisplay = document.getElementById('user-name-display'); const logoutBtn = document.getElementById('logout-btn');
     const navLogout = document.getElementById('nav-logout'); const navSettings = document.getElementById('nav-settings');
+    const navPublish = document.getElementById('nav-publish'); const navHome = document.getElementById('nav-home');
     const backToDash = document.getElementById('back-to-dashboard'); const errorBar = document.getElementById('siteErrorBarCont');
     const loginHistory = document.getElementById('login-history'); const sessionCount = document.getElementById('session-count');
     const lastLogin = document.getElementById('last-login'); const settingsName = document.getElementById('settings-name');
@@ -48,7 +50,16 @@ document.addEventListener('DOMContentLoaded', function() {
         else { showSection('login'); if (navLogout) navLogout.style.display = 'none'; if (chatInput) chatInput.disabled = true; if (chatSendBtn) chatSendBtn.disabled = true; if (unsubscribeChat) unsubscribeChat(); if (errorBar) errorBar.textContent = 'جاهز...'; if (messagesList) messagesList.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">سجّل الدخول لرؤية الرسائل</p>'; unreadCount = 0; updateNotificationBadge(); }
     });
 
-    function showSection(name) { loginSection.style.display = 'none'; dashboardSection.style.display = 'none'; settingsSection.style.display = 'none'; subpageView.style.display = 'none'; if (name === 'login') loginSection.style.display = 'block'; else if (name === 'dashboard') dashboardSection.style.display = 'block'; else if (name === 'settings') settingsSection.style.display = 'block'; else if (name === 'subpage') subpageView.style.display = 'block'; }
+    function showSection(name) { 
+        loginSection.style.display = 'none'; dashboardSection.style.display = 'none'; 
+        settingsSection.style.display = 'none'; subpageView.style.display = 'none'; 
+        if(publishSection) publishSection.style.display = 'none';
+        if (name === 'login') loginSection.style.display = 'block'; 
+        else if (name === 'dashboard') dashboardSection.style.display = 'block'; 
+        else if (name === 'settings') settingsSection.style.display = 'block'; 
+        else if (name === 'publish' && publishSection) publishSection.style.display = 'block';
+        else if (name === 'subpage') subpageView.style.display = 'block'; 
+    }
 
     if (toggleAuth) { toggleAuth.addEventListener('click', e => { e.preventDefault(); isLoginMode = !isLoginMode; if (formTitle) formTitle.textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب جديد'; if (authBtn) authBtn.textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب'; }); }
     if (authBtn) { authBtn.addEventListener('click', async () => { const email = emailInput?.value.trim()||''; const pass = passInput?.value.trim()||''; if (!email.includes('@')) return alert('⚠️ أدخل بريد إلكتروني صحيح'); if (!email || !pass) return alert('⚠️ املأ جميع الحقول'); authBtn.disabled = true; authBtn.textContent = 'جاري المعالجة...'; try { if (isLoginMode) await auth.signInWithEmailAndPassword(email, pass); else { await auth.createUserWithEmailAndPassword(email, pass); await db.collection('users').doc(auth.currentUser.uid).set({ email, displayName: email.split('@')[0], createdAt: firebase.firestore.FieldValue.serverTimestamp() }); } await db.collection('sessions').add({ userId: auth.currentUser.uid, email, timestamp: firebase.firestore.FieldValue.serverTimestamp() }); } catch (err) { alert('❌ ' + (translateFirebaseError(err.code) || err.message)); } finally { authBtn.disabled = false; authBtn.textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب'; } }); }
@@ -56,8 +67,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (resetLink) { resetLink.addEventListener('click', async e => { e.preventDefault(); const em=prompt('أدخل بريدك الإلكتروني لاستعادة كلمة المرور:'); if(em){try{await auth.sendPasswordResetEmail(em);alert('✅ تم إرسال رابط الاستعادة')}catch(err){alert('❌ '+err.message)}} }); }
     const doLogout = () => auth.signOut(); if (logoutBtn) logoutBtn.onclick = doLogout; if (navLogout) navLogout.onclick = doLogout;
     if (navSettings) navSettings.onclick = e => { e.preventDefault(); showSection('settings'); if(errorBar) errorBar.textContent='الإعدادات'; };
+    if (navPublish) navPublish.onclick = e => { e.preventDefault(); if(!currentUser){alert('⚠️ يرجى تسجيل الدخول أولاً');showSection('login');return;} showSection('publish'); if(errorBar) errorBar.textContent='صفحة انشر'; closeAllDropdowns(); };
+    if (navHome) navHome.onclick = e => { e.preventDefault(); showSection('dashboard'); if(errorBar) errorBar.textContent='متصل بـ Firebase ✅'; closeAllDropdowns(); };
     if (backToDash) backToDash.onclick = e => { e.preventDefault(); showSection('dashboard'); if(errorBar) errorBar.textContent='متصل بـ Firebase ✅'; };
-    if (document.getElementById('nav-home')) document.getElementById('nav-home').onclick = e => { e.preventDefault(); showSection('dashboard'); if(errorBar) errorBar.textContent='متصل بـ Firebase ✅'; };
     if (saveSettingsBtn) { saveSettingsBtn.addEventListener('click', async () => { const n=settingsName?.value.trim(); if(!n) return alert('⚠️ الاسم مطلوب'); try{await auth.currentUser.updateProfile({displayName:n}); await db.collection('users').doc(auth.currentUser.uid).update({displayName:n}); if(userDisplay) userDisplay.textContent=n; alert('✅ تم حفظ التغييرات')}catch(err){alert('❌ '+err.message)} }); }
 
     async function loadDashboardData(email) { if (!loginHistory) return; loginHistory.innerHTML='<li>جاري التحميل...</li>'; try{const snap=await db.collection('sessions').orderBy('timestamp','desc').limit(50).get(); const u=snap.docs.filter(d=>d.data().email===email).slice(0,5); if(u.length===0) loginHistory.innerHTML='<li>لا توجد جلسات سابقة</li>'; else{let h='';u.forEach(d=>{const t=d.data().timestamp?d.data().timestamp.toDate().toLocaleString('ar-EG'):'غير معروف'; h+=`<li>🟢 دخول في: ${t}</li>`}); loginHistory.innerHTML=h; if(sessionCount) sessionCount.textContent=u.length; if(lastLogin) lastLogin.textContent=u[0].data().timestamp.toDate().toLocaleString('ar-EG'); }}catch(e){loginHistory.innerHTML='<li>فشل التحميل</li>'; }}
@@ -74,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function escapeHtml(text) { const d=document.createElement('div'); d.appendChild(document.createTextNode(text||'')); return d.innerHTML; }
     function translateFirebaseError(code) { const m={'auth/invalid-credential':'البريد أو كلمة المرور غير صحيحة','auth/email-already-in-use':'البريد مسجل مسبقاً','auth/invalid-email':'صيغة البريد غير صحيحة','auth/user-not-found':'البريد غير مسجل','auth/wrong-password':'كلمة المرور غير صحيحة','auth/weak-password':'كلمة المرور يجب أن تكون 6 أحرف على الأقل','auth/too-many-requests':'محاولات كثيرة، انتظر قليلاً'}; return m[code]||code; }
 
-    // 📋 جميع الصفحات الفرعية (مدمجة وقابلة للتوسع)
+    // 📋 جميع الصفحات الفرعية
     const allSubPages = {
         posts: `<div class="subpage"><h2>📩 إدارة الرسائل</h2><div class="notice">عرض جميع الرسائل الواردة في الصندوق</div><div class="card"><p>🔍 بحث: <input type="text" class="txtbox" placeholder="ابحث في الرسائل..." style="width:200px;display:inline-block;"></p><p>📅 تصفية: <select class="txtbox" style="width:150px;display:inline-block;"><option>الكل</option><option>اليوم</option><option>هذا الأسبوع</option></select></p><div style="margin-top:15px;"><p style="color:#888;">لا توجد رسائل لعرضها حالياً</p></div></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
         postsarc: `<div class="subpage"><h2>🗄️ الأرشيف</h2><div class="notice">الرسائل المؤرشفة والمحذوفة</div><div class="card"><p>📦 إجمالي المؤرشف: <strong>0</strong></p><p>🗑️ إجمالي المحذوف: <strong>0</strong></p><button class="btn-primary" style="margin-top:10px;background:#64748b;">استعادة رسائل</button></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
@@ -92,13 +104,15 @@ document.addEventListener('DOMContentLoaded', function() {
         layout: `<div class="subpage"><h2>📐 خيارات التخطيط</h2><div class="notice">التحكم في عرض العناصر، حجم الخط، وترتيب الأقسام</div><div class="card"><label>عرض الصندوق:</label><select class="txtbox" style="width:100%;margin-top:5px;"><option>كامل الشاشة</option><option>متوسط (960px)</option><option>ضيق (720px)</option></select><label>حجم الخط الأساسي:</label><input type="range" class="txtbox" min="10" max="16" value="12" style="width:100%;margin-top:5px;"><button class="btn-primary" style="margin-top:10px;">تطبيق التخطيط</button></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`
     };
 
-    // 📋 نظام القوائم المنسدلة (قابل للتوسع لأي عدد)
+    // 📋 نظام القوائم المنسدلة
     const dropdowns = [
         { trigger: document.getElementById('hovmenu4'), content: document.getElementById('hovmenu4-content') },
         { trigger: document.getElementById('hovmenu5'), content: document.getElementById('hovmenu5-content') },
         { trigger: document.getElementById('hovmenu6'), content: document.getElementById('hovmenu6-content') },
         { trigger: document.getElementById('hovmenu7'), content: document.getElementById('hovmenu7-content') }
     ];
+
+    function closeAllDropdowns() { dropdowns.forEach(d => { if(d.content) d.content.classList.remove('show'); const a=d.trigger?.querySelector('.submenu-arrow'); if(a) a.style.transform='rotate(0deg)'; }); }
 
     dropdowns.forEach(({ trigger, content }) => {
         if (!trigger || !content) return;
@@ -107,45 +121,52 @@ document.addEventListener('DOMContentLoaded', function() {
             const isOpen = content.classList.toggle('show');
             const arrow = this.querySelector('.submenu-arrow');
             if(arrow) arrow.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
-            // إغلاق القوائم الأخرى
-            dropdowns.forEach(d => {
-                if (d.content !== content) {
-                    d.content.classList.remove('show');
-                    const otherArrow = d.trigger.querySelector('.submenu-arrow');
-                    if(otherArrow) otherArrow.style.transform = 'rotate(0deg)';
-                }
-            });
+            dropdowns.forEach(d => { if (d.content !== content && d.content) { d.content.classList.remove('show'); const oa=d.trigger.querySelector('.submenu-arrow'); if(oa) oa.style.transform='rotate(0deg)'; } });
         });
-
         content.querySelectorAll('.sublink').forEach(link => {
             link.addEventListener('click', function(e) {
-                e.preventDefault();
-                content.classList.remove('show');
-                const arrow = trigger.querySelector('.submenu-arrow');
-                if(arrow) arrow.style.transform = 'rotate(0deg)';
-                content.querySelectorAll('.sublink').forEach(l => l.classList.remove('active'));
-                this.classList.add('active');
-                const target = this.getAttribute('data-target');
-                showSection('subpage');
-                subpageView.innerHTML = allSubPages[target] || '<p>صفحة غير متوفرة</p>';
-                if(errorBar) errorBar.textContent = this.textContent.trim();
+                e.preventDefault(); content.classList.remove('show'); const arrow=trigger.querySelector('.submenu-arrow'); if(arrow) arrow.style.transform='rotate(0deg)';
+                content.querySelectorAll('.sublink').forEach(l => l.classList.remove('active')); this.classList.add('active');
+                const target = this.getAttribute('data-target'); showSection('subpage'); subpageView.innerHTML = allSubPages[target] || '<p>صفحة غير متوفرة</p>'; if(errorBar) errorBar.textContent = this.textContent.trim();
             });
         });
     });
 
     document.addEventListener('click', function(e) {
-        dropdowns.forEach(({ trigger, content }) => {
-            if (content.classList.contains('show') && !trigger.contains(e.target) && !content.contains(e.target)) {
-                content.classList.remove('show');
-                const a = trigger.querySelector('.submenu-arrow');
-                if(a) a.style.transform = 'rotate(0deg)';
-            }
-        });
-        if (e.target.classList.contains('back-link')) {
-            e.preventDefault();
-            showSection(e.target.getAttribute('data-return') || 'dashboard');
-            dropdowns.forEach(d => { d.content.classList.remove('show'); const a=d.trigger.querySelector('.submenu-arrow'); if(a) a.style.transform='rotate(0deg)'; });
-            if(errorBar) errorBar.textContent = 'متصل بـ Firebase ✅';
-        }
+        dropdowns.forEach(({ trigger, content }) => { if (content?.classList.contains('show') && !trigger.contains(e.target) && !content.contains(e.target)) { content.classList.remove('show'); const a=trigger.querySelector('.submenu-arrow'); if(a) a.style.transform='rotate(0deg)'; } });
+        if (e.target.classList.contains('back-link')) { e.preventDefault(); showSection(e.target.getAttribute('data-return')||'dashboard'); closeAllDropdowns(); if(errorBar) errorBar.textContent='متصل بـ Firebase ✅'; }
     });
+
+    // 🆕 دوال صفحة "انشر"
+    var curCode = "default";
+    function switchcode() {
+        var v = document.getElementById("variation-select")?.value || "default";
+        document.querySelectorAll('[id^="cboxcode_"]').forEach(ta => ta.style.display = "none");
+        var target = document.getElementById("cboxcode_" + (v === "default" ? "default" : v));
+        if(target) target.style.display = ""; curCode = v;
+    }
+    function copytext() {
+        var $ta = document.getElementById("cboxcode_" + curCode); if(!$ta) return;
+        $ta.focus(); $ta.select();
+        try { if (!document.execCommand("copy")) { navigator.clipboard.writeText($ta.value); }
+            var $btnCopy = document.getElementById("btnCopy"); var orig = $btnCopy.textContent;
+            $btnCopy.textContent = "✅ تم النسخ!"; setTimeout(() => { $btnCopy.textContent = orig; }, 2000);
+        } catch (e) { alert("اضغط على الكود ثم اضغط Ctrl+C للنسخ يدوياً."); }
+    }
+    function gentag() {
+        var x = document.getElementById("hashtag"); if(!x) return;
+        var t = Math.round(Math.random()*1838265624).toString(35);
+        t = t.replace('u','z').replace('i','5').replace('o','w'); x.value = t.substring(0,6);
+    }
+    var curInstructions = "generic";
+    function updateinst() {
+        var a = document.getElementById("sitetype-select")?.value || "generic";
+        document.querySelectorAll('[id^="ii_"]').forEach(div => div.style.display = "none");
+        var target = document.getElementById("ii_" + a + "_v10") || document.getElementById("ii_generic_v10");
+        if(target) target.style.display = ""; curInstructions = a;
+    }
+
+    // تهيئة عند التحميل
+    if(document.getElementById("variation-select")) switchcode();
+    if(document.getElementById("sitetype-select")) updateinst();
 });
