@@ -25,78 +25,50 @@
         <div class="wrap">
             <a id="logo" href=""><img src="https://via.placeholder.com/200x86?text=صندوق+C" width="200" height="86" alt="صندوق C" border="0"></a>
             <div id="headerExtras">
-                <form id="qlogin" action="#" onsubmit="return false;">
-                    <input type="text" id="q-email" placeholder="البريد الإلكتروني" maxlength="50" class="txtbox" style="width:160px">
-                    <input type="password" id="q-pass" placeholder="كلمة المرور" maxlength="50" class="txtbox" style="width:160px;">
-                    <button type="button" id="q-login-btn">دخول</button>
-                </form>
+                <span id="userWelcome">user@example.com</span>
+                <a href="#" onclick="showSection('mailbox');return false;">صناديق بريدي</a>
+                <a href="#" onclick="showSection('settings');return false;">حسابي</a>
+                <a href="#" onclick="alert('صفحة المساعدة')">يدعم</a>
+                <a href="#" onclick="doLogout();return false;">تسجيل الخروج</a>
             </div>
         </div>
     </div>
 
-    <div id="topbar">
+    <div id="subbar">
         <div class="wrap">
-            <span class="Spacer">&nbsp;</span>
-            <a href="#" class="button" id="nav-home">الرئيسية</a>
-            <a href="#" class="button" id="nav-publish">انشر</a>
-            <a href="#" class="button" id="nav-settings">الإعدادات</a>
-            <button id="theme-toggle" class="button">🌙 وضع ليلي</button>
-            <a href="#" class="button" id="nav-logout" style="display:none; background:#b91c1c;">خروج</a>
-        </div>
-    </div>
-
-    <!-- ✅ شريط القوائم المنسدلة (4 قوائم) -->
-    <div id="bar3">
-        <div class="wrap">
-            <!-- قائمة الرسائل -->
-            <a href="#" id="hovmenu4" class="submenuitem">
-                <font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">رسائل</font></font>
-                <span class="submenu-arrow">▼</span>
-            </a>
+            <a href="#" onclick="showSection('dashboard');return false;" class="submenuitem"><b>MYCBOX2024</b></a>
+            <a href="#" onclick="showSection('publish');return false;" class="submenuitem">انشر</a>
+            <a href="#" id="hovmenu1" class="submenuitem">المظهر والملمس <span class="submenu-arrow">▼</span></a>
+            <div id="hovmenu1-content" class="submenu-content">
+                <a href="#" class="sublink" data-target="style">محرر السمات</a>
+                <a href="#" class="sublink" data-target="layout">خيارات التخطيط</a>
+            </div>
+            <a href="#" id="hovmenu2" class="submenuitem">خيارات <span class="submenu-arrow">▼</span></a>
+            <div id="hovmenu2-content" class="submenu-content">
+                <a href="#" class="sublink" data-target="filtering">تصفية</a>
+                <a href="#" class="sublink" data-target="smilies">الرموز التعبيرية</a>
+                <a href="#" class="sublink" data-target="dateopt">خيارات التاريخ</a>
+                <a href="#" class="sublink" data-target="postopt">خيارات النشر</a>
+            </div>
+            <a href="#" id="hovmenu3" class="submenuitem">المستخدمون <span class="submenu-arrow">▼</span></a>
+            <div id="hovmenu3-content" class="submenu-content">
+                <a href="#" class="sublink" data-target="users">المستخدمون المسجلون</a>
+                <a href="#" class="sublink" data-target="bans">المستخدمون المحظورون</a>
+                <a href="#" class="sublink" data-target="userint">تكامل المستخدم</a>
+            </div>
+            <a href="#" id="hovmenu4" class="submenuitem">رسائل <span class="submenu-arrow">▼</span></a>
             <div id="hovmenu4-content" class="submenu-content">
-                <a href="#" class="sublink" data-target="posts"><span class="submenuimg" style="background-position: -198px 0px"></span> رسائل</a>
-                <a href="#" class="sublink" data-target="postsarc"><span class="submenuimg" style="background-position: 0px -44px"></span> أرشيف</a>
-                <a href="#" class="sublink" data-target="sticky"><span class="submenuimg" style="background-position: 0px -22px"></span> رسالة لاصقة</a>
-                <a href="#" class="sublink" data-target="channels"><span class="submenuimg" style="background-position: -22px -22px"></span> القنوات</a>
-                <a href="#" class="sublink" data-target="webhook"><span class="submenuimg" style="background-position: 0px -178px"></span> رابط الويب</a>
-            </div>
-
-            <!-- قائمة المستخدمون -->
-            <a href="#" id="hovmenu5" class="submenuitem">
-                <font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">المستخدمون</font></font>
-                <span class="submenu-arrow">▼</span>
-            </a>
-            <div id="hovmenu5-content" class="submenu-content">
-                <a href="#" class="sublink" data-target="users"><span class="submenuimg" style="background-position: -44px 0px"></span> المستخدمون المسجلون</a>
-                <a href="#" class="sublink" data-target="bans"><span class="submenuimg" style="background-position: -88px 0px"></span> المستخدمون المحظورون</a>
-                <a href="#" class="sublink" data-target="userint"><span class="submenuimg" style="background-position: 0px -88px"></span> تكامل المستخدم</a>
-            </div>
-
-            <!-- قائمة الخيارات -->
-            <a href="#" id="hovmenu6" class="submenuitem">
-                <font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">خيارات</font></font>
-                <span class="submenu-arrow">▼</span>
-            </a>
-            <div id="hovmenu6-content" class="submenu-content">
-                <a href="#" class="sublink" data-target="filtering"><span class="submenuimg" style="background-position: -220px 0px"></span> تصفية</a>
-                <a href="#" class="sublink" data-target="smilies"><span class="submenuimg" style="background-position: 0px -132px"></span> الرموز التعبيرية</a>
-                <a href="#" class="sublink" data-target="dateopt"><span class="submenuimg" style="background-position: -176px 0px"></span> خيارات التاريخ</a>
-                <a href="#" class="sublink" data-target="postopt"><span class="submenuimg" style="background-position: -44px -132px"></span> خيارات النشر</a>
-            </div>
-
-            <!-- قائمة المظهر والملمس -->
-            <a href="#" id="hovmenu7" class="submenuitem">
-                <font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">المظهر والملمس</font></font>
-                <span class="submenu-arrow">▼</span>
-            </a>
-            <div id="hovmenu7-content" class="submenu-content">
-                <a href="#" class="sublink" data-target="style"><span class="submenuimg" style="background-position: -0px 0px"></span> محرر السمات</a>
-                <a href="#" class="sublink" data-target="layout"><span class="submenuimg" style="background-position: -154px 0px"></span> خيارات التخطيط</a>
+                <a href="#" class="sublink" data-target="posts">رسائل</a>
+                <a href="#" class="sublink" data-target="postsarc">أرشيف</a>
+                <a href="#" class="sublink" data-target="sticky">رسالة لاصقة</a>
+                <a href="#" class="sublink" data-target="channels">القنوات</a>
+                <a href="#" class="sublink" data-target="webhook">رابط الويب</a>
             </div>
         </div>
     </div>
 
-    <div id="wideimg" style="position:relative; width:100%; left:0"></div>
+    <div id="bar3"><div class="wrap"><div id="hovmenu" class="wrap"></div></div></div>
+    <div id="wideimg" style="position: relative; width: 100%; left: 0"></div>
 
     <div id="main" class="wrap">
         <div id="content">
@@ -108,20 +80,20 @@
                     <fieldset>
                         <legend id="form-title">تسجيل الدخول</legend>
                         <label>البريد الإلكتروني:</label>
-                        <input type="email" id="email-input" class="txtbox" required placeholder="admin@cbox.com">
+                        <input type="email" id="email-input" class="txtbox" required placeholder="admin@example.com">
                         <label>كلمة المرور (6 أحرف على الأقل):</label>
                         <input type="password" id="pass-input" class="txtbox" minlength="6" required>
                         <button type="button" id="auth-btn">تسجيل الدخول</button>
                     </fieldset>
                 </form>
                 <p id="toggle-text">ليس لديك حساب؟ <a href="#" id="toggle-auth">إنشاء حساب جديد</a></p>
-                <p><a href="#" id="reset-link">نسيت كلمة المرور؟</a> | <a href="/help?id=12">تفعيل ملفات تعريف الارتباط</a></p>
+                <p><a href="#" id="reset-link">نسيت كلمة المرور؟</a> | <a href="#" onclick="alert('صفحة المساعدة')">تفعيل ملفات تعريف الارتباط</a></p>
             </div>
 
             <!-- لوحة التحكم الرئيسية -->
             <div id="dashboard-section" style="display:none;">
                 <h1>👋 مرحباً، <span id="user-name-display">مستخدم</span>!</h1>
-                <div class="notice" style="background:#d1fae5; border-color:#6ee7b7; color:#065f46;">✅ تم تسجيل الدخول بنجاح عبر Firebase</div>
+                <div class="notice" style="background:#d1fae5; border-color:#6ee7b7; color:#065f46;">✅ تم تسجيل الدخول بنجاح</div>
                 <div class="dashboard-grid">
                     <div class="card"><h3>📊 الإحصائيات</h3><p>جلسات مسجلة: <strong id="session-count">0</strong></p></div>
                     <div class="card"><h3>⚙️ الحالة</h3><p>الحساب: <span style="color:#16a34a">نشط</span></p><p>آخر دخول: <span id="last-login">--</span></p></div>
@@ -145,28 +117,27 @@
                 <button id="logout-btn" class="btn-primary" style="margin-top:20px; background:#dc2626;">تسجيل الخروج</button>
             </div>
 
-            <!-- 🆕 صفحة "انشر" الجديدة -->
+            <!-- صفحة "انشر" -->
             <div id="publish-section" style="display:none;">
-                <h1><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">انشر صندوق بريدك الإلكتروني</font></font></h1>
-                <p><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">إذا كنت تدير موقعك الخاص، يمكنك تضمين Cbox مباشرة في صفحات موقعك.</font></font></p>
+                <h1>انشر صندوق بريدك الإلكتروني</h1>
+                <p>إذا كنت تدير موقعك الخاص، يمكنك تضمين الصندوق مباشرة في صفحات موقعك.</p>
 
-                <iframe src="javascript:false" name="t_fsnippet" width="1" height="1" class="frmiframe" style="display:none;"></iframe>
-                <form name="fsnippet" target="t_fsnippet" method="post" action="#" onsubmit="return false;">
+                <form name="fsnippet" action="#" onsubmit="return false;">
                     <fieldset class="Med WithSuffix">
-                        <legend><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">خيارات التضمين</font></font></legend>
-                        <label><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">رابط موقعك الإلكتروني:</font></font></label>
+                        <legend>خيارات التضمين</legend>
+                        <label>رابط موقعك الإلكتروني:</label>
                         <input type="text" name="site" size="35" maxlength="100" class="txtbox" value="https://example.com">
                         
-                        <label for="privchk"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">تفعيل القائمة البيضاء للمواقع:</font></font></label>
+                        <label for="privchk">تفعيل القائمة البيضاء للمواقع:</label>
                         <div class="slideThree"><input type="checkbox" name="private" value="1" id="privchk"><label></label></div>
                         <textarea id="moreaddr" name="whitelist" cols="20" rows="6" class="txtbox" placeholder="أدخل عناوين URL للقائمة البيضاء، عنوان واحد في كل سطر." style="display: none;"></textarea>
 
-                        <label for="codessl"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">استخدم بروتوكول HTTP الآمن (TLS/SSL):</font></font></label>
+                        <label for="codessl">استخدم بروتوكول HTTP الآمن (TLS/SSL):</label>
                         <div class="slideThree"><input type="checkbox" name="codessl" value="1" id="codessl" checked><label></label></div>
                         
-                        <label><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">علامة الأمان:</font></font></label>
-                        <input type="text" name="hashtag" id="hashtag" size="10" maxlength="6" class="txtbox" value="52gxr7">
-                        <a href="javascript:void(0);" onclick="gentag()"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">&nbsp;[إنشاء جديد]</font></font></a>
+                        <label>علامة الأمان:</label>
+                        <input type="text" name="hashtag" id="hashtag" size="10" maxlength="6" class="txtbox" value="abc123">
+                        <a href="javascript:void(0);" onclick="gentag()">&nbsp;[إنشاء جديد]</a>
                         
                         <button type="button" class="btn-primary" onclick="alert('✅ تم حفظ الإعدادات')">يحفظ</button>
                     </fieldset>
@@ -174,8 +145,8 @@
 
                 <form name="fsnippet2" action="#" method="post" onsubmit="return false;">
                     <fieldset>
-                        <legend><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">احصل على رمز التضمين الخاص بك</font></font></legend>
-                        <label><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">تنويع الكود:</font></font></label>
+                        <legend>احصل على رمز التضمين الخاص بك</legend>
+                        <label>تنويع الكود:</label>
                         <select name="variation" class="txtbox" id="variation-select" onchange="switchcode()">
                             <optgroup label="Standard codes">
                                 <option value="default">قياسي مضمن</option>
@@ -183,38 +154,19 @@
                                 <option value="bar">زر ثابت</option>
                                 <option value="defer">التحميل المؤجل</option>
                             </optgroup>
-                            <optgroup label="Platform-specific codes">
-                                <option value="myleague">موقع MyLeague</option>
-                            </optgroup>
                         </select>
 
-                        <textarea cols="70" rows="8" spellcheck="false" class="txtarea" id="cboxcode_v10_inline" style="display: none; width: 100%">&lt;iframe src="https://www4.cbox.ws/box/?boxid=4257987&amp;boxtag=52gxr7" width="400" height="400" allowtransparency="yes" allow="autoplay" frameborder="0" marginheight="0" marginwidth="0" scrolling="auto"&gt;&lt;/iframe&gt;</textarea>
-                        
-                        <textarea cols="70" rows="8" spellcheck="false" class="txtarea" id="cboxcode_v10_button" style="display: none; width: 100%">&lt;script&gt;
-window['CboxReady'] = function (Cbox) { Cbox('button', '4-4257987-52gxr7'); }
-&lt;/script&gt;
-&lt;script src="https://static.cbox.ws/embed/2.js" async&gt;&lt;/script&gt;</textarea>
-                        
-                        <textarea cols="70" rows="16" spellcheck="false" class="txtarea" id="cboxcode_default" style="width: 100%;">&lt;!-- BEGIN CBOX - www.cbox.ws - v4.3 --&gt;
-&lt;div id="cboxdiv" style="position: relative; margin: 0 auto; width: 400px; font-size: 0; line-height: 0;"&gt;
-&lt;div style="position: relative; height: 293px; overflow: auto; overflow-y: auto; -webkit-overflow-scrolling: touch; border: 0px solid;"&gt;&lt;iframe src="https://www4.cbox.ws/box/?boxid=4257987&amp;boxtag=52gxr7&amp;sec=main" marginheight="0" marginwidth="0" frameborder="0" width="100%" height="100%" scrolling="auto" allowtransparency="yes" name="cboxmain4-4257987" id="cboxmain4-4257987"&gt;&lt;/iframe&gt;&lt;/div&gt;
-&lt;div style="position: relative; height: 107px; overflow: hidden; border: 0px solid; border-top: 0px;"&gt;&lt;iframe src="https://www4.cbox.ws/box/?boxid=4257987&amp;boxtag=52gxr7&amp;sec=form" allow="autoplay" marginheight="0" marginwidth="0" frameborder="0" width="100%" height="100%" scrolling="no" allowtransparency="yes" name="cboxform4-4257987" id="cboxform4-4257987"&gt;&lt;/iframe&gt;&lt;/div&gt;
+                        <textarea cols="70" rows="8" spellcheck="false" class="txtarea" id="cboxcode_default" style="width: 100%;">&lt;!-- BEGIN CHAT BOX --&gt;
+&lt;div id="chatbox" style="position: relative; margin: 0 auto; width: 400px;"&gt;
+&lt;iframe src="https://your-chat-server.com/box?boxid=12345&amp;tag=abc123" width="400" height="400" frameborder="0"&gt;&lt;/iframe&gt;
 &lt;/div&gt;
-&lt;!-- END CBOX --&gt;</textarea>
+&lt;!-- END CHAT BOX --&gt;</textarea>
 
-                        <textarea cols="70" rows="16" spellcheck="false" class="txtarea" id="cboxcode_defer" style="display: none; width: 100%">&lt;div id="cboxwrap"&gt;&lt;/div&gt;
-&lt;script&gt;(function(){var showByDefault=true;var cboxContainer=document.getElementById("cboxwrap");var cboxHTML='&lt;iframe src="https://www4.cbox.ws/box/?boxid=4257987&amp;boxtag=52gxr7" width="400" height="400"&gt;&lt;/iframe&gt;';cboxContainer.innerHTML=cboxHTML;})();&lt;/script&gt;</textarea>
+                        <textarea cols="70" rows="8" spellcheck="false" class="txtarea" id="cboxcode_pop" style="display: none; width: 100%">&lt;script&gt;function openChat(){window.open("https://your-chat-server.com/box?boxid=12345","Chat","width=400,height=400");}&lt;/script&gt;
+&lt;a href="JavaScript:openChat();"&gt;افتح الدردشة المنبثقة&lt;/a&gt;</textarea>
 
-                        <textarea cols="70" rows="16" spellcheck="false" class="txtarea" id="cboxcode_pop" style="display: none; width: 100%">&lt;script&gt;function popcbox(){var w=window.open("https://www4.cbox.ws/box/?boxid=4257987&amp;boxtag=52gxr7","Cbox","width=400,height=400");}&lt;/script&gt;
-&lt;a href="JavaScript:popcbox();"&gt;Pop up my Cbox&lt;/a&gt;</textarea>
-
-                        <textarea cols="70" rows="16" spellcheck="false" class="txtarea" id="cboxcode_bar" style="display: none; width: 100%">&lt;div id="cboxbutton" style="position:fixed;bottom:8px;right:16px;padding:3px 20px;background:#EDF3F7;border:#C3D7E5 1px solid;border-radius:3px;cursor:pointer"&gt;Open Cbox&lt;/div&gt;
-&lt;div id="cboxwrap" style="position:fixed;bottom:48px;right:16px;display:none"&gt;&lt;iframe src="https://www4.cbox.ws/box/?boxid=4257987&amp;boxtag=52gxr7" width="400" height="400"&gt;&lt;/iframe&gt;&lt;/div&gt;
-&lt;script&gt;document.getElementById('cboxbutton').onclick=function(){var w=document.getElementById('cboxwrap');w.style.display=w.style.display==='none'?'block':'none';};&lt;/script&gt;</textarea>
-
-                        <textarea cols="70" rows="16" spellcheck="false" class="txtarea" id="cboxcode_myleague" style="display: none; width: 100%">&lt;!-- BEGIN CBOX - MyLeague --&gt;
-&lt;iframe src="https://www4.cbox.ws/box/?boxid=4257987&amp;boxtag=52gxr7&amp;sec=main&amp;nme=[cbox_name]" width="400" height="400"&gt;&lt;/iframe&gt;
-&lt;!-- END CBOX --&gt;</textarea>
+                        <textarea cols="70" rows="8" spellcheck="false" class="txtarea" id="cboxcode_bar" style="display: none; width: 100%">&lt;div id="chatbutton" style="position:fixed;bottom:8px;right:16px;padding:3px 20px;background:#EDF3F7;border:#C3D7E5 1px solid;border-radius:3px;cursor:pointer"&gt;افتح الدردشة&lt;/div&gt;
+&lt;script&gt;document.getElementById('chatbutton').onclick=function(){alert('فتح الدردشة');};&lt;/script&gt;</textarea>
 
                         <div style="float:right; margin-top:10px;">
                             <button type="button" class="btn-primary" id="btnCopy" onclick="copytext()">انسخ إلى الحافظة</button>
@@ -223,94 +175,126 @@ window['CboxReady'] = function (Cbox) { Cbox('button', '4-4257987-52gxr7'); }
                 </form>
 
                 <div style="float: right; margin-top:15px;">
-                    <font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">تعليمات لـ: </font></font>
+                    تعليمات لـ: 
                     <select name="sitetype" class="txtbox" id="sitetype-select" onchange="updateinst()">
                         <option value="generic">أي موقع</option>
-                        <option value="forum">المنتديات</option>
-                        <option value="blogger" selected>بلوجر / بلوجر سبوت</option>
-                        <option value="joomla">جوملا</option>
-                        <option value="myleague">MyLeague.com</option>
-                        <option value="phpbb3">phpBB 3.x</option>
-                        <option value="smf">منتدى الآلات البسيطة (SMF)</option>
-                        <option value="webs">Webs.com</option>
+                        <option value="blogger" selected>بلوجر</option>
+                        <option value="wordpress">ووردبريس</option>
                     </select>
                 </div>
 
-                <h2 style="clear:both; margin-top:30px;"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">تعليمات التضمين</font></font></h2>
-
+                <h2 style="clear:both; margin-top:30px;">تعليمات التضمين</h2>
                 <div id="ii_generic_v10">
                     <ol>
                         <li>انسخ الكود الخاص بك إلى الحافظة بالنقر على الزر أعلاه.</li>
                         <li>افتح محرر الصفحات أو القوالب لموقعك.</li>
-                        <li>قم بالتبديل إلى وضع التحرير HTML أو وضع التحرير الخام.</li>
+                        <li>قم بالتبديل إلى وضع التحرير HTML.</li>
                         <li>ألصق الكود الخاص بك في المحرر.</li>
                         <li>احفظ التغييرات وانشرها.</li>
                     </ol>
-                    <h3>هل تواجه مشاكل في التثبيت؟</h3>
-                    <p>إذا رأيت رمزًا على صفحتك بدلاً من Cbox الخاص بك، فقد يقوم محرر النصوص الخاص بك بإزالة أو تنظيف HTML الخاص بـ Cbox.</p>
-                    <p>إذا كانت منصتك تدعم التطبيقات أو الأدوات المصغّرة، ابحث عن تطبيق يدعم "iframe" أو "embed".</p>
-                    <p>رابطك المباشر: <a href="https://my.cbox.ws/MSASDWEC2015HKARNO" target="_blank">https://my.cbox.ws/MSASDWEC2015HKARNO</a></p>
                 </div>
-
                 <div id="ii_blogger_v10" style="display:none;">
                     <ol>
-                        <li>افتح محرر Blogger الخاص بك.</li>
+                        <li>افتح محرر بلوجر.</li>
                         <li>اختر "التخطيط" من القائمة.</li>
-                        <li>في المنطقة التي تريد عرض صندوق Cbox الخاص بك فيها، انقر فوق "إضافة أداة".</li>
-                        <li>اختر "HTML/JavaScript" من فئة الأساسيات.</li>
-                        <li>في قسم "المحتوى"، الصق رمز تضمين Cbox الخاص بك.</li>
+                        <li>انقر فوق "إضافة أداة" في المنطقة المطلوبة.</li>
+                        <li>اختر "HTML/JavaScript" والصق الكود.</li>
                         <li>احفظ التغييرات.</li>
                     </ol>
                 </div>
+            </div>
 
-                <div id="ii_forum_v10" style="display:none;">
-                    <ol>
-                        <li>انسخ الكود إلى الحافظة.</li>
-                        <li>إذا كنت تستخدم منتدى مستضاف، سجّل الدخول في لوحة التحكم.</li>
-                        <li>ابحث عن محرر "footer" والصق الكود هناك.</li>
-                        <li>إذا كنت تستضيف المنتدى بنفسك، يمكنك إدراج الكود في ملفات القالب مباشرة.</li>
-                    </ol>
+            <!-- صفحة "صندوق بريدي" -->
+            <div id="mailbox-section" style="display:none;">
+                <h1>صندوق بريدي</h1>
+                <div class="notice_er">
+                    يرجى <a href="#" onclick="alert('صفحة التجديد')">تجديد اشتراكك</a> لضمان استمرار الخدمة. للاستفسار <a href="#" onclick="alert('صفحة الاتصال')">تواصل معنا</a>.
                 </div>
 
-                <div id="ii_joomla_v10" style="display:none;">
-                    <ol>
-                        <li>انسخ الكود إلى الحافظة.</li>
-                        <li>في لوحة تحكم جوملا، اذهب إلى <b>Extensions</b> → <b>Install/Uninstall</b>.</li>
-                        <li>استخدم أداة <b>Upload Package File</b> لرفع وحدة Cbox.</li>
-                        <li>اذهب إلى <b>Extensions → Module Manager</b> وانقر على <b>Cbox</b>.</li>
-                        <li>اضبط <b>Enabled</b> على <code>Yes</code>، والصق الكود في المربع.</li>
-                        <li>انقر <b>Save</b>.</li>
-                    </ol>
+                <div class="col1_2">
+                    <fieldset>
+                        <iframe frameborder="0" width="100%" height="305" src="https://placeholder-chat.com/main?box=12345" marginheight="2" marginwidth="2" scrolling="auto" allowtransparency="yes" style="border:0;padding:0;margin:0 auto;"></iframe>
+                        <iframe frameborder="0" width="100%" height="107" src="https://placeholder-chat.com/form?box=12345" marginheight="2" marginwidth="2" scrolling="no" allowtransparency="yes" style="border:0;padding:0;margin:0 auto;"></iframe>
+                    </fieldset>
+
+                    <form name="flock" action="#" onsubmit="return false;">
+                        <fieldset class="Short">
+                            <legend>قفل صندوق البريد</legend>
+                            <p>يمكنك قفل صندوق الدردشة لمنع استخدامه مؤقتاً.</p>
+                            <label>قم بقفل هذا الصندوق:</label>
+                            <input type="hidden" name="lockshim" value="1">
+                            <div class="slideThree"><input type="checkbox" name="locked" value="1" id="locked-chk"><label></label></div>
+                            <div id="m_flock" class="frmmsg1 Okay">مفتوح</div>
+                        </fieldset>
+                    </form>
+
+                    <form action="#" onsubmit="return false;">
+                        <fieldset>
+                            <legend>إغلاق الصندوق</legend>
+                            <p>إذا لم تعد ترغب في استخدام هذا الصندوق، يمكنك إغلاقه نهائياً.</p>
+                            <div style="float: right">
+                                <button type="button" class="Danger" onclick="if(confirm('هل أنت متأكد من الإغلاق؟')) alert('✅ تم الإغلاق')">إغلاق الصندوق</button>
+                            </div>
+                        </fieldset>
+                    </form>
                 </div>
 
-                <div id="ii_phpbb3_v10" style="display:none;">
-                    <ol>
-                        <li>انسخ الكود إلى الحافظة.</li>
-                        <li>اذهب إلى لوحة تحكم phpBB.</li>
-                        <li>انقر تبويب <b>Styles</b> → <b>Templates</b> → <b>Edit</b>.</li>
-                        <li>اختر ملف <b>overall_footer.html</b> أو <b>overall_header.html</b>.</li>
-                        <li>الصق كود Cbox HTML في المكان المطلوب.</li>
-                        <li><b>مهم:</b> احذف وسوم &lt;!-- BEGIN CBOX --&gt; و &lt;!-- END CBOX --&gt; من الكود.</li>
-                        <li>احفظ وحدث المنتدى للتأكيد.</li>
-                    </ol>
-                </div>
+                <div class="col2_2">
+                    <fieldset class="Med">
+                        <legend>إحصائيات الصندوق</legend>
+                        <label>الخطة:</label><div class="notInput">بريميوم</div>
+                        <label>الفاتورة التالية:</label><div class="notInput"><span class="highlightBad">منتهي</span><br><a href="#" onclick="alert('تجديد')">(تجديد)</a></div>
+                        <label>تاريخ الإنشاء:</label><div class="notInput">1 يناير 2024</div>
+                        <label>إجمالي المشاهدات:</label><div class="notInput">15,420</div>
+                        <label>إجمالي الرسائل:</label><div class="notInput">8,932</div>
+                        <label>العملاء الحاليون:</label>
+                        <div class="bar notInput" id="sbar3"><div class="barFill" style="width:10%;background:#22c55e"></div><div class="barText">2</div></div>
+                        <label>المشاهدات (آخر 7 أيام):</label>
+                        <div class="bar notInput" id="sbar1"><div class="barFill" style="width:25%;background:#3b82f6"></div><div class="barText">128</div></div>
+                        <label>الرسائل (آخر 7 أيام):</label>
+                        <div class="bar notInput" id="sbar2"><div class="barFill" style="width:15%;background:#8b5cf6"></div><div class="barText">45</div></div>
+                    </fieldset>
 
-                <div id="ii_myleague_v10" style="display:none;">
-                    <ol>
-                        <li>انسخ الكود إلى الحافظة.</li>
-                        <li>اذهب إلى إدارة MyLeague وسجّل الدخول.</li>
-                        <li>تحت League Settings → Look & Feel → Edit Modules، اختر "Front Page Top".</li>
-                        <li>فعّل عرض مصدر HTML بالنقر على زر "&lt;&gt;".</li>
-                        <li>الصق الكود في أسفل القسم.</li>
-                        <li>أوقف عرض مصدر HTML وانقر زر الحفظ.</li>
-                    </ol>
+                    <form name="qlink" action="#" onsubmit="return false;">
+                        <fieldset>
+                            <legend>رابط سريع</legend>
+                            <label>عنوان URL:</label>
+                            <div class="notInput"><a href="https://mychat.example.com/box123" target="_new">https://mychat.example.com/box123</a></div>
+                            <label for="quickchk">مُفعّل:</label>
+                            <div class="slideThree"><input type="checkbox" name="quicklnk" value="1" id="quickchk" checked><label></label></div>
+                            <button type="button" class="btn-primary" onclick="alert('✅ تم الحفظ')">يحفظ</button>
+                        </fieldset>
+                    </form>
+
+                    <form name="boxname" action="#" onsubmit="return false;">
+                        <fieldset class="Med">
+                            <legend>تغيير الاسم</legend>
+                            <label>اسم الصندوق:</label>
+                            <input type="text" name="uname" size="20" maxlength="20" class="txtbox" value="MYCBOX2024">
+                            <button type="button" class="btn-primary" onclick="alert('✅ تم تغيير الاسم')">يحفظ</button>
+                        </fieldset>
+                    </form>
+
+                    <form name="faccount" action="#" onsubmit="return chk_faccount();">
+                        <fieldset>
+                            <legend>تغيير البريد/كلمة المرور</legend>
+                            <label>بريد إلكتروني:</label>
+                            <input type="text" name="email" size="30" maxlength="50" class="txtbox" value="user@example.com">
+                            <label>كلمة المرور:</label>
+                            <input type="password" name="pword" size="30" maxlength="50" class="txtbox">
+                            <label>تأكيد كلمة المرور:</label>
+                            <input type="password" name="pword2" size="30" maxlength="50" class="txtbox">
+                            <button type="button" class="btn-primary" onclick="chk_faccount()">يحفظ</button>
+                        </fieldset>
+                    </form>
                 </div>
+                <div class="colclear"></div>
             </div>
 
             <!-- قسم الإعدادات -->
             <div id="settings-section" style="display:none;">
                 <h1>⚙️ الإعدادات</h1>
-                <div class="notice">إعدادات الحساب متصلة بـ Firebase وتحفظ تلقائياً.</div>
+                <div class="notice">إعدادات الحساب تحفظ تلقائياً.</div>
                 <form id="settings-form" action="#" onsubmit="return false;">
                     <fieldset>
                         <legend>الملف الشخصي</legend>
