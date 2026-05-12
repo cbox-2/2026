@@ -22,15 +22,44 @@
     </div>
 </header>
 
-<!-- الشريط الفرعي -->
+<!-- الشريط الفرعي مع 4 قوائم منسدلة -->
 <nav id="subbar">
     <div class="wrap">
         <a href="#" onclick="showSection('dashboard');return false"><b>MYCBOX</b></a>
         <a href="#" onclick="showSection('publish');return false">انشر</a>
-        <a href="#" id="menuBtn" class="dropdown">رسائل ▼</a>
-        <div id="menuContent" class="dropdown-content">
+        
+        <!-- قائمة 1: المظهر والملمس ▼ -->
+        <a href="#" id="menu1" class="dropdown">المظهر والملمس ▼</a>
+        <div id="menu1-c" class="dropdown-content">
+            <a href="#" onclick="showSubPage('style');return false">محرر السمات</a>
+            <a href="#" onclick="showSubPage('layout');return false">خيارات التخطيط</a>
+        </div>
+        
+        <!-- قائمة 2: خيارات ▼ -->
+        <a href="#" id="menu2" class="dropdown">خيارات ▼</a>
+        <div id="menu2-c" class="dropdown-content">
+            <a href="#" onclick="showSubPage('filter');return false">تصفية</a>
+            <a href="#" onclick="showSubPage('smilies');return false">الرموز التعبيرية</a>
+            <a href="#" onclick="showSubPage('date');return false">خيارات التاريخ</a>
+            <a href="#" onclick="showSubPage('post');return false">خيارات النشر</a>
+        </div>
+        
+        <!-- قائمة 3: المستخدمون ▼ -->
+        <a href="#" id="menu3" class="dropdown">المستخدمون ▼</a>
+        <div id="menu3-c" class="dropdown-content">
+            <a href="#" onclick="showSubPage('users');return false">المستخدمون المسجلون</a>
+            <a href="#" onclick="showSubPage('bans');return false">المستخدمون المحظورون</a>
+            <a href="#" onclick="showSubPage('integrate');return false">تكامل المستخدم</a>
+        </div>
+        
+        <!-- قائمة 4: رسائل ▼ -->
+        <a href="#" id="menu4" class="dropdown">رسائل ▼</a>
+        <div id="menu4-c" class="dropdown-content">
             <a href="#" onclick="showSubPage('messages');return false">رسائل</a>
             <a href="#" onclick="showSubPage('archive');return false">أرشيف</a>
+            <a href="#" onclick="showSubPage('sticky');return false">رسالة لاصقة</a>
+            <a href="#" onclick="showSubPage('channels');return false">القنوات</a>
+            <a href="#" onclick="showSubPage('webhook');return false">رابط الويب</a>
         </div>
     </div>
 </nav>
@@ -115,7 +144,7 @@
         </fieldset>
     </section>
 
-    <!-- الصفحات الفرعية -->
+    <!-- الصفحات الفرعية (للقوائم المنسدلة) -->
     <section id="subpage-section" style="display:none"></section>
 </main>
 
