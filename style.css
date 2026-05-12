@@ -17,17 +17,8 @@ header nav a, header nav span{margin-left:12px;font-size:12px}
 .drop-btn:hover{background:#e2e8f0;border-radius:3px}
 
 .drop-menu{
-    display:none;
-    position:absolute;
-    top:100%;
-    right:0;
-    background:#fff;
-    border:1px solid #cbd5e1;
-    border-radius:4px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.15);
-    min-width:130px;
-    z-index:9999;
-    padding:4px 0;
+    display:none;position:absolute;top:100%;right:0;background:#fff;border:1px solid #cbd5e1;
+    border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,0.15);min-width:130px;z-index:9999;padding:4px 0
 }
 .drop-menu a{display:block;padding:6px 12px;font-size:11px;color:#333}
 .drop-menu a:hover{background:#f1f5f9;text-decoration:none}
@@ -37,14 +28,19 @@ h2{font-size:16px;margin-bottom:12px;border-bottom:1px solid #e2e8f0;padding-bot
 section{margin-bottom:20px}
 form{background:#fff;border:1px solid #e2e8f0;padding:15px;border-radius:6px;margin-bottom:15px}
 input{width:100%;padding:8px;margin:5px 0;border:1px solid #cbd5e1;border-radius:4px;font-size:12px}
-button{padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px}
-button:hover{opacity:0.9}
+button,.cb{padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px}
+button:hover,.cb:hover{opacity:0.9}
 
-.chat-box{border:1px solid #94a3b8;padding:0;margin:15px 0;background:#fff}
-.chat-ctrl{border:1px solid #94a3b8;border-top:none}
+.chat-box{border:1px solid #94a3b8;padding:0;margin:15px 0;background:#fff;border-radius:4px;overflow:hidden}
+.chat-ctrl{border:1px solid #94a3b8;border-top:none;border-radius:0 0 4px 4px}
 .ci{padding:5px 8px;border:1px solid #94a3b8;border-radius:3px;font-size:11px;margin:3px;background:#fff}
 .cb{padding:5px 15px;background:#2563eb;color:#fff;border:1px solid #1e40af;border-radius:3px;cursor:pointer;font-size:11px}
 footer{text-align:center;padding:15px;font-size:11px;color:#64748b;border-top:1px solid #e2e8f0;margin-top:20px}
+
+.stat-card{background:#fff;border:1px solid #e2e8f0;padding:15px;border-radius:8px;text-align:center}
+.stat-card h3{font-size:13px;color:#64748b;margin-bottom:8px}
+.bar{background:#2563eb;border-radius:4px 4px 0 0;transition:height 0.5s ease;width:100%;min-width:20px}
+.bar-label{font-size:10px;color:#64748b;text-align:center;margin-top:4px}
 
 @media(max-width:600px){
     header .wrap{flex-direction:column;gap:8px}
