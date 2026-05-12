@@ -26,32 +26,31 @@
         <a onclick="show('dashboard')"><b>الرئيسية</b></a>
         <a onclick="show('publish')">انشر</a>
         
-        <span class="drop" onclick="toggle('m1')">المظهر ▼</span>
+        <span class="drop" onclick="toggleMenu('m1')">المظهر ▼</span>
         <div id="m1" class="drop-c">
-            <a onclick="sub('style')">سمات</a>
-            <a onclick="sub('layout')">تخطيط</a>
+            <a onclick="sub('style');toggleMenu('m1')">سمات</a>
+            <a onclick="sub('layout');toggleMenu('m1')">تخطيط</a>
         </div>
         
-        <span class="drop" onclick="toggle('m2')">خيارات ▼</span>
+        <span class="drop" onclick="toggleMenu('m2')">خيارات ▼</span>
         <div id="m2" class="drop-c">
-            <a onclick="sub('filter')">تصفية</a>
-            <a onclick="sub('smilies')">رموز</a>
+            <a onclick="sub('filter');toggleMenu('m2')">تصفية</a>
+            <a onclick="sub('smilies');toggleMenu('m2')">رموز</a>
         </div>
         
-        <span class="drop" onclick="toggle('m3')">مستخدمون ▼</span>
+        <span class="drop" onclick="toggleMenu('m3')">مستخدمون ▼</span>
         <div id="m3" class="drop-c">
-            <a onclick="sub('users')">مسجلون</a>
-            <a onclick="sub('bans')">محظورون</a>
+            <a onclick="sub('users');toggleMenu('m3')">مسجلون</a>
+            <a onclick="sub('bans');toggleMenu('m3')">محظورون</a>
         </div>
         
-        <span class="drop" onclick="toggle('m4')">رسائل ▼</span>
+        <span class="drop" onclick="toggleMenu('m4')">رسائل ▼</span>
         <div id="m4" class="drop-c">
-            <a onclick="sub('msgs')">رسائل</a>
-            <a onclick="sub('archive')">أرشيف</a>
+            <a onclick="sub('msgs');toggleMenu('m4')">رسائل</a>
+            <a onclick="sub('archive');toggleMenu('m4')">أرشيف</a>
         </div>
     </div>
 </nav>
-
 <!-- المحتوى -->
 <main class="wrap">
     <!-- تسجيل الدخول - ظاهر افتراضياً -->
