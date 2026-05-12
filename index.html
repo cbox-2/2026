@@ -4,146 +4,161 @@
     <meta charset="UTF-8">
     <title>لوحة التحكم · صندوق التحكم</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="نظام دردشة فوري ولوحة تحكم متكاملة. آمن، سريع، ومتجاوب مع جميع الأجهزة.">
+    <meta name="theme-color" content="#2563eb">
+    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
+    <link rel="preload" href="style.css" as="style">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
 </head>
 <body id="mainbody">
-<div id="loading-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#fff;display:flex;align-items:center;justify-content:center;z-index:9999;">
-    <div style="text-align:center;"><div style="width:50px;height:50px;border:4px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 15px;"></div><p>جاري التحميل...</p></div>
-</div>
-<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+<!-- شاشة تحميل خفيفة -->
+<div id="loading" style="position:fixed;inset:0;background:#fff;display:flex;align-items:center;justify-content:center;z-index:9999"><div style="width:40px;height:40px;border:3px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:s 1s linear infinite"></div></div>
+<style>@keyframes s{to{transform:rotate(360deg)}}</style>
 
-<div id="bodywrap">
-    <div id="header">
-        <div class="wrap">
-            <a id="logo" href="#"><img src="https://via.placeholder.com/200x86?text=صندوق+C" alt="صندوق C"></a>
-            <div id="headerExtras">
-                <span id="userWelcome">user@example.com</span>
-                <a href="#" onclick="navTo('mailbox');return false;">صناديق بريدي</a>
-                <a href="#" onclick="navTo('settings');return false;">حسابي</a>
-                <a href="#" onclick="alert('صفحة المساعدة');return false;">يدعم</a>
-                <a href="#" onclick="doLogout();return false;">تسجيل الخروج</a>
-            </div>
-        </div>
+<div id="app" style="display:none">
+<div id="header"><div class="wrap">
+    <a href="#"><img src="https://via.placeholder.com/200x86?text=صندوق+C" alt="شعار" width="200" height="86"></a>
+    <div id="extras">
+        <span id="user">user@example.com</span>
+        <a onclick="go('mailbox')">صناديق بريدي</a>
+        <a onclick="go('settings')">حسابي</a>
+        <a onclick="alert('مساعدة')">يدعم</a>
+        <a onclick="logout()">خروج</a>
+    </div>
+</div></div>
+
+<div id="subbar"><div class="wrap">
+    <a onclick="go('dashboard')"><b>MYCBOX</b></a>
+    <a onclick="go('publish')">انشر</a>
+    <a id="menu4" class="drop">رسائل ▼</a>
+    <div id="menu4-c" class="drop-c">
+        <a onclick="subPage('posts')">رسائل</a>
+        <a onclick="subPage('archive')">أرشيف</a>
+    </div>
+</div></div>
+
+<div id="wide" style="height:80px;background:#e8f4f8"></div>
+
+<div id="main" class="wrap"><div id="content">
+    <!-- تسجيل الدخول -->
+    <div id="login">
+        <h1>لوحة التحكم</h1>
+        <div class="notice">يرجى تسجيل الدخول</div>
+        <form onsubmit="return auth(event)">
+            <fieldset>
+                <legend>الدخول</legend>
+                <label>البريد</label>
+                <input type="email" id="em" class="txt" required placeholder="user@example.com">
+                <label>كلمة المرور</label>
+                <input type="password" id="pw" class="txt" minlength="6" required>
+                <button type="submit" id="authBtn">دخول</button>
+            </fieldset>
+        </form>
+        <p><a onclick="toggleAuth()">إنشاء حساب</a></p>
     </div>
 
-    <div id="subbar">
-        <div class="wrap">
-            <a href="#" onclick="navTo('dashboard');return false;" class="submenuitem"><b>MYCBOX</b></a>
-            <a href="#" onclick="navTo('publish');return false;" class="submenuitem">انشر</a>
-            <a href="#" id="hovmenu4" class="submenuitem">رسائل ▼</a>
-            <div id="hovmenu4-content" class="submenu-content">
-                <a href="#" class="sublink" onclick="showSubPage('posts');return false;">رسائل</a>
-                <a href="#" class="sublink" onclick="showSubPage('postsarc');return false;">أرشيف</a>
+    <!-- لوحة التحكم -->
+    <div id="dash" style="display:none">
+        <h1>👋 أهلاً، <span id="name">مستخدم</span>!</h1>
+        <div class="notice" style="background:#d1fae5;color:#065f46">✅ متصل</div>
+        
+        <div class="card">
+            <h3>💬 الدردشة</h3>
+            <div id="chat" class="chat-box"><div id="msgs"><p style="text-align:center;color:#888;padding:20px">جاري التحميل...</p></div></div>
+            <div style="display:flex;gap:8px;margin-top:10px">
+                <input type="text" id="inp" class="txt" placeholder="اكتب..." disabled>
+                <button class="btn" id="send" disabled onclick="send()">إرسال</button>
             </div>
         </div>
+        
+        <button class="btn" style="background:#7c3aed" onclick="test()">🧪 اختبار</button>
+        <div id="res" style="margin-top:10px;font-size:12px;color:#666"></div>
+        <button class="btn" style="margin-top:20px;background:#dc2626" onclick="logout()">خروج</button>
     </div>
 
-    <div id="wideimg" style="height:80px;background:#e8f4f8;"></div>
-
-    <div id="main" class="wrap">
-        <div id="content">
-            <!-- تسجيل الدخول -->
-            <div id="login-section">
-                <h1>لوحة التحكم</h1>
-                <div class="notice">يرجى تسجيل الدخول</div>
-                <form id="auth-form" onsubmit="return false;">
-                    <fieldset>
-                        <legend>تسجيل الدخول</legend>
-                        <label>البريد:</label>
-                        <input type="email" id="email-input" class="txtbox" required placeholder="user@example.com">
-                        <label>كلمة المرور:</label>
-                        <input type="password" id="pass-input" class="txtbox" minlength="6" required>
-                        <button type="button" id="auth-btn" onclick="handleAuth()">دخول</button>
-                    </fieldset>
-                </form>
-                <p><a href="#" onclick="toggleAuthMode();return false;">إنشاء حساب جديد</a></p>
-            </div>
-
-            <!-- لوحة التحكم -->
-            <div id="dashboard-section" style="display:none;">
-                <h1>👋 مرحباً، <span id="user-name-display">مستخدم</span>!</h1>
-                <div class="notice" style="background:#d1fae5;color:#065f46;">✅ متصل</div>
-                
-                <div class="card" style="margin:20px 0;">
-                    <h3>💬 الدردشة</h3>
-                    <div id="chat-container" class="chat-box">
-                        <div id="messages-list"><p style="text-align:center;color:#888;padding:20px;">جاري التحميل...</p></div>
-                    </div>
-                    <div style="display:flex;gap:8px;margin-top:10px;">
-                        <input type="text" id="chat-input" class="txtbox" placeholder="اكتب رسالتك..." disabled>
-                        <button type="button" id="chat-send-btn" class="btn-primary" disabled onclick="sendChat()">إرسال</button>
-                    </div>
-                </div>
-                
-                <!-- 🔍 زر اختبار الجافاسكربت -->
-                <button type="button" class="btn-primary" style="background:#7c3aed;" onclick="testJS()">🧪 اختبار الجافاسكربت</button>
-                <div id="test-result" style="margin-top:10px;font-size:12px;color:#666;"></div>
-                
-                <button type="button" class="btn-primary" style="margin-top:20px;background:#dc2626;" onclick="doLogout()">تسجيل الخروج</button>
-            </div>
-
-            <!-- صفحة انشر -->
-            <div id="publish-section" style="display:none;">
-                <h1>انشر الصندوق</h1>
-                <fieldset>
-                    <legend>رمز التضمين</legend>
-                    <select id="variation-select" class="txtbox" onchange="switchCode()">
-                        <option value="default">قياسي</option>
-                        <option value="pop">منبثق</option>
-                    </select>
-                    <textarea id="cboxcode_default" class="txtarea" style="width:100%;margin-top:10px;" readonly>&lt;iframe src="https://placeholder.com/chat" width="400" height="400"&gt;&lt;/iframe&gt;</textarea>
-                    <textarea id="cboxcode_pop" class="txtarea" style="width:100%;margin-top:10px;display:none;" readonly>&lt;a href="#" onclick="openPopup()"&gt;افتح الدردشة&lt;/a&gt;</textarea>
-                    <button type="button" class="btn-primary" style="margin-top:10px;" onclick="copyCode()">📋 نسخ الكود</button>
-                </fieldset>
-            </div>
-
-            <!-- صفحة صندوق بريدي -->
-            <div id="mailbox-section" style="display:none;">
-                <h1>صندوق بريدي</h1>
-                <fieldset>
-                    <legend>إحصائيات</legend>
-                    <p>المشاهدات: <strong id="stat-views">0</strong></p>
-                    <p>الرسائل: <strong id="stat-posts">0</strong></p>
-                    <div class="bar" style="height:20px;background:#e2e8f0;border-radius:4px;overflow:hidden;margin:10px 0;">
-                        <div id="stat-bar" style="height:100%;width:30%;background:#22c55e;transition:width 0.3s;"></div>
-                    </div>
-                </fieldset>
-                <button type="button" class="btn-primary" onclick="updateStats()">🔄 تحديث الإحصائيات</button>
-            </div>
-
-            <!-- الإعدادات -->
-            <div id="settings-section" style="display:none;">
-                <h1>⚙️ الإعدادات</h1>
-                <fieldset>
-                    <legend>الملف الشخصي</legend>
-                    <label>الاسم:</label>
-                    <input type="text" id="settings-name" class="txtbox">
-                    <button type="button" class="btn-primary" onclick="saveSettings()">حفظ</button>
-                </fieldset>
-            </div>
-
-            <!-- الصفحات الفرعية -->
-            <div id="subpage-view" style="display:none;"></div>
-        </div>
+    <!-- انشر -->
+    <div id="pub" style="display:none">
+        <h1>انشر الصندوق</h1>
+        <fieldset>
+            <legend>رمز التضمين</legend>
+            <select id="var" class="txt" onchange="switchCode()">
+                <option value="d">قياسي</option>
+                <option value="p">منبثق</option>
+            </select>
+            <textarea id="code-d" class="txta" readonly style="width:100%;margin-top:10px">&lt;iframe src="https://placeholder.com/chat" width="400" height="400"&gt;&lt;/iframe&gt;</textarea>
+            <textarea id="code-p" class="txta" readonly style="width:100%;margin-top:10px;display:none">&lt;a href="#" onclick="openPop()"&gt;افتح الدردشة&lt;/a&gt;</textarea>
+            <button class="btn" style="margin-top:10px" onclick="copy()">📋 نسخ</button>
+        </fieldset>
     </div>
+
+    <!-- صندوق بريدي -->
+    <div id="mail" style="display:none">
+        <h1>صندوق بريدي</h1>
+        <fieldset>
+            <legend>إحصائيات</legend>
+            <p>المشاهدات: <strong id="v">0</strong></p>
+            <p>الرسائل: <strong id="p">0</strong></p>
+            <div class="bar" style="height:20px;background:#e2e8f0;border-radius:4px;overflow:hidden;margin:10px 0">
+                <div id="bar" style="height:100%;width:30%;background:#22c55e;transition:width.3s"></div>
+            </div>
+        </fieldset>
+        <button class="btn" onclick="upd()">🔄 تحديث</button>
+    </div>
+
+    <!-- إعدادات -->
+    <div id="set" style="display:none">
+        <h1>⚙️ الإعدادات</h1>
+        <fieldset>
+            <legend>الملف الشخصي</legend>
+            <label>الاسم</label>
+            <input type="text" id="set-name" class="txt">
+            <button class="btn" onclick="save()">حفظ</button>
+        </fieldset>
+    </div>
+
+    <!-- صفحات فرعية -->
+    <div id="sub" style="display:none"></div>
+</div></div>
 </div>
 
-<div id="footer" style="text-align:center;padding:20px;font-size:11px;color:#666;">© 2024 صندوق التحكم</div>
+<footer style="text-align:center;padding:20px;font-size:11px;color:#666">© 2024 صندوق التحكم</footer>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="script.js"></script>
-
+<!-- Firebase - تحميل متأخر -->
 <script>
-// إخفاء شاشة التحميل
-window.addEventListener('load', function() {
-    setTimeout(function() {
-        const loader = document.getElementById('loading-screen');
-        if(loader) { loader.style.opacity='0'; setTimeout(()=>loader.style.display='none', 300); }
-    }, 500);
+// تحميل مكتبات Firebase فقط عند الحاجة
+function loadFirebase(cb) {
+    if (window.firebase) return cb();
+    const s1 = document.createElement('script');
+    s1.src = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js';
+    s1.onload = () => {
+        const s2 = document.createElement('script');
+        s2.src = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js';
+        s2.onload = () => {
+            const s3 = document.createElement('script');
+            s3.src = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js';
+            s3.onload = cb;
+            document.head.appendChild(s3);
+        };
+        document.head.appendChild(s2);
+    };
+    document.head.appendChild(s1);
+}
+</script>
+<script src="script.js" defer></script>
+<script>
+// إخفاء التحميل بعد التحميل الكامل
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        const l = document.getElementById('loading');
+        if (l) { l.style.opacity = '0'; setTimeout(() => l.style.display = 'none', 200); }
+        document.getElementById('app')?.style.removeProperty('display');
+    }, 300);
 });
+// تسجيل Service Worker لـ PWA
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+}
 </script>
 </body>
 </html>
