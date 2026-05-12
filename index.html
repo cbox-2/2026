@@ -2,265 +2,135 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة التحكم · صندوق التحكم</title>
+    <title>صندوق التحكم</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="نظام دردشة فوري ولوحة تحكم متكاملة">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <!-- الهيدر -->
-<header id="header">
+<header>
     <div class="wrap">
-        <a href="#"><img src="https://via.placeholder.com/200x86?text=صندوق+C" alt="شعار" width="200" height="86"></a>
-        <nav id="extras">
-            <span id="userEmail">user@example.com</span>
-            <a href="#" onclick="go('mailbox')">صناديق بريدي</a>
-            <a href="#" onclick="go('settings')">حسابي</a>
-            <a href="#" onclick="showHelp()">يدعم</a>
-            <a href="#" onclick="logout()">خروج</a>
+        <strong>📦 صندوق التحكم</strong>
+        <nav>
+            <span id="userDisplay">ضيف</span>
+            <a onclick="show('mailbox')">صناديق</a>
+            <a onclick="show('settings')">حسابي</a>
+            <a onclick="logout()">خروج</a>
         </nav>
     </div>
 </header>
 
-<!-- الشريط الفرعي مع 4 قوائم منسدلة -->
-<nav id="subbar">
+<!-- القوائم -->
+<nav class="menus">
     <div class="wrap">
-        <a href="#" onclick="go('dashboard')"><b>MYCBOX</b></a>
-        <a href="#" onclick="go('publish')">انشر</a>
+        <a onclick="show('dashboard')"><b>الرئيسية</b></a>
+        <a onclick="show('publish')">انشر</a>
         
-        <!-- قائمة 1: المظهر والملمس ▼ -->
-        <a href="#" id="menu1" class="dropdown">المظهر والملمس ▼</a>
-        <div id="menu1-c" class="dropdown-content">
-            <a href="#" onclick="showSub('style')">محرر السمات</a>
-            <a href="#" onclick="showSub('layout')">خيارات التخطيط</a>
+        <span class="drop" onclick="toggle('m1')">المظهر ▼</span>
+        <div id="m1" class="drop-c">
+            <a onclick="sub('style')">سمات</a>
+            <a onclick="sub('layout')">تخطيط</a>
         </div>
         
-        <!-- قائمة 2: خيارات ▼ -->
-        <a href="#" id="menu2" class="dropdown">خيارات ▼</a>
-        <div id="menu2-c" class="dropdown-content">
-            <a href="#" onclick="showSub('filter')">تصفية</a>
-            <a href="#" onclick="showSub('smilies')">الرموز التعبيرية</a>
-            <a href="#" onclick="showSub('date')">خيارات التاريخ</a>
-            <a href="#" onclick="showSub('post')">خيارات النشر</a>
+        <span class="drop" onclick="toggle('m2')">خيارات ▼</span>
+        <div id="m2" class="drop-c">
+            <a onclick="sub('filter')">تصفية</a>
+            <a onclick="sub('smilies')">رموز</a>
         </div>
         
-        <!-- قائمة 3: المستخدمون ▼ -->
-        <a href="#" id="menu3" class="dropdown">المستخدمون ▼</a>
-        <div id="menu3-c" class="dropdown-content">
-            <a href="#" onclick="showSub('users')">المستخدمون المسجلون</a>
-            <a href="#" onclick="showSub('bansأعتذر منك بشدة يا شريكي العزيز! 🙏 فهمت طلبك تماماً الآن.
-
-تريد **النظام الكامل كما كان** (كل القوائم، الأقسام، الصفحات الفرعية، تسجيل الدخول) مع **استبدال منطقة الدردشة فقط** بالتصميم الكلاسيكي الذي أرسلته (إطارات + جدول تحكم + رموز + مساعدة).
-
-إليك **الأكواد الكاملة جاهزة للنسخ المباشر** - النظام كامل 100% مع الدردشة الكلاسيكية المدمجة:
-
----
-
-## 📄 الملف الأول: `index.html` (كامل النظام + دردشة كلاسيكية)
-```html
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <title>لوحة التحكم · صندوق التحكم</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="نظام دردشة فوري ولوحة تحكم متكاملة">
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-<!-- الهيدر -->
-<header id="header">
-    <div class="wrap">
-        <a href="#"><img src="https://via.placeholder.com/200x86?text=صندوق+C" alt="شعار" width="200" height="86"></a>
-        <nav id="extras">
-            <span id="userEmail">user@example.com</span>
-            <a href="#" onclick="go('mailbox')">صناديق بريدي</a>
-            <a href="#" onclick="go('settings')">حسابي</a>
-            <a href="#" onclick="showHelp()">يدعم</a>
-            <a href="#" onclick="logout()">خروج</a>
-        </nav>
-    </div>
-</header>
-
-<!-- الشريط الفرعي مع 4 قوائم منسدلة -->
-<nav id="subbar">
-    <div class="wrap">
-        <a href="#" onclick="go('dashboard')"><b>MYCBOX</b></a>
-        <a href="#" onclick="go('publish')">انشر</a>
-        
-        <!-- قائمة 1: المظهر والملمس ▼ -->
-        <a href="#" id="menu1" class="dropdown">المظهر والملمس ▼</a>
-        <div id="menu1-c" class="dropdown-content">
-            <a href="#" onclick="showSub('style')">محرر السمات</a>
-            <a href="#" onclick="showSub('layout')">خيارات التخطيط</a>
+        <span class="drop" onclick="toggle('m3')">مستخدمون ▼</span>
+        <div id="m3" class="drop-c">
+            <a onclick="sub('users')">مسجلون</a>
+            <a onclick="sub('bans')">محظورون</a>
         </div>
         
-        <!-- قائمة 2: خيارات ▼ -->
-        <a href="#" id="menu2" class="dropdown">خيارات ▼</a>
-        <div id="menu2-c" class="dropdown-content">
-            <a href="#" onclick="showSub('filter')">تصفية</a>
-            <a href="#" onclick="showSub('smilies')">الرموز التعبيرية</a>
-            <a href="#" onclick="showSub('date')">خيارات التاريخ</a>
-            <a href="#" onclick="showSub('post')">خيارات النشر</a>
-        </div>
-        
-        <!-- قائمة 3: المستخدمون ▼ -->
-        <a href="#" id="menu3" class="dropdown">المستخدمون ▼</a>
-        <div id="menu3-c" class="dropdown-content">
-            <a href="#" onclick="showSub('users')">المستخدمون المسجلون</a>
-            <a href="#" onclick="showSub('bans')">المستخدمون المحظورون</a>
-            <a href="#" onclick="showSub('integrate')">تكامل المستخدم</a>
-        </div>
-        
-        <!-- قائمة 4: رسائل ▼ -->
-        <a href="#" id="menu4" class="dropdown">رسائل ▼</a>
-        <div id="menu4-c" class="dropdown-content">
-            <a href="#" onclick="showSub('messages')">رسائل</a>
-            <a href="#" onclick="showSub('archive')">أرشيف</a>
-            <a href="#" onclick="showSub('sticky')">رسالة لاصقة</a>
-            <a href="#" onclick="showSub('channels')">القنوات</a>
-            <a href="#" onclick="showSub('webhook')">رابط الويب</a>
+        <span class="drop" onclick="toggle('m4')">رسائل ▼</span>
+        <div id="m4" class="drop-c">
+            <a onclick="sub('msgs')">رسائل</a>
+            <a onclick="sub('archive')">أرشيف</a>
         </div>
     </div>
 </nav>
 
-<!-- المحتوى الرئيسي -->
-<main id="main" class="wrap">
-    <!-- تسجيل الدخول -->
-    <section id="sec-login">
-        <h1>لوحة التحكم</h1>
-        <div class="notice">يرجى تسجيل الدخول للوصول</div>
+<!-- المحتوى -->
+<main class="wrap">
+    <!-- تسجيل الدخول - ظاهر افتراضياً -->
+    <section id="login">
+        <h2>تسجيل الدخول</h2>
         <form onsubmit="return doLogin(event)">
-            <fieldset>
-                <legend>تسجيل الدخول</legend>
-                <label for="em">البريد الإلكتروني</label>
-                <input type="email" id="em" class="txt" value="admin@cbox.com" required>
-                <label for="pw">كلمة المرور</label>
-                <input type="password" id="pw" class="txt" value="123456" required>
-                <button type="submit" class="btn">دخول</button>
-            </fieldset>
+            <input type="email" id="em" placeholder="البريد" value="admin@cbox.com" required>
+            <input type="password" id="pw" placeholder="كلمة المرور" value="123456" required>
+            <button type="submit">دخول</button>
         </form>
-        <p><a href="#" onclick="toggleAuth()">إنشاء حساب جديد</a></p>
+        <p><small onclick="alert('وضع: إنشاء حساب')">إنشاء حساب جديد</small></p>
     </section>
 
-    <!-- لوحة التحكم مع الدردشة الكلاسيكية -->
-    <section id="sec-dash" style="display:none">
-        <h1>👋 أهلاً، <span id="lbl-name">مستخدم</span>!</h1>
-        <div class="notice ok">✅ متصل</div>
+    <!-- لوحة التحكم -->
+    <section id="dashboard" style="display:none">
+        <h2>👋 أهلاً، <span id="name">مستخدم</span>!</h2>
         
         <!-- 🎯 الدردشة الكلاسيكية (نفس التصميم المطلوب) -->
-        <fieldset class="classic-chat">
-            <iframe frameborder="0" width="100%" height="305" 
+        <fieldset class="chat-box">
+            <iframe id="chatMain" frameborder="0" width="100%" height="305" 
                 src="https://placeholder-chat.com/main?box=12345" 
-                marginheight="2" marginwidth="2" scrolling="auto" 
-                allowtransparency="yes" name="cboxmain" id="cboxmain"
-                style="border:0;padding:0;margin:0 auto;background:#fff">
+                style="border:0;margin:0;padding:0;background:#fff">
             </iframe>
-            <iframe frameborder="0" width="100%" height="107" 
+            <iframe id="chatForm" frameborder="0" width="100%" height="107" 
                 src="https://placeholder-chat.com/form?box=12345" 
-                marginheight="2" marginwidth="2" scrolling="no" 
-                allowtransparency="yes" name="cboxform" id="cboxform"
-                style="border:0;padding:0;margin:0 auto;background:#fff">
+                style="border:0;margin:0;padding:0;background:#fff">
             </iframe>
         </fieldset>
 
         <!-- شريط التحكم الكلاسيكي -->
         <div class="chat-ctrl">
-            <table class="ctrl-tbl" cellpadding="0" cellspacing="0">
+            <table width="100%" cellpadding="4" cellspacing="0">
                 <tr>
-                    <td class="ctrl-sp">&nbsp;</td>
-                    <td align="left" class="ctrl-act">
-                        <span id="chanBar" class="chan-ind">🟢 متصل</span>
-                        <a href="#" onclick="refreshChat()" id="btnRf" class="ctrl-lnk">🔄 تحديث</a>
+                    <td>
+                        <span id="status">🟢 متصل</span>
+                        <a onclick="refreshChat()">🔄 تحديث</a>
                     </td>
                 </tr>
                 <tr>
-                    <td colspan="2" id="tblmid" valign="top" class="ctrl-inp">
-                        <input type="hidden" name="key" value="abc123">
-                        <input type="text" maxlength="25" name="nme" placeholder="الاسم" spellcheck="false" autocomplete="off" size="10" value="" class="frmtb" id="chatName">
-                        <input type="text" maxlength="50" name="eml" placeholder="البريد" size="10" spellcheck="false" value="" class="frmtb" id="chatEmail">
+                    <td style="background:#f8fafc;border-top:1px solid #ddd;padding:8px">
+                        <input type="text" id="cName" placeholder="الاسم" class="inp" value="">
+                        <input type="text" id="cEmail" placeholder="البريد" class="inp" value="">
                         <br>
-                        <input type="text" maxlength="200" name="pst" placeholder="اكتب رسالتك هنا..." autocomplete="off" size="30" value="" class="frmtb" id="chatMsg">
-                        <input type="button" value="إرسال" name="sub" class="frmbtn" id="btnSend" onclick="sendChat()">
+                        <input type="text" id="cMsg" placeholder="اكتب رسالتك..." class="inp" style="width:70%">
+                        <button onclick="sendChat()" class="btn">إرسال</button>
                     </td>
                 </tr>
                 <tr>
-                    <td align="center" colspan="2" class="ctrl-lnks">
-                        <div align="left" class="lnks-row">
-                            <a href="#" id="btnHelp" onclick="showHelp()">❓ مساعدة</a>
-                            <span class="lnk">·</span>
-                            <a href="#" id="btnSmilies" onclick="toggleSmilies()">😊 الابتسامات</a>
-                            <span class="lnk">·</span>
-                            <a href="#" id="btnProfile" onclick="showProfile()" title="ملفك الشخصي">👤 ملفي</a>
-                        </div>
+                    <td style="background:#f1f5f9;border-top:1px solid #ddd;padding:6px;font-size:11px">
+                        <a onclick="showHelp()">❓ مساعدة</a> · 
+                        <a onclick="toggleSmilies()">😊 رموز</a> · 
+                        <a onclick="showProfile()">👤 ملفي</a>
                     </td>
                 </tr>
             </table>
         </div>
 
-        <!-- لوحة الرموز التعبيرية -->
-        <div id="smiliesPanel" class="smilies-panel" style="display:none">
-            <div class="smilies-grid">
-                <span class="smiley" onclick="insertSmiley('🙂')">🙂</span>
-                <span class="smiley" onclick="insertSmiley('😂')">😂</span>
-                <span class="smiley" onclick="insertSmiley('❤️')">❤️</span>
-                <span class="smiley" onclick="insertSmiley('👍')">👍</span>
-                <span class="smiley" onclick="insertSmiley('🎉')">🎉</span>
-                <span class="smiley" onclick="insertSmiley('🔥')">🔥</span>
-                <span class="smiley" onclick="insertSmiley('✨')">✨</span>
-                <span class="smiley" onclick="insertSmiley('💬')">💬</span>
-            </div>
-            <button class="smilies-close" onclick="toggleSmilies()">✕ إغلاق</button>
+        <!-- لوحة الرموز -->
+        <div id="smilies" style="display:none;background:#fff;border:1px solid #ddd;padding:10px;margin:10px 0;border-radius:4px">
+            <span onclick="addSmiley('🙂')" style="cursor:pointer;margin:2px">🙂</span>
+            <span onclick="addSmiley('😂')" style="cursor:pointer;margin:2px">😂</span>
+            <span onclick="addSmiley('❤️')" style="cursor:pointer;margin:2px">❤️</span>
+            <span onclick="addSmiley('👍')" style="cursor:pointer;margin:2px">👍</span>
+            <button onclick="toggleSmilies()" style="margin-right:10px;font-size:11px">✕ إغلاق</button>
         </div>
-        
-        <button class="btn" style="background:#7c3aed;margin-top:15px" onclick="testSys()">🧪 اختبار النظام</button>
-        <div id="testOut" style="margin-top:10px;font-size:12px;color:#666"></div>
-        <button class="btn" style="margin-top:20px;background:#dc2626" onclick="logout()">تسجيل الخروج</button>
+
+        <button onclick="test()" class="btn" style="background:#7c3aed">🧪 اختبار</button>
+        <div id="out" style="margin:10px 0;font-size:12px;color:#666"></div>
+        <button onclick="logout()" class="btn" style="background:#dc2626">خروج</button>
     </section>
 
-    <!-- صفحة انشر -->
-    <section id="sec-pub" style="display:none">
-        <h1>📤 انشر صندوقك</h1>
-        <fieldset>
-            <legend>رمز التضمين</legend>
-            <label>نوع الكود</label>
-            <select id="codeType" class="txt" onchange="switchCode()">
-                <option value="inline">مضمن في الصفحة</option>
-                <option value="popup">نافذة منبثقة</option>
-            </select>
-            <textarea id="codeBox" class="code-area" readonly>&lt;iframe src="https://example.com/chat" width="400" height="400"&gt;&lt;/iframe&gt;</textarea>
-            <button class="btn" onclick="copyCode()">📋 نسخ الكود</button>
-        </fieldset>
-    </section>
-
-    <!-- صفحة صندوق بريدي -->
-    <section id="sec-mail" style="display:none">
-        <h1>📦 صندوق بريدي</h1>
-        <fieldset>
-            <legend>إحصائيات سريعة</legend>
-            <p>👁️ المشاهدات: <strong id="views">12,450</strong></p>
-            <p>💬 الرسائل: <strong id="msgs">3,280</strong></p>
-            <div class="progress-bar"><div id="progress" class="progress-fill" style="width:65%"></div></div>
-        </fieldset>
-        <button class="btn" onclick="refreshStats()">🔄 تحديث الإحصائيات</button>
-    </section>
-
-    <!-- صفحة الإعدادات -->
-    <section id="sec-set" style="display:none">
-        <h1>⚙️ الإعدادات</h1>
-        <fieldset>
-            <legend>الملف الشخصي</legend>
-            <label for="displayName">الاسم المعروض</label>
-            <input type="text" id="displayName" class="txt" value="مستخدم">
-            <button class="btn" onclick="saveSettings()">حفظ التغييرات</button>
-        </fieldset>
-    </section>
-
-    <!-- الصفحات الفرعية -->
-    <section id="sec-sub" style="display:none"></section>
+    <!-- صفحات أخرى -->
+    <section id="publish" style="display:none"><h2>📤 انشر</h2><p>صفحة النشر</p><a onclick="show('dashboard')">← عودة</a></section>
+    <section id="mailbox" style="display:none"><h2>📦 صندوق بريدي</h2><p>الإحصائيات هنا</p><a onclick="show('dashboard')">← عودة</a></section>
+    <section id="settings" style="display:none"><h2>⚙️ الإعدادات</h2><p>إعدادات الحساب</p><a onclick="show('dashboard')">← عودة</a></section>
+    <section id="subpage" style="display:none"></section>
 </main>
 
-<footer><p>© 2024 صندوق التحكم</p></footer>
+<footer>© 2024 صندوق التحكم</footer>
 <script src="script.js"></script>
 </body>
 </html>
