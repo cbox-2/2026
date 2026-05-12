@@ -20,8 +20,8 @@ a { color: var(--btn-bg); text-decoration: none; } a:hover { text-decoration: un
 #header { background: var(--bg-header); border-bottom: 1px solid var(--border-color); padding: 10px 0; }
 #header .wrap { display: flex; justify-content: space-between; align-items: center; }
 #headerExtras { text-align: left; }
-#qlogin .txtbox { padding: 3px 5px; border: 1px solid var(--border-color); font-size: 11px; margin-left: 5px; background: var(--input-bg); color: var(--text-primary); }
-#qlogin button { padding: 3px 10px; background: #f0f0f0; border: 1px solid #999; font-size: 11px; cursor: pointer; }
+#headerExtras a, #headerExtras span { margin-left: 12px; font-size: 11px; color: var(--text-primary); }
+#headerExtras a:hover { text-decoration: underline; }
 
 #topbar { background: var(--bg-topbar); padding: 5px 0; }
 #topbar .wrap { display: flex; align-items: center; flex-wrap: wrap; }
@@ -29,10 +29,10 @@ a { color: var(--btn-bg); text-decoration: none; } a:hover { text-decoration: un
 #topbar .button { color: #fff !important; padding: 4px 12px; margin: 0 2px; font-size: 11px; border: 1px solid #555; background: #444; cursor: pointer; }
 #topbar .button:hover { background: #555; text-decoration: none !important; }
 
-#bar3 { background: var(--bg-bar3); border-bottom: 1px solid var(--border-color); border-top: 1px solid #ccc; padding: 4px 0; position: relative; }
-#bar3 .wrap { position: relative; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.submenuitem { position: relative; display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; color: var(--text-primary); text-decoration: none !important; font-size: 11px; border: 1px solid transparent; border-radius: 3px; cursor: pointer; background: transparent; }
-.submenuitem:hover { background: #e0e0e0; border-color: #bbb; }
+#subbar { background: #e8f4f8; border-bottom: 1px solid #ccc; padding: 4px 0; }
+#subbar .wrap { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+#subbar .submenuitem { position: relative; display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; color: var(--text-primary); text-decoration: none !important; font-size: 11px; border: 1px solid transparent; border-radius: 3px; cursor: pointer; background: transparent; }
+#subbar .submenuitem:hover { background: #d4e6f1; border-color: #7fb3d5; }
 .submenu-arrow { font-size: 8px; transition: transform 0.2s; }
 .submenu-content { position: absolute; top: 100%; right: 0; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; box-shadow: var(--shadow); min-width: 190px; z-index: 100; padding: 5px 0; margin-top: 2px; display: none; }
 .submenu-content.show { display: block; animation: fadeInDrop 0.2s ease; }
@@ -40,10 +40,11 @@ a { color: var(--btn-bg); text-decoration: none; } a:hover { text-decoration: un
 .submenu-content .sublink { display: flex; align-items: center; gap: 8px; padding: 7px 12px; color: var(--text-primary) !important; font-size: 11px; text-decoration: none !important; cursor: pointer; }
 .submenu-content .sublink:hover { background: #e0e0e0; }
 .submenu-content .sublink.active { background: #d4e6f1; font-weight: bold; }
-[data-theme="dark"] .submenuitem:hover { background: #334155; }
+[data-theme="dark"] #subbar .submenuitem:hover { background: #334155; }
 [data-theme="dark"] .submenu-content .sublink:hover { background: #334155; }
 [data-theme="dark"] .submenu-content .sublink.active { background: #1e3a8a; color: #fff !important; }
 
+#bar3 { background: var(--bg-bar3); border-bottom: 1px solid var(--border-color); border-top: 1px solid #ccc; padding: 4px 0; position: relative; }
 #wideimg { height: 80px; background: #e8f4f8; border-bottom: 1px solid #ccc; }
 
 #main { padding: 20px 0; min-height: 400px; }
@@ -54,7 +55,8 @@ form fieldset { border: 1px solid var(--border-color); padding: 15px; width: 400
 form legend { font-weight: bold; padding: 0 5px; color: var(--text-primary); }
 form label { display: block; margin: 10px 0 4px; font-size: 12px; }
 form .txtbox { width: 100%; padding: 4px; border: 1px solid var(--border-color); font-size: 12px; background: var(--input-bg); color: var(--text-primary); border-radius: 4px; }
-form button { margin-top: 15px; padding: 4px 20px; background: #f0f0f0; border: 1px solid #999; font-size: 12px; cursor: pointer; border-radius: 4px; }
+form button, .btn-primary { margin-top: 15px; padding: 4px 20px; background: var(--btn-bg); color: var(--btn-text); border: none; border-radius: 6px; cursor: pointer; font-weight: 500; }
+form button:hover, .btn-primary:hover { opacity: 0.9; }
 #content p { margin: 8px 0; font-size: 12px; }
 
 #footer { background: var(--bg-card); border-top: 1px solid var(--border-color); padding: 15px 0; text-align: center; margin-top: 30px; }
@@ -67,8 +69,6 @@ form button { margin-top: 15px; padding: 4px 20px; background: #f0f0f0; border: 
 .card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; box-shadow: var(--shadow); }
 .card h3 { margin-bottom: 10px; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 5px; }
 .card p, .card ul { font-size: 13px; line-height: 1.5; color: var(--text-secondary); }
-.btn-primary { padding: 4px 20px; background: var(--btn-bg); color: var(--btn-text); border: none; border-radius: 6px; cursor: pointer; font-weight: 500; }
-.btn-primary:hover { opacity: 0.9; }
 
 .chat-box { height: 300px; background: var(--chat-bg); border: 1px solid var(--border-color); border-radius: 6px; overflow-y: auto; padding: 10px; margin-bottom: 10px; scroll-behavior: smooth; }
 .message-item { background: var(--msg-other); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; margin-bottom: 8px; font-size: 13px; position: relative; animation: fadeIn 0.3s ease; }
@@ -94,11 +94,8 @@ form button { margin-top: 15px; padding: 4px 20px; background: #f0f0f0; border: 
 .back-link { display: inline-block; margin-top: 15px; color: var(--btn-bg); cursor: pointer; font-size: 12px; }
 .back-link:hover { text-decoration: underline; }
 
-/* 📋 تنسيقات صفحة "انشر" */
+/* 📋 صفحة انشر */
 #publish-section fieldset { border: 1px solid var(--border-color); padding: 15px; margin-bottom: 15px; background: var(--bg-card); border-radius: 8px; }
-#publish-section legend { font-weight: bold; padding: 0 5px; color: var(--text-primary); }
-#publish-section label { display: block; margin: 10px 0 4px; font-size: 12px; }
-#publish-section .txtbox { width: 100%; padding: 4px; border: 1px solid var(--border-color); font-size: 12px; background: var(--input-bg); color: var(--text-primary); border-radius: 4px; margin-bottom: 8px; }
 #publish-section .txtarea { width: 100%; padding: 8px; border: 1px solid var(--border-color); font-size: 11px; background: var(--input-bg); color: var(--text-primary); border-radius: 4px; font-family: monospace; direction: ltr; text-align: left; }
 #publish-section .slideThree { position: relative; display: inline-block; width: 40px; height: 20px; margin: 5px 0; }
 #publish-section .slideThree input { opacity: 0; width: 0; height: 0; }
@@ -106,18 +103,48 @@ form button { margin-top: 15px; padding: 4px 20px; background: #f0f0f0; border: 
 #publish-section .slideThree label:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; border-radius: 50%; transition: 0.3s; }
 #publish-section .slideThree input:checked + label { background-color: var(--btn-bg); }
 #publish-section .slideThree input:checked + label:before { transform: translateX(20px); }
-
 #publish-section ol { padding-right: 20px; margin: 10px 0; }
 #publish-section ol li { margin: 5px 0; font-size: 12px; }
 #publish-section code { background: var(--bg-card); padding: 2px 6px; border-radius: 3px; font-size: 11px; direction: ltr; display: inline-block; }
 #publish-section h2 { font-size: 16px; margin: 20px 0 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
-#publish-section h3 { font-size: 14px; margin: 15px 0 8px; color: var(--text-primary); }
 #publish-section p { margin: 8px 0; font-size: 12px; color: var(--text-secondary); }
-#publish-section a { color: var(--btn-bg); }
 
-/* 🌙 دعم الوضع الليلي لصفحة انشر */
-[data-theme="dark"] #publish-section .slideThree label { background-color: #475569; }
-[data-theme="dark"] #publish-section .txtarea { background: #0f172a; border-color: #334155; }
+/* 📋 صفحة صندوق بريدي */
+#mailbox-section h1 { font-size: 18px; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+#mailbox-section .notice_er { background: #fff7ed; border: 1px solid #fed7aa; color: #c2410c; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; font-size: 12px; }
+#mailbox-section .notice_er a { color: #ea580c; font-weight: bold; }
+.col1_2 { width: 48%; float: right; margin-left: 4%; }
+.col2_2 { width: 48%; float: left; }
+.colclear { clear: both; }
+#mailbox-section fieldset { border: 1px solid var(--border-color); padding: 15px; margin-bottom: 15px; background: var(--bg-card); border-radius: 8px; }
+#mailbox-section legend { font-weight: bold; padding: 0 5px; color: var(--text-primary); }
+#mailbox-section label { display: block; margin: 10px 0 4px; font-size: 12px; }
+#mailbox-section .txtbox { width: 100%; padding: 4px; border: 1px solid var(--border-color); font-size: 12px; background: var(--input-bg); color: var(--text-primary); border-radius: 4px; margin-bottom: 8px; }
+#mailbox-section .notInput { padding: 5px 10px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; min-height: 24px; }
+#mailbox-section .highlightBad { color: #dc2626; font-weight: bold; }
+#mailbox-section .slideThree { position: relative; display: inline-block; width: 40px; height: 20px; margin: 5px 0; }
+#mailbox-section .slideThree input { opacity: 0; width: 0; height: 0; }
+#mailbox-section .slideThree label { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; border-radius: 20px; transition: 0.3s; }
+#mailbox-section .slideThree label:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; border-radius: 50%; transition: 0.3s; }
+#mailbox-section .slideThree input:checked + label { background-color: var(--btn-bg); }
+#mailbox-section .slideThree input:checked + label:before { transform: translateX(20px); }
+#mailbox-section .Danger { padding: 4px 20px; background: #dc2626; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; }
+#mailbox-section .Danger:hover { background: #b91c1c; }
+#mailbox-section .bar { position: relative; height: 20px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden; margin: 5px 0; }
+#mailbox-section .barFill { height: 100%; transition: width 0.3s ease; }
+#mailbox-section .barText { position: absolute; top: 0; right: 0; left: 0; bottom: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--text-primary); font-weight: bold; text-shadow: 0 0 2px rgba(255,255,255,0.8); }
+#mailbox-section .withSub { display: block; margin: 10px 0 4px; font-size: 12px; }
+#mailbox-section .withSub sub { font-size: 10px; color: var(--text-secondary); margin-right: 5px; }
+#mailbox-section .frmmsg1, #mailbox-section .frmmsg2 { font-size: 11px; margin-top: 8px; padding: 5px 10px; border-radius: 4px; }
+#mailbox-section .frmmsg1.Okay { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+#mailbox-section .frmmsg2 { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+/* 🌙 دعم الوضع الليلي */
+[data-theme="dark"] #publish-section .slideThree label, [data-theme="dark"] #mailbox-section .slideThree label { background-color: #475569; }
+[data-theme="dark"] #publish-section .txtarea, [data-theme="dark"] #mailbox-section .txtbox { background: #0f172a; border-color: #334155; }
+[data-theme="dark"] #mailbox-section .notice_er { background: #451a03; border-color: #9a3412; color: #fdba74; }
+[data-theme="dark"] #mailbox-section .frmmsg1.Okay { background: #064e3b; border-color: #059669; color: #6ee7b7; }
+[data-theme="dark"] #mailbox-section .frmmsg2 { background: #7f1d1d; border-color: #dc2626; color: #fca5a5; }
 
 /* 📱 تجاوب الجوال */
 @media (max-width: 980px) {
@@ -126,12 +153,14 @@ form button { margin-top: 15px; padding: 4px 20px; background: #f0f0f0; border: 
     #headerExtras, #qlogin { width: 100%; }
     #qlogin .txtbox { width: 100%; margin: 4px 0; }
     #qlogin button { width: 100%; }
-    #topbar .wrap { justify-content: center; gap: 4px; }
+    #topbar .wrap, #subbar .wrap { justify-content: center; gap: 4px; }
     form fieldset { width: 100%; }
     .dashboard-grid { grid-template-columns: 1fr; }
     .chat-box { height: 250px; }
     .msg-delete-btn { opacity: 0.7; }
     .submenu-content { width: 100%; right: auto; left: 0; }
-    #publish-section .txtarea { font-size: 10px; }
-    #publish-section fieldset { padding: 12px; }
+    .col1_2, .col2_2 { width: 100%; float: none; margin: 0 0 15px 0; }
+    #publish-section .txtarea, #mailbox-section .txtarea { font-size: 10px; }
+    #publish-section fieldset, #mailbox-section fieldset { padding: 12px; }
+    #mailbox-section .bar { height: 16px; }
 }
