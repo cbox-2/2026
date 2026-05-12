@@ -30,9 +30,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const themeToggle = document.getElementById('theme-toggle'); const todayMsgCount = document.getElementById('today-msg-count');
     const activeUsersCount = document.getElementById('active-users-count'); const exportBtn = document.getElementById('export-btn');
     
-    const hovmenu4 = document.getElementById('hovmenu4'); const hovmenu4Content = document.getElementById('hovmenu4-content');
-    const hovmenu5 = document.getElementById('hovmenu5'); const hovmenu5Content = document.getElementById('hovmenu5-content');
-
     let currentUser = null; let unsubscribeChat = null; let isLoginMode = true;
     let unreadCount = 0; let isTabActive = true; let lastKnownTimestamp = null;
     let chatInitialized = false; let cachedMessages = [];
@@ -77,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function escapeHtml(text) { const d=document.createElement('div'); d.appendChild(document.createTextNode(text||'')); return d.innerHTML; }
     function translateFirebaseError(code) { const m={'auth/invalid-credential':'البريد أو كلمة المرور غير صحيحة','auth/email-already-in-use':'البريد مسجل مسبقاً','auth/invalid-email':'صيغة البريد غير صحيحة','auth/user-not-found':'البريد غير مسجل','auth/wrong-password':'كلمة المرور غير صحيحة','auth/weak-password':'كلمة المرور يجب أن تكون 6 أحرف على الأقل','auth/too-many-requests':'محاولات كثيرة، انتظر قليلاً'}; return m[code]||code; }
 
-    // 📋 جميع الصفحات الفرعية مدمجة هنا
+    // 📋 جميع الصفحات الفرعية (مدمجة وقابلة للتوسع)
     const allSubPages = {
         posts: `<div class="subpage"><h2>📩 إدارة الرسائل</h2><div class="notice">عرض جميع الرسائل الواردة في الصندوق</div><div class="card"><p>🔍 بحث: <input type="text" class="txtbox" placeholder="ابحث في الرسائل..." style="width:200px;display:inline-block;"></p><p>📅 تصفية: <select class="txtbox" style="width:150px;display:inline-block;"><option>الكل</option><option>اليوم</option><option>هذا الأسبوع</option></select></p><div style="margin-top:15px;"><p style="color:#888;">لا توجد رسائل لعرضها حالياً</p></div></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
         postsarc: `<div class="subpage"><h2>🗄️ الأرشيف</h2><div class="notice">الرسائل المؤرشفة والمحذوفة</div><div class="card"><p>📦 إجمالي المؤرشف: <strong>0</strong></p><p>🗑️ إجمالي المحذوف: <strong>0</strong></p><button class="btn-primary" style="margin-top:10px;background:#64748b;">استعادة رسائل</button></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
@@ -86,23 +83,35 @@ document.addEventListener('DOMContentLoaded', function() {
         webhook: `<div class="subpage"><h2>🔗 رابط الويب (Webhook)</h2><div class="notice">ربط الصندوق بخدمات خارجية مثل Discord أو Slack</div><div class="card"><label>رابط الويب هووك:</label><input type="text" class="txtbox" value="https://your-webhook-url.com/endpoint" readonly style="width:100%;direction:ltr;text-align:left;"><button class="btn-primary" style="margin-top:10px;" onclick="navigator.clipboard.writeText(this.previousElementSibling.value); alert('✅ تم نسخ الرابط!')">📋 نسخ الرابط</button><p style="margin-top:15px;font-size:11px;color:#666;">💡 استخدم هذا الرابط لإرسال رسائل تلقائية من خدماتك إلى صندوق التحكم.</p></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
         users: `<div class="subpage"><h2>👥 المستخدمون المسجلون</h2><div class="notice">قائمة بجميع المستخدمين الذين أنشأوا حسابات</div><div class="card"><div id="users-table" style="max-height:300px;overflow-y:auto;"></div><button class="btn-primary" style="margin-top:10px;background:#64748b;" onclick="alert('✅ سيتم تحديث القائمة')">تحديث القائمة</button></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
         bans: `<div class="subpage"><h2>🚫 المستخدمون المحظورون</h2><div class="notice">المستخدمون الذين تم منعهم من الدخول أو الكتابة</div><div class="card"><p style="color:#888;text-align:center;padding:20px;">لا يوجد مستخدمون محظورون حالياً</p><button class="btn-primary" style="margin-top:10px;">إضافة حظر جديد</button></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
-        userint: `<div class="subpage"><h2>🔗 تكامل المستخدم</h2><div class="notice">ربط الحسابات بمنصات خارجية (Discord, Telegram, إلخ)</div><div class="card"><p>🔌 <strong>Discord:</strong> <span style="color:#c00">غير متصل</span></p><p>🔌 <strong>Telegram:</strong> <span style="color:#16a34a">متصل</span></p><p style="margin-top:15px;"><button class="btn-primary">إدارة التكاملات</button></p></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`
+        userint: `<div class="subpage"><h2>🔗 تكامل المستخدم</h2><div class="notice">ربط الحسابات بمنصات خارجية (Discord, Telegram, إلخ)</div><div class="card"><p>🔌 <strong>Discord:</strong> <span style="color:#c00">غير متصل</span></p><p>🔌 <strong>Telegram:</strong> <span style="color:#16a34a">متصل</span></p><p style="margin-top:15px;"><button class="btn-primary">إدارة التكاملات</button></p></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
+        filtering: `<div class="subpage"><h2>🔍 تصفية المحتوى</h2><div class="notice">إعداد كلمات محظورة، فلاتر الروابط، ومراقبة تلقائية</div><div class="card"><fieldset><legend>كلمات محظورة</legend><textarea class="txtbox" rows="3" placeholder="اكتب الكلمات مفصولة بفاصلة..." style="width:100%;"></textarea><button class="btn-primary" style="margin-top:10px;">حفظ الفلاتر</button></fieldset></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
+        smilies: `<div class="subpage"><h2>😊 الرموز التعبيرية</h2><div class="notice">تفعيل أو تعطيل الرموز التعبيرية وتخصيصها</div><div class="card"><label><input type="checkbox" checked> تفعيل الرموز التعبيرية تلقائياً</label><br><label><input type="checkbox"> تحويل الروابط إلى معاينات</label><button class="btn-primary" style="margin-top:10px;">حفظ الإعدادات</button></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
+        dateopt: `<div class="subpage"><h2>📅 خيارات التاريخ</h2><div class="notice">تنسيق التاريخ والوقت المعروض في اللوحة والدردشة</div><div class="card"><label>التنسيق:</label><select class="txtbox" style="width:100%;margin-top:5px;"><option>24 ساعة (14:30)</option><option>12 ساعة (2:30 م)</option><option>منذ (منذ 5 دقائق)</option></select><button class="btn-primary" style="margin-top:10px;">تطبيق</button></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
+        postopt: `<div class="subpage"><h2>📝 خيارات النشر</h2><div class="notice">التحكم في طول الرسائل، عدد الأسطر، وتأخير النشر</div><div class="card"><label>الحد الأقصى للأحرف:</label><input type="number" class="txtbox" value="500" style="width:100%;margin-top:5px;"><label>تأخير النشر (ثواني):</label><input type="number" class="txtbox" value="3" style="width:100%;margin-top:5px;"><button class="btn-primary" style="margin-top:10px;">حفظ</button></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`
     };
 
-    // دالة إعداد القائمة المنسدلة
-    function setupDropdown(trigger, content) {
+    // 📋 نظام القوائم المنسدلة (قابل للتوسع لأي عدد)
+    const dropdowns = [
+        { trigger: document.getElementById('hovmenu4'), content: document.getElementById('hovmenu4-content') },
+        { trigger: document.getElementById('hovmenu5'), content: document.getElementById('hovmenu5-content') },
+        { trigger: document.getElementById('hovmenu6'), content: document.getElementById('hovmenu6-content') }
+    ];
+
+    dropdowns.forEach(({ trigger, content }) => {
         if (!trigger || !content) return;
         trigger.addEventListener('click', function(e) {
             e.preventDefault(); e.stopPropagation();
             const isOpen = content.classList.toggle('show');
             const arrow = this.querySelector('.submenu-arrow');
             if(arrow) arrow.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
-            // إغلاق القائمة الأخرى إذا كانت مفتوحة
-            const otherContent = (trigger === hovmenu4) ? hovmenu5Content : hovmenu4Content;
-            const otherTrigger = (trigger === hovmenu4) ? hovmenu5 : hovmenu4;
-            otherContent.classList.remove('show');
-            const otherArrow = otherTrigger.querySelector('.submenu-arrow');
-            if(otherArrow) otherArrow.style.transform = 'rotate(0deg)';
+            // إغلاق القوائم الأخرى
+            dropdowns.forEach(d => {
+                if (d.content !== content) {
+                    d.content.classList.remove('show');
+                    const otherArrow = d.trigger.querySelector('.submenu-arrow');
+                    if(otherArrow) otherArrow.style.transform = 'rotate(0deg)';
+                }
+            });
         });
 
         content.querySelectorAll('.sublink').forEach(link => {
@@ -111,34 +120,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 content.classList.remove('show');
                 const arrow = trigger.querySelector('.submenu-arrow');
                 if(arrow) arrow.style.transform = 'rotate(0deg)';
-                
                 content.querySelectorAll('.sublink').forEach(l => l.classList.remove('active'));
                 this.classList.add('active');
-                
                 const target = this.getAttribute('data-target');
                 showSection('subpage');
                 subpageView.innerHTML = allSubPages[target] || '<p>صفحة غير متوفرة</p>';
                 if(errorBar) errorBar.textContent = this.textContent.trim();
             });
         });
-    }
-
-    setupDropdown(hovmenu4, hovmenu4Content);
-    setupDropdown(hovmenu5, hovmenu5Content);
+    });
 
     document.addEventListener('click', function(e) {
-        const isOutside4 = hovmenu4Content.classList.contains('show') && !hovmenu4.contains(e.target) && !hovmenu4Content.contains(e.target);
-        const isOutside5 = hovmenu5Content.classList.contains('show') && !hovmenu5.contains(e.target) && !hovmenu5Content.contains(e.target);
-        
-        if (isOutside4) { hovmenu4Content.classList.remove('show'); const a=hovmenu4.querySelector('.submenu-arrow'); if(a) a.style.transform='rotate(0deg)'; }
-        if (isOutside5) { hovmenu5Content.classList.remove('show'); const a=hovmenu5.querySelector('.submenu-arrow'); if(a) a.style.transform='rotate(0deg)'; }
-        
+        dropdowns.forEach(({ trigger, content }) => {
+            if (content.classList.contains('show') && !trigger.contains(e.target) && !content.contains(e.target)) {
+                content.classList.remove('show');
+                const a = trigger.querySelector('.submenu-arrow');
+                if(a) a.style.transform = 'rotate(0deg)';
+            }
+        });
         if (e.target.classList.contains('back-link')) {
             e.preventDefault();
             showSection(e.target.getAttribute('data-return') || 'dashboard');
-            hovmenu4Content.classList.remove('show'); hovmenu5Content.classList.remove('show');
-            if(hovmenu4.querySelector('.submenu-arrow')) hovmenu4.querySelector('.submenu-arrow').style.transform='rotate(0deg)';
-            if(hovmenu5.querySelector('.submenu-arrow')) hovmenu5.querySelector('.submenu-arrow').style.transform='rotate(0deg)';
+            dropdowns.forEach(d => { d.content.classList.remove('show'); const a=d.trigger.querySelector('.submenu-arrow'); if(a) a.style.transform='rotate(0deg)'; });
             if(errorBar) errorBar.textContent = 'متصل بـ Firebase ✅';
         }
     });
