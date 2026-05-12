@@ -29,6 +29,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const messagesList = document.getElementById('messages-list'); const chatContainer = document.getElementById('chat-container');
     const themeToggle = document.getElementById('theme-toggle'); const todayMsgCount = document.getElementById('today-msg-count');
     const activeUsersCount = document.getElementById('active-users-count'); const exportBtn = document.getElementById('export-btn');
+    const dropdownTrigger = document.getElementById('dropdown-trigger');
+    const dropdownMenu = document.getElementById('dropdown-menu');
 
     let currentUser = null; let unsubscribeChat = null; let isLoginMode = true;
     let unreadCount = 0; let isTabActive = true; let lastKnownTimestamp = null;
@@ -44,53 +46,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     auth.onAuthStateChanged(user => {
         currentUser = user;
-        if (user) {
-            showSection('dashboard');
-            if (navLogout) navLogout.style.display = 'inline-block';
-            if (chatInput) chatInput.disabled = false; if (chatSendBtn) chatSendBtn.disabled = false;
-            userDisplay.textContent = user.displayName || user.email.split('@')[0];
-            if (settingsName) settingsName.value = user.displayName || '';
-            if (errorBar) errorBar.textContent = 'متصل بـ Firebase ✅';
-            loadDashboardData(user.email); initChat();
-        } else {
-            showSection('login');
-            if (navLogout) navLogout.style.display = 'none';
-            if (chatInput) chatInput.disabled = true; if (chatSendBtn) chatSendBtn.disabled = true;
-            if (unsubscribeChat) unsubscribeChat();
-            if (errorBar) errorBar.textContent = 'جاهز...';
-            if (messagesList) messagesList.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">سجّل الدخول لرؤية الرسائل</p>';
-            unreadCount = 0; updateNotificationBadge();
-        }
+        if (user) { showSection('dashboard'); if (navLogout) navLogout.style.display = 'inline-block'; if (chatInput) chatInput.disabled = false; if (chatSendBtn) chatSendBtn.disabled = false; userDisplay.textContent = user.displayName || user.email.split('@')[0]; if (settingsName) settingsName.value = user.displayName || ''; if (errorBar) errorBar.textContent = 'متصل بـ Firebase ✅'; loadDashboardData(user.email); initChat(); } 
+        else { showSection('login'); if (navLogout) navLogout.style.display = 'none'; if (chatInput) chatInput.disabled = true; if (chatSendBtn) chatSendBtn.disabled = true; if (unsubscribeChat) unsubscribeChat(); if (errorBar) errorBar.textContent = 'جاهز...'; if (messagesList) messagesList.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">سجّل الدخول لرؤية الرسائل</p>'; unreadCount = 0; updateNotificationBadge(); }
     });
 
-    function showSection(name) {
-        loginSection.style.display = 'none'; dashboardSection.style.display = 'none'; settingsSection.style.display = 'none'; subpageView.style.display = 'none';
-        document.querySelectorAll('.sublink').forEach(l => l.classList.remove('active'));
-        if (name === 'login') loginSection.style.display = 'block';
-        else if (name === 'dashboard') dashboardSection.style.display = 'block';
-        else if (name === 'settings') settingsSection.style.display = 'block';
-        else if (name === 'subpage') subpageView.style.display = 'block';
-    }
+    function showSection(name) { loginSection.style.display = 'none'; dashboardSection.style.display = 'none'; settingsSection.style.display = 'none'; subpageView.style.display = 'none'; if (name === 'login') loginSection.style.display = 'block'; else if (name === 'dashboard') dashboardSection.style.display = 'block'; else if (name === 'settings') settingsSection.style.display = 'block'; else if (name === 'subpage') subpageView.style.display = 'block'; }
 
     if (toggleAuth) { toggleAuth.addEventListener('click', e => { e.preventDefault(); isLoginMode = !isLoginMode; if (formTitle) formTitle.textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب جديد'; if (authBtn) authBtn.textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب'; }); }
-    if (authBtn) {
-        authBtn.addEventListener('click', async () => {
-            const email = emailInput?.value.trim()||''; const pass = passInput?.value.trim()||'';
-            if (!email.includes('@')) return alert('⚠️ أدخل بريد إلكتروني صحيح');
-            if (!email || !pass) return alert('⚠️ املأ جميع الحقول');
-            authBtn.disabled = true; authBtn.textContent = 'جاري المعالجة...';
-            try {
-                if (isLoginMode) await auth.signInWithEmailAndPassword(email, pass);
-                else { await auth.createUserWithEmailAndPassword(email, pass); await db.collection('users').doc(auth.currentUser.uid).set({ email, displayName: email.split('@')[0], createdAt: firebase.firestore.FieldValue.serverTimestamp() }); }
-                await db.collection('sessions').add({ userId: auth.currentUser.uid, email, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
-            } catch (err) { alert('❌ ' + (translateFirebaseError(err.code) || err.message)); }
-            finally { authBtn.disabled = false; authBtn.textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب'; }
-        });
-    }
+    if (authBtn) { authBtn.addEventListener('click', async () => { const email = emailInput?.value.trim()||''; const pass = passInput?.value.trim()||''; if (!email.includes('@')) return alert('⚠️ أدخل بريد إلكتروني صحيح'); if (!email || !pass) return alert('⚠️ املأ جميع الحقول'); authBtn.disabled = true; authBtn.textContent = 'جاري المعالجة...'; try { if (isLoginMode) await auth.signInWithEmailAndPassword(email, pass); else { await auth.createUserWithEmailAndPassword(email, pass); await db.collection('users').doc(auth.currentUser.uid).set({ email, displayName: email.split('@')[0], createdAt: firebase.firestore.FieldValue.serverTimestamp() }); } await db.collection('sessions').add({ userId: auth.currentUser.uid, email, timestamp: firebase.firestore.FieldValue.serverTimestamp() }); } catch (err) { alert('❌ ' + (translateFirebaseError(err.code) || err.message)); } finally { authBtn.disabled = false; authBtn.textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب'; } }); }
     if (qLoginBtn) { qLoginBtn.addEventListener('click', async () => { const e=document.getElementById('q-email')?.value.trim(), p=document.getElementById('q-pass')?.value.trim(); if(!e||!p) return alert('⚠️ املأ حقول الهيدر'); try{await auth.signInWithEmailAndPassword(e,p)}catch(err){alert('❌ '+translateFirebaseError(err.code))} }); }
     if (resetLink) { resetLink.addEventListener('click', async e => { e.preventDefault(); const em=prompt('أدخل بريدك الإلكتروني لاستعادة كلمة المرور:'); if(em){try{await auth.sendPasswordResetEmail(em);alert('✅ تم إرسال رابط الاستعادة')}catch(err){alert('❌ '+err.message)}} }); }
-    const doLogout = () => auth.signOut();
-    if (logoutBtn) logoutBtn.onclick = doLogout; if (navLogout) navLogout.onclick = doLogout;
+    const doLogout = () => auth.signOut(); if (logoutBtn) logoutBtn.onclick = doLogout; if (navLogout) navLogout.onclick = doLogout;
     if (navSettings) navSettings.onclick = e => { e.preventDefault(); showSection('settings'); if(errorBar) errorBar.textContent='الإعدادات'; };
     if (backToDash) backToDash.onclick = e => { e.preventDefault(); showSection('dashboard'); if(errorBar) errorBar.textContent='متصل بـ Firebase ✅'; };
     if (document.getElementById('nav-home')) document.getElementById('nav-home').onclick = e => { e.preventDefault(); showSection('dashboard'); if(errorBar) errorBar.textContent='متصل بـ Firebase ✅'; };
@@ -110,43 +76,63 @@ document.addEventListener('DOMContentLoaded', function() {
     function escapeHtml(text) { const d=document.createElement('div'); d.appendChild(document.createTextNode(text||'')); return d.innerHTML; }
     function translateFirebaseError(code) { const m={'auth/invalid-credential':'البريد أو كلمة المرور غير صحيحة','auth/email-already-in-use':'البريد مسجل مسبقاً','auth/invalid-email':'صيغة البريد غير صحيحة','auth/user-not-found':'البريد غير مسجل','auth/wrong-password':'كلمة المرور غير صحيحة','auth/weak-password':'كلمة المرور يجب أن تكون 6 أحرف على الأقل','auth/too-many-requests':'محاولات كثيرة، انتظر قليلاً'}; return m[code]||code; }
 
-    // 📋 منطق شريط القوائم الفرعية #bar3
-    const subLinks = document.querySelectorAll('#hovmenu .sublink');
-    const subPages = {
-        posts: `<div class="subpage"><h2>📩 إدارة الرسائل</h2><div class="notice">عرض جميع الرسائل الواردة في الصندوق</div><div class="card"><p>🔍 بحث: <input type="text" class="txtbox" placeholder="ابحث في الرسائل..." style="width:200px;display:inline-block;"></p><p>📅 تصفية: <select class="txtbox" style="width:150px;display:inline-block;"><option>الكل</option><option>اليوم</option><option>هذا الأسبوع</option></select></p><div style="margin-top:15px;"><p style="color:#888;">لا توجد رسائل لعرضها حالياً</p></div></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
-        postsarc: `<div class="subpage"><h2>🗄️ الأرشيف</h2><div class="notice">الرسائل المؤرشفة والمحذوفة</div><div class="card"><p>📦 إجمالي المؤرشف: <strong>0</strong></p><p>🗑️ إجمالي المحذوف: <strong>0</strong></p><button class="btn-primary" style="margin-top:10px;background:#64748b;">استعادة رسائل</button></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
-        sticky: `<div class="subpage"><h2>📌 رسالة لاصقة</h2><div class="notice">تعيين رسالة تظهر دائماً في أعلى الدردشة</div><div class="card"><fieldset><legend>نص الرسالة اللاصقة</legend><textarea class="txtbox" rows="4" placeholder="اكتب الرسالة التي تريد تثبيتها..." style="width:100%;"></textarea><button class="btn-primary" style="margin-top:10px;" id="save-sticky-btn">تثبيت الرسالة</button><button class="btn-primary" style="margin-top:10px;background:#dc2626;" id="remove-sticky-btn">إزالة التثبيت</button></fieldset></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
-        channels: `<div class="subpage"><h2>📺 القنوات</h2><div class="notice">إدارة قنوات الدردشة المتعددة</div><div class="card"><p>➕ <a href="#" id="add-channel-link">إنشاء قناة جديدة</a></p><ul id="channels-list" style="list-style:none;padding-right:0;margin-top:10px;"><li style="padding:8px;border-bottom:1px solid var(--border-color);">🟢 <strong>عام</strong> <span style="color:#888;font-size:11px;">(القناة الافتراضية)</span></li></ul></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
-        webhook: `<div class="subpage"><h2>🔗 رابط الويب (Webhook)</h2><div class="notice">ربط الصندوق بخدمات خارجية مثل Discord أو Slack</div><div class="card"><label>رابط الويب هووك:</label><input type="text" class="txtbox" value="https://your-webhook-url.com/endpoint" readonly style="width:100%;direction:ltr;text-align:left;"><button class="btn-primary" style="margin-top:10px;" onclick="navigator.clipboard.writeText(this.previousElementSibling.value); alert('✅ تم نسخ الرابط!')">📋 نسخ الرابط</button><p style="margin-top:15px;font-size:11px;color:#666;">💡 استخدم هذا الرابط لإرسال رسائل تلقائية من خدماتك إلى صندوق التحكم.</p></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`
-    };
+    // 📋 منطق القائمة المنسدلة
+    if (dropdownTrigger && dropdownMenu) {
+        dropdownTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = dropdownMenu.classList.toggle('show');
+            dropdownTrigger.querySelector('.dropdown-arrow').style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+        });
 
-    subLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            subLinks.forEach(l => l.classList.remove('active'));
-            this.classList.add('active');
-            const target = this.getAttribute('data-target');
-            showSection('subpage');
-            subpageView.innerHTML = subPages[target] || '<p>صفحة غير متوفرة</p>';
-            if(errorBar) errorBar.textContent = this.querySelector('.subtext')?.textContent || target;
-
-            // تفعيل أزرار الصفحات الفرعية ديناميكياً
-            if(target==='sticky'){
-                document.getElementById('save-sticky-btn')?.addEventListener('click',()=>{const t=this.closest('.card').querySelector('textarea').value.trim(); if(!t) return alert('⚠️ اكتب النص أولاً'); alert('✅ تم تثبيت الرسالة');});
-                document.getElementById('remove-sticky-btn')?.addEventListener('click',()=>{if(confirm('هل تريد إزالة الرسالة اللاصقة؟')) alert('✅ تم الإزالة');});
-            }
-            if(target==='channels'){
-                document.getElementById('add-channel-link')?.addEventListener('click',ev=>{ev.preventDefault(); const n=prompt('اسم القناة الجديدة:'); if(n){const l=document.getElementById('channels-list'), li=document.createElement('li'); li.style.cssText='padding:8px;border-bottom:1px solid var(--border-color);'; li.innerHTML=`🔵 <strong>${escapeHtml(n)}</strong> <span style="color:#888;font-size:11px;">(جديد)</span>`; l.appendChild(li); alert('✅ تم إنشاء القناة: '+n);}});
+        document.addEventListener('click', (e) => {
+            if (dropdownMenu.classList.contains('show') && !dropdownMenu.contains(e.target) && e.target !== dropdownTrigger) {
+                dropdownMenu.classList.remove('show');
+                dropdownTrigger.querySelector('.dropdown-arrow').style.transform = 'rotate(0deg)';
             }
         });
-    });
 
-    // زر العودة للوحة الرئيسية داخل الصفحات الفرعية
+        const subPages = {
+            posts: `<div class="subpage"><h2>📩 إدارة الرسائل</h2><div class="notice">عرض جميع الرسائل الواردة في الصندوق</div><div class="card"><p>🔍 بحث: <input type="text" class="txtbox" placeholder="ابحث في الرسائل..." style="width:200px;display:inline-block;"></p><p>📅 تصفية: <select class="txtbox" style="width:150px;display:inline-block;"><option>الكل</option><option>اليوم</option><option>هذا الأسبوع</option></select></p><div style="margin-top:15px;"><p style="color:#888;">لا توجد رسائل لعرضها حالياً</p></div></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
+            postsarc: `<div class="subpage"><h2>🗄️ الأرشيف</h2><div class="notice">الرسائل المؤرشفة والمحذوفة</div><div class="card"><p>📦 إجمالي المؤرشف: <strong>0</strong></p><p>🗑️ إجمالي المحذوف: <strong>0</strong></p><button class="btn-primary" style="margin-top:10px;background:#64748b;">استعادة رسائل</button></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
+            sticky: `<div class="subpage"><h2>📌 رسالة لاصقة</h2><div class="notice">تعيين رسالة تظهر دائماً في أعلى الدردشة</div><div class="card"><fieldset><legend>نص الرسالة اللاصقة</legend><textarea class="txtbox" rows="4" placeholder="اكتب الرسالة التي تريد تثبيتها..." style="width:100%;"></textarea><button class="btn-primary" style="margin-top:10px;" id="save-sticky-btn">تثبيت الرسالة</button><button class="btn-primary" style="margin-top:10px;background:#dc2626;" id="remove-sticky-btn">إزالة التثبيت</button></fieldset></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
+            channels: `<div class="subpage"><h2>📺 القنوات</h2><div class="notice">إدارة قنوات الدردشة المتعددة</div><div class="card"><p>➕ <a href="#" id="add-channel-link">إنشاء قناة جديدة</a></p><ul id="channels-list" style="list-style:none;padding-right:0;margin-top:10px;"><li style="padding:8px;border-bottom:1px solid var(--border-color);">🟢 <strong>عام</strong> <span style="color:#888;font-size:11px;">(القناة الافتراضية)</span></li></ul></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
+            webhook: `<div class="subpage"><h2>🔗 رابط الويب (Webhook)</h2><div class="notice">ربط الصندوق بخدمات خارجية مثل Discord أو Slack</div><div class="card"><label>رابط الويب هووك:</label><input type="text" class="txtbox" value="https://your-webhook-url.com/endpoint" readonly style="width:100%;direction:ltr;text-align:left;"><button class="btn-primary" style="margin-top:10px;" onclick="navigator.clipboard.writeText(this.previousElementSibling.value); alert('✅ تم نسخ الرابط!')">📋 نسخ الرابط</button><p style="margin-top:15px;font-size:11px;color:#666;">💡 استخدم هذا الرابط لإرسال رسائل تلقائية من خدماتك إلى صندوق التحكم.</p></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`
+        };
+
+        document.querySelectorAll('#dropdown-menu .sublink').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                dropdownMenu.classList.remove('show');
+                dropdownTrigger.querySelector('.dropdown-arrow').style.transform = 'rotate(0deg)';
+                
+                document.querySelectorAll('#dropdown-menu .sublink').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+                
+                const target = this.getAttribute('data-target');
+                showSection('subpage');
+                subpageView.innerHTML = subPages[target] || '<p>صفحة غير متوفرة</p>';
+                if(errorBar) errorBar.textContent = this.textContent.trim();
+
+                if(target==='sticky'){
+                    setTimeout(()=>{
+                        document.getElementById('save-sticky-btn')?.addEventListener('click',()=>{const t=subpageView.querySelector('textarea').value.trim(); if(!t) return alert('⚠️ اكتب النص أولاً'); alert('✅ تم تثبيت الرسالة');});
+                        document.getElementById('remove-sticky-btn')?.addEventListener('click',()=>{if(confirm('هل تريد إزالة الرسالة اللاصقة؟')) alert('✅ تم الإزالة');});
+                    },50);
+                }
+                if(target==='channels'){
+                    setTimeout(()=>{
+                        document.getElementById('add-channel-link')?.addEventListener('click',ev=>{ev.preventDefault(); const n=prompt('اسم القناة الجديدة:'); if(n){const l=document.getElementById('channels-list'), li=document.createElement('li'); li.style.cssText='padding:8px;border-bottom:1px solid var(--border-color);'; li.innerHTML=`🔵 <strong>${escapeHtml(n)}</strong> <span style="color:#888;font-size:11px;">(جديد)</span>`; l.appendChild(li); alert('✅ تم إنشاء القناة: '+n);}});
+                    },50);
+                }
+            });
+        });
+    }
+
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('back-link')) {
             e.preventDefault();
             showSection(e.target.getAttribute('data-return') || 'dashboard');
-            document.querySelectorAll('.sublink').forEach(l => l.classList.remove('active'));
+            if(dropdownMenu) dropdownMenu.classList.remove('show');
             if(errorBar) errorBar.textContent = 'متصل بـ Firebase ✅';
         }
     });
