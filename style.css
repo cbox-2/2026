@@ -30,11 +30,11 @@ a { color: var(--btn-bg); text-decoration: none; } a:hover { text-decoration: un
 #topbar .button:hover { background: #555; text-decoration: none !important; }
 
 #bar3 { background: var(--bg-bar3); border-bottom: 1px solid var(--border-color); border-top: 1px solid #ccc; padding: 4px 0; position: relative; }
-#bar3 .wrap { position: relative; display: flex; align-items: center; }
-.submenuitem { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; color: var(--text-primary); text-decoration: none !important; font-size: 11px; border: 1px solid transparent; border-radius: 3px; cursor: pointer; background: transparent; }
+#bar3 .wrap { position: relative; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.submenuitem { position: relative; display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; color: var(--text-primary); text-decoration: none !important; font-size: 11px; border: 1px solid transparent; border-radius: 3px; cursor: pointer; background: transparent; }
 .submenuitem:hover { background: #e0e0e0; border-color: #bbb; }
 .submenu-arrow { font-size: 8px; transition: transform 0.2s; }
-.submenu-content { position: absolute; top: 100%; right: 0; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; box-shadow: var(--shadow); min-width: 180px; z-index: 100; padding: 5px 0; margin-top: 2px; display: none; }
+.submenu-content { position: absolute; top: 100%; right: 0; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; box-shadow: var(--shadow); min-width: 190px; z-index: 100; padding: 5px 0; margin-top: 2px; display: none; }
 .submenu-content.show { display: block; animation: fadeInDrop 0.2s ease; }
 @keyframes fadeInDrop { from { opacity:0; transform:translateY(-5px); } to { opacity:1; transform:translateY(0); } }
 .submenu-content .sublink { display: flex; align-items: center; gap: 8px; padding: 7px 12px; color: var(--text-primary) !important; font-size: 11px; text-decoration: none !important; cursor: pointer; }
