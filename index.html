@@ -1,1 +1,226 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>صندوق التحكم</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="style.css?v=2">
+</head>
+<body>
+<header>
+    <div class="wrap">
+        <strong>📦 صندوق التحكم</strong>
+        <nav>
+            <span id="userDisplay">ضيف</span>
+            <a onclick="nav('mailbox')">صناديق</a>
+            <a onclick="nav('stats')">إحصائيات</a>
+            <a onclick="nav('publish')">انشر</a>
+            <a onclick="nav('settings')">حسابي</a>
+            <a onclick="doLogout()">خروج</a>
+        </nav>
+    </div>
+</header>
 
+<nav class="menus">
+    <div class="wrap">
+        <a onclick="nav('dashboard')"><b>الرئيسية</b></a>
+        <span class="drop" onclick="toggle('m1')">المظهر ▼</span>
+        <div id="m1" class="drop-c"><a onclick="sub('style')">سمات</a><a onclick="sub('layout')">تخطيط</a></div>
+        <span class="drop" onclick="toggle('m2')">خيارات ▼</span>
+        <div id="m2" class="drop-c"><a onclick="sub('filter')">تصفية</a><a onclick="sub('smilies')">رموز</a></div>
+        <span class="drop" onclick="toggle('m3')">مستخدمون ▼</span>
+        <div id="m3" class="drop-c"><a onclick="sub('users')">مسجلون</a><a onclick="sub('bans')">محظورون</a></div>
+        <span class="drop" onclick="toggle('m4')">رسائل ▼</span>
+        <div id="m4" class="drop-c"><a onclick="sub('msgs')">رسائل</a><a onclick="sub('archive')">أرشيف</a></div>
+    </div>
+</nav>
+
+<main class="wrap">
+    <section id="login">
+        <h2>تسجيل الدخول</h2>
+        <form onsubmit="return doLogin(event)">
+            <input type="email" id="em" placeholder="البريد" value="admin@cbox.com" required>
+            <input type="password" id="pw" placeholder="كلمة المرور" value="123456" required>
+            <button type="submit">دخول</button>
+        </form>
+        <p><small style="cursor:pointer;color:#2563eb" onclick="alert('وضع إنشاء حساب')">إنشاء حساب جديد</small></p>
+    </section>
+
+    <section id="dashboard" style="display:none">
+        <h2>👋 أهلاً، <span id="name">مستخدم</span>!</h2>
+        <fieldset class="chat">
+            <div id="chatBox" style="height:250px;overflow-y:auto;padding:10px;background:#fff;border:1px solid #ddd">
+                <p style="text-align:center;color:#888;padding:40px">مرحباً! ابدأ المحادثة...</p>
+            </div>
+            <div style="padding:8px;background:#f8f8f8;border-top:1px solid #ddd">
+                <input type="text" id="cName" placeholder="الاسم" class="inp" readonly>
+                <input type="text" id="cEmail" placeholder="البريد" class="inp" readonly>
+                <br>
+                <input type="text" id="cMsg" placeholder="اكتب رسالتك..." class="inp" style="width:70%">
+                <button onclick="send()" class="btn">إرسال</button>
+            </div>
+        </fieldset>
+        <div style="background:#f1f5f9;padding:6px 10px;font-size:11px;border:1px solid #ddd;border-top:none">
+            <a onclick="alert('اكتب اسمك ثم رسالتك')">❓ مساعدة</a> · 
+            <a onclick="toggleSmilies()">😊 رموز</a> · 
+            <a onclick="alert('👤 '+document.getElementById('cName').value)">👤 ملفي</a>
+        </div>
+        <div id="smBox" style="display:none;background:#fff;border:1px solid #ddd;padding:10px;margin:10px 0">
+            <span onclick="ins('🙂')" style="cursor:pointer;font-size:18px;margin:3px">🙂</span>
+            <span onclick="ins('😂')" style="cursor:pointer;font-size:18px;margin:3px">😂</span>
+            <span onclick="ins('❤️')" style="cursor:pointer;font-size:18px;margin:3px">❤️</span>
+            <button onclick="toggleSmilies()" style="margin-right:10px;font-size:11px">✕ إغلاق</button>
+        </div>
+        <button onclick="test()" class="btn" style="background:#7c3aed;margin-top:15px">🧪 اختبار</button>
+        <div id="out" style="margin:10px 0;font-size:12px;color:#666"></div>
+        <button onclick="doLogout()" class="btn" style="background:#dc2626;margin-top:10px">خروج</button>
+    </section>
+
+    <section id="publish" style="display:none">
+        <h2>📤 انشر</h2>
+        <fieldset>
+            <legend>رمز التضمين</legend>
+            <select id="codeType" class="inp" onchange="swapCode()">
+                <option value="inline">مضمن</option>
+                <option value="popup">منبثق</option>
+            </select>
+            <textarea id="codeBox" class="inp" readonly style="width:100%;min-height:100px;font-family:monospace">&lt;iframe src="https://cbox-2.github.io/2026/?#chat" width="400" height="400"&gt;&lt;/iframe&gt;</textarea>
+            <button onclick="copyCode()" class="btn" style="margin-top:10px">📋 نسخ</button>
+        </fieldset>
+        <a onclick="nav('dashboard')">← عودة</a>
+    </section>
+
+    <section id="stats" style="display:none"><h2>📊 إحصائيات</h2><p>العدادات هنا</p><a onclick="nav('dashboard')">← عودة</a></section>
+    <section id="mailbox" style="display:none"><h2>📦 صندوق</h2><p>محتوى الصندوق</p><a onclick="nav('dashboard')">← عودة</a></section>
+    <section id="settings" style="display:none"><h2>⚙️ إعدادات</h2><p>إعدادات الحساب</p><a onclick="nav('dashboard')">← عودة</a></section>
+    <section id="sub" style="display:none"></section>
+</main>
+
+<footer>© 2024 صندوق التحكم</footer>
+
+<script>
+console.log("✅ النظام يبدأ...");
+const $=id=>document.getElementById(id);
+let user=null;
+
+// 🧭 التنقل البسيط
+window.nav=function(sec){
+    console.log("🔀 إلى:",sec);
+    ['login','dashboard','publish','stats','mailbox','settings','sub'].forEach(s=>{
+        const e=$(s); if(e)e.style.display='none';
+    });
+    const t=$(sec); if(t)t.style.display='block';
+    hideDrops();
+    if(sec==='dashboard'&&user)startChat();
+};
+
+// 📋 الصفحات الفرعية
+window.sub=function(pg){
+    nav('sub');
+    const c=$('sub'); if(!c)return;
+    const pages={
+        'style':'<div><h3>🎨 سمات</h3><p>تخصيص الألوان</p><a onclick="nav(\'dashboard\')">← عودة</a></div>',
+        'layout':'<div><h3>📐 تخطيط</h3><p>خيارات العرض</p><a onclick="nav(\'dashboard\')">← عودة</a></div>',
+        'filter':'<div><h3>🔍 تصفية</h3><p>كلمات محظورة</p><a onclick="nav(\'dashboard\')">← عودة</a></div>',
+        'smilies':'<div><h3>😊 رموز</h3><p>إدارة الابتسامات</p><a onclick="nav(\'dashboard\')">← عودة</a></div>',
+        'users':'<div><h3>👥 مسجلون</h3><p>قائمة المستخدمين</p><a onclick="nav(\'dashboard\')">← عودة</a></div>',
+        'bans':'<div><h3>🚫 محظورون</h3><p>قائمة الحظر</p><a onclick="nav(\'dashboard\')">← عودة</a></div>',
+        'msgs':'<div><h3>📩 رسائل</h3><p>إدارة الرسائل</p><a onclick="nav(\'dashboard\')">← عودة</a></div>',
+        'archive':'<div><h3>🗄️ أرشيف</h3><p>المؤرشف</p><a onclick="nav(\'dashboard\')">← عودة</a></div>'
+    };
+    c.innerHTML=pages[pg]||'<p>غير متاح</p>';
+};
+
+// 🔐 تسجيل الدخول (يعمل حتى بدون Firebase)
+window.doLogin=function(e){
+    e.preventDefault();
+    const em=$('em')?.value.trim(), pw=$('pw')?.value.trim();
+    if(!em||!pw||!em.includes('@'))return alert("⚠️ بيانات خاطئة");
+    
+    // محاكاة الدخول الناجح (للتجربة)
+    user={email:em,name:em.split('@')[0]};
+    $('name').textContent=user.name;
+    $('userDisplay').textContent=em;
+    $('cName').value=user.name;
+    $('cEmail').value=em;
+    nav('dashboard');
+    alert("✅ مرحباً، "+user.name+"!");
+    console.log("✅ مستخدم:",user);
+    return false;
+};
+
+// 🚪 تسجيل الخروج
+window.doLogout=function(){
+    user=null;
+    $('userDisplay').textContent='ضيف';
+    $('chatBox').innerHTML='<p style="text-align:center;color:#888;padding:40px">مرحباً! ابدأ المحادثة...</p>';
+    nav('login');
+    alert("✅ تم الخروج");
+    console.log("🚪 خروج");
+};
+
+// 💬 دردشة بسيطة (محاكاة)
+window.startChat=function(){
+    if(!user)return;
+    $('chatBox').innerHTML='<p style="text-align:center;color:#888;padding:40px">🎉 جاهز للمحادثة!</p>';
+};
+window.send=function(){
+    const msg=$('cMsg')?.value.trim();
+    if(!msg||!user)return alert("⚠️ اكتب رسالة");
+    const box=$('chatBox');
+    const div=document.createElement('div');
+    div.style.cssText='margin:8px 0;padding:8px;background:#dbeafe;border-radius:6px';
+    div.innerHTML=`<strong style="color:#2563eb">${user.name}</strong>: ${msg}`;
+    box.appendChild(div);
+    $('cMsg').value='';
+    box.scrollTop=box.scrollHeight;
+    console.log("💬 أرسل:",msg);
+};
+window.toggleSmilies=function(){
+    const b=$('smBox');
+    b.style.display=(b.style.display==='none'||!b.style.display)?'block':'none';
+};
+window.ins=function(em){
+    const i=$('cMsg');
+    if(i){i.value+=' '+em+' ';i.focus();}
+};
+window.test=function(){
+    const t=new Date().toLocaleTimeString('ar-EG');
+    $('out').innerHTML=`✅ يعمل!<br>⏰ ${t}<br>👤 ${user?.name||'ضيف'}`;
+    alert("✅ النظام يعمل!\n"+t);
+};
+
+// 📋 القوائم المنسدلة
+window.toggle=function(id){
+    hideDrops();
+    const m=$(id);
+    if(m)m.style.display=(m.style.display==='block')?'none':'block';
+};
+window.hideDrops=function(){
+    ['m1','m2','m3','m4'].forEach(id=>{
+        const el=$(id); if(el)el.style.display='none';
+    });
+};
+document.addEventListener('click',e=>{
+    if(!e.target.closest('.drop')&&!e.target.closest('.drop-c'))hideDrops();
+});
+
+// 📤 صفحة انشر
+window.swapCode=function(){
+    const v=$('codeType')?.value||'inline', b=$('codeBox');
+    if(!b)return;
+    b.value = v==='inline' 
+        ? '<iframe src="https://cbox-2.github.io/2026/?#chat" width="400" height="400"></iframe>'
+        : '<a href="#" onclick="window.open(\'https://cbox-2.github.io/2026/?#chat\',\'Chat\',\'width=400,height=400\')">افتح الدردشة</a>';
+};
+window.copyCode=function(){
+    const b=$('codeBox'); if(!b)return;
+    b.select();
+    try{document.execCommand('copy');alert("✅ تم النسخ")}catch{alert("Ctrl+C للنسخ")}
+};
+
+// بدء
+console.log("✅ جاهز!");
+</script>
+</body>
+</html>
