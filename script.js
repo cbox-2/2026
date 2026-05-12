@@ -192,16 +192,30 @@ window.test = function() {
     alert("✅ الجافاسكربت يعمل!\nالوقت: " + now);
 };
 
-// 📋 إدارة القوائم المنسدلة
-window.toggle = function(id) {
-    console.log("📋 قائمة:", id);
-    closeDrops();
-    const m = $(id);
-    if (m) {
-        m.classList.toggle('show');
-        console.log("  → " + (m.classList.contains('show') ? 'فتح' : 'إغلاق'));
+// 📋 إدارة القوائم المنسدلة (نسخة مضمونة 100%)
+window.toggleMenu = function(id) {
+    console.log("🔽 تبديل القائمة:", id);
+    // إغلاق جميع القوائم الأخرى
+    ['m1','m2','m3','m4'].forEach(mid => {
+        const el = document.getElementById(mid);
+        if (el && mid !== id) el.style.display = 'none';
+    });
+    // فتح/إغلاق القائمة المطلوبة
+    const target = document.getElementById(id);
+    if (target) {
+        target.style.display = (target.style.display === 'block') ? 'none' : 'block';
     }
 };
+
+// إغلاق القوائم تلقائياً عند النقر خارجها
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.drop') && !e.target.closest('.drop-c')) {
+        ['m1','m2','m3','m4'].forEach(mid => {
+            const el = document.getElementById(mid);
+            if (el) el.style.display = 'none';
+        });
+    }
+});
 function closeDrops() {
     ['m1','m2','m3','m4'].forEach(id => {
         const m = $(id);
