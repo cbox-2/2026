@@ -1,388 +1,172 @@
 document.addEventListener('DOMContentLoaded', function() {
     const firebaseConfig = {
-        apiKey: "AIzaSyD_UssZllzECYbTMR_0N<think>
-The user wants complete, ready-to-copy code for all three files (index.html, style.css, script.js) that include the new "انشر" (Publish) page. They want the full working system with all features we've built together.
+        apiKey: "AIzaSyD_UssZllzECYbTMR_0NCTzEGAIMeZAcos",
+        authDomain: "cbox22026.firebaseapp.com",
+        projectId: "cbox22026",
+        storageBucket: "cbox22026.firebasestorage.app",
+        messagingSenderId: "175894881657",
+        appId: "1:175894881657:web:ae5e693d843ee594eb7ba8",
+        measurementId: "G-0BP0P4KWL8"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth(); const db = firebase.firestore();
+    const ADMIN_EMAIL = 'admin@cbox.com';
 
-I need to provide:
-1. Complete `index.html` with the Publish page integrated
-2. Complete `style.css` with all styles including the new publish page styles  
-3. Complete `script.js` with all functionality including the publish page logic
+    const loginSection = document.getElementById('login-section');
+    const dashboardSection = document.getElementById('dashboard-section');
+    const settingsSection = document.getElementById('settings-section');
+    const publishSection = document.getElementById('publish-section');
+    const subpageView = document.getElementById('subpage-view');
+    const emailInput = document.getElementById('email-input'); const passInput = document.getElementById('pass-input');
+    const authBtn = document.getElementById('auth-btn'); const formTitle = document.getElementById('form-title');
+    const toggleAuth = document.getElementById('toggle-auth'); const resetLink = document.getElementById('reset-link');
+    const userDisplay = document.getElementById('user-name-display'); const logoutBtn = document.getElementById('logout-btn');
+    const navLogout = document.getElementById('nav-logout'); const navSettings = document.getElementById('nav-settings');
+    const navPublish = document.getElementById('nav-publish'); const navHome = document.getElementById('nav-home');
+    const backToDash = document.getElementById('back-to-dashboard'); const errorBar = document.getElementById('siteErrorBarCont');
+    const loginHistory = document.getElementById('login-history'); const sessionCount = document.getElementById('session-count');
+    const lastLogin = document.getElementById('last-login'); const settingsName = document.getElementById('settings-name');
+    const saveSettingsBtn = document.getElementById('save-settings-btn'); const qLoginBtn = document.getElementById('q-login-btn');
+    const chatInput = document.getElementById('chat-input'); const chatSendBtn = document.getElementById('chat-send-btn');
+    const messagesList = document.getElementById('messages-list'); const chatContainer = document.getElementById('chat-container');
+    const themeToggle = document.getElementById('theme-toggle'); const todayMsgCount = document.getElementById('today-msg-count');
+    const activeUsersCount = document.getElementById('active-users-count'); const exportBtn = document.getElementById('export-btn');
+    
+    let currentUser = null; let unsubscribeChat = null; let isLoginMode = true;
+    let unreadCount = 0; let isTabActive = true; let lastKnownTimestamp = null;
+    let chatInitialized = false; let cachedMessages = [];
+    const originalTitle = document.title;
 
-The codes must be:
-- Complete and ready to copy
-- Working on https://cbox-2.github.io/2026/
-- Including all previous features (auth, chat, notifications, dark mode, dropdowns, subpages, etc.)
-- Including the new Publish page with embed code generation
+    function applyTheme(theme) { document.documentElement.setAttribute('data-theme', theme); localStorage.setItem('cbox-theme', theme); if (themeToggle) themeToggle.textContent = theme === 'dark' ? '☀️ وضع فاتح' : '🌙 وضع ليلي'; }
+    if (themeToggle) { applyTheme(localStorage.getItem('cbox-theme') || 'light'); themeToggle.addEventListener('click', () => { applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); }); }
 
-Let me create the complete, clean, and working codes. I'll make sure the script.js includes:
-- Firebase initialization
-- Auth state management
-- Chat functionality
-- Dropdown menus (4 of them)
-- Subpage navigation
-- Publish page functions (switchcode, copytext, gentag, updateinst)
-- Dark mode toggle
-- All the helper functions
+    function playNotificationSound() { try { const c = new (window.AudioContext||window.webkitAudioContext)(); const o=c.createOscillator(), g=c.createGain(); o.connect(g).connect(c.destination); o.frequency.value=800; g.gain.value=0.1; o.start(); g.gain.exponentialRampToValueAtTime(0.00001,c.currentTime+0.3); o.stop(c.currentTime+0.3); } catch(e){} }
+    function updateNotificationBadge() { document.title = unreadCount > 0 ? `(${unreadCount}) ${originalTitle}` : originalTitle; }
+    document.addEventListener('visibilitychange', () => { isTabActive = document.visibilityState === 'visible'; if (isTabActive && unreadCount > 0) { unreadCount = 0; updateNotificationBadge(); if (chatContainer) chatContainer.style.animation = ''; } });
 
-Let me write the complete code now.
-</think>
+    auth.onAuthStateChanged(user => {
+        currentUser = user;
+        if (user) { showSection('dashboard'); if (navLogout) navLogout.style.display = 'inline-block'; if (chatInput) chatInput.disabled = false; if (chatSendBtn) chatSendBtn.disabled = false; userDisplay.textContent = user.displayName || user.email.split('@')[0]; if (settingsName) settingsName.value = user.displayName || ''; if (errorBar) errorBar.textContent = 'متصل بـ Firebase ✅'; loadDashboardData(user.email); initChat(); } 
+        else { showSection('login'); if (navLogout) navLogout.style.display = 'none'; if (chatInput) chatInput.disabled = true; if (chatSendBtn) chatSendBtn.disabled = true; if (unsubscribeChat) unsubscribeChat(); if (errorBar) errorBar.textContent = 'جاهز...'; if (messagesList) messagesList.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">سجّل الدخول لرؤية الرسائل</p>'; unreadCount = 0; updateNotificationBadge(); }
+    });
 
-أهلاً بك يا بطل! 🚀✨
+    function showSection(name) { 
+        loginSection.style.display = 'none'; dashboardSection.style.display = 'none'; 
+        settingsSection.style.display = 'none'; subpageView.style.display = 'none'; 
+        if(publishSection) publishSection.style.display = 'none';
+        if (name === 'login') loginSection.style.display = 'block'; 
+        else if (name === 'dashboard') dashboardSection.style.display = 'block'; 
+        else if (name === 'settings') settingsSection.style.display = 'block'; 
+        else if (name === 'publish' && publishSection) publishSection.style.display = 'block';
+        else if (name === 'subpage') subpageView.style.display = 'block'; 
+    }
 
-بما أنك طلبت **الأكواد الكاملة جاهزة للنسخ المباشر** لنظامك المتكامل مع صفحة "انشر" الجديدة، إليك الملفات الثلاثة كاملة 100%، مُهيأة للعمل فوراً على `https://cbox-2.github.io/2026/` بدون أي تعديل.
+    if (toggleAuth) { toggleAuth.addEventListener('click', e => { e.preventDefault(); isLoginMode = !isLoginMode; if (formTitle) formTitle.textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب جديد'; if (authBtn) authBtn.textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب'; }); }
+    if (authBtn) { authBtn.addEventListener('click', async () => { const email = emailInput?.value.trim()||''; const pass = passInput?.value.trim()||''; if (!email.includes('@')) return alert('⚠️ أدخل بريد إلكتروني صحيح'); if (!email || !pass) return alert('⚠️ املأ جميع الحقول'); authBtn.disabled = true; authBtn.textContent = 'جاري المعالجة...'; try { if (isLoginMode) await auth.signInWithEmailAndPassword(email, pass); else { await auth.createUserWithEmailAndPassword(email, pass); await db.collection('users').doc(auth.currentUser.uid).set({ email, displayName: email.split('@')[0], createdAt: firebase.firestore.FieldValue.serverTimestamp() }); } await db.collection('sessions').add({ userId: auth.currentUser.uid, email, timestamp: firebase.firestore.FieldValue.serverTimestamp() }); } catch (err) { alert('❌ ' + (translateFirebaseError(err.code) || err.message)); } finally { authBtn.disabled = false; authBtn.textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب'; } }); }
+    if (qLoginBtn) { qLoginBtn.addEventListener('click', async () => { const e=document.getElementById('q-email')?.value.trim(), p=document.getElementById('q-pass')?.value.trim(); if(!e||!p) return alert('⚠️ املأ حقول الهيدر'); try{await auth.signInWithEmailAndPassword(e,p)}catch(err){alert('❌ '+translateFirebaseError(err.code))} }); }
+    if (resetLink) { resetLink.addEventListener('click', async e => { e.preventDefault(); const em=prompt('أدخل بريدك الإلكتروني لاستعادة كلمة المرور:'); if(em){try{await auth.sendPasswordResetEmail(em);alert('✅ تم إرسال رابط الاستعادة')}catch(err){alert('❌ '+err.message)}} }); }
+    const doLogout = () => auth.signOut(); if (logoutBtn) logoutBtn.onclick = doLogout; if (navLogout) navLogout.onclick = doLogout;
+    if (navSettings) navSettings.onclick = e => { e.preventDefault(); showSection('settings'); if(errorBar) errorBar.textContent='الإعدادات'; };
+    if (navPublish) navPublish.onclick = e => { e.preventDefault(); if(!currentUser){alert('⚠️ يرجى تسجيل الدخول أولاً');showSection('login');return;} showSection('publish'); if(errorBar) errorBar.textContent='صفحة انشر'; closeAllDropdowns(); };
+    if (navHome) navHome.onclick = e => { e.preventDefault(); showSection('dashboard'); if(errorBar) errorBar.textContent='متصل بـ Firebase ✅'; closeAllDropdowns(); };
+    if (backToDash) backToDash.onclick = e => { e.preventDefault(); showSection('dashboard'); if(errorBar) errorBar.textContent='متصل بـ Firebase ✅'; };
+    if (saveSettingsBtn) { saveSettingsBtn.addEventListener('click', async () => { const n=settingsName?.value.trim(); if(!n) return alert('⚠️ الاسم مطلوب'); try{await auth.currentUser.updateProfile({displayName:n}); await db.collection('users').doc(auth.currentUser.uid).update({displayName:n}); if(userDisplay) userDisplay.textContent=n; alert('✅ تم حفظ التغييرات')}catch(err){alert('❌ '+err.message)} }); }
 
----
+    async function loadDashboardData(email) { if (!loginHistory) return; loginHistory.innerHTML='<li>جاري التحميل...</li>'; try{const snap=await db.collection('sessions').orderBy('timestamp','desc').limit(50).get(); const u=snap.docs.filter(d=>d.data().email===email).slice(0,5); if(u.length===0) loginHistory.innerHTML='<li>لا توجد جلسات سابقة</li>'; else{let h='';u.forEach(d=>{const t=d.data().timestamp?d.data().timestamp.toDate().toLocaleString('ar-EG'):'غير معروف'; h+=`<li>🟢 دخول في: ${t}</li>`}); loginHistory.innerHTML=h; if(sessionCount) sessionCount.textContent=u.length; if(lastLogin) lastLogin.textContent=u[0].data().timestamp.toDate().toLocaleString('ar-EG'); }}catch(e){loginHistory.innerHTML='<li>فشل التحميل</li>'; }}
 
-## 📄 الملف الأول: `index.html` (كامل 100%)
-```html
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <title>لوحة التحكم · صندوق التحكم</title>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="نظام دردشة فوري ولوحة تحكم متكاملة. آمن وسريع.">
-    <link rel="stylesheet" href="style.css">
-</head>
-<body id="mainbody">
-<script>var rcvdformresponse = function () {};</script>
-<div id="mask"></div>
+    async function loadAdvancedStats() { if(!todayMsgCount||!activeUsersCount) return; todayMsgCount.textContent='...'; activeUsersCount.textContent='...'; try{const now=new Date(), todayStart=new Date(now.getFullYear(),now.getMonth(),now.getDate()), sevenDaysAgo=new Date(todayStart.getTime()-(7*24*60*60*1000)); const m=await db.collection('messages').where('timestamp','>=',todayStart).get(); todayMsgCount.textContent=m.size; const s=await db.collection('sessions').where('timestamp','>=',sevenDaysAgo).get(); activeUsersCount.textContent=new Set(s.docs.map(d=>d.data().userId)).size;}catch(e){todayMsgCount.textContent='0';activeUsersCount.textContent='0';}}
 
-<div id="loading-screen" style="position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg-body, #fff); display:flex; align-items:center; justify-content:center; z-index:9999; transition: opacity 0.3s;">
-    <div style="text-align:center;">
-        <div style="width:50px; height:50px; border:4px solid #e2e8f0; border-top-color:#2563eb; border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 15px;"></div>
-        <p style="color:var(--text-primary, #333); font-size:14px;">جاري تحميل النظام...</p>
-    </div>
-</div>
-<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+    if (exportBtn) { exportBtn.addEventListener('click', async () => { exportBtn.disabled=true; exportBtn.textContent='⏳ جاري التحضير...'; try{if(cachedMessages.length===0){const snap=await db.collection('messages').orderBy('timestamp','asc').get(); cachedMessages=snap.docs.map(d=>({id:d.id,...d.data()}));} let csv='\uFEFF"التاريخ","الوقت","المرسل","الرسالة"\n'; cachedMessages.forEach(m=>{const d=m.timestamp?m.timestamp.toDate():new Date(); const date=d.toLocaleDateString('ar-EG'), time=d.toLocaleTimeString('ar-EG'); csv+=`"${date}","${time}","${(m.senderName||'مستخدم').replace(/"/g,'""')}","${(m.text||'').replace(/"/g,'""')}"\n`;}); const b=new Blob([csv],{type:'text/csv;charset=utf-8;'}), u=URL.createObjectURL(b), l=document.createElement('a'); l.href=u; l.download=`chat-export-${new Date().toISOString().slice(0,10)}.csv`; document.body.appendChild(l); l.click(); document.body.removeChild(l);}catch(err){alert('❌ فشل التصدير: '+err.message)} finally{exportBtn.disabled=false;exportBtn.textContent='📥 تصدير الدردشة (CSV)';}}); }
 
-<div id="bodywrap">
-    <div id="header">
-        <div class="wrap">
-            <a id="logo" href=""><img src="https://via.placeholder.com/200x86?text=صندوق+C" width="200" height="86" alt="صندوق C" border="0"></a>
-            <div id="headerExtras">
-                <form id="qlogin" action="#" onsubmit="return false;">
-                    <input type="text" id="q-email" placeholder="البريد الإلكتروني" maxlength="50" class="txtbox" style="width:160px">
-                    <input type="password" id="q-pass" placeholder="كلمة المرور" maxlength="50" class="txtbox" style="width:160px;">
-                    <button type="button" id="q-login-btn">دخول</button>
-                </form>
-            </div>
-        </div>
-    </div>
+    function initChat() { if(unsubscribeChat) unsubscribeChat(); if(messagesList) messagesList.innerHTML='<p style="text-align:center;color:#888;padding:20px;">جاري تحميل الرسائل...</p>'; chatInitialized=false; lastKnownTimestamp=null; unreadCount=0; updateNotificationBadge(); cachedMessages=[]; loadAdvancedStats();
+        unsubscribeChat=db.collection('messages').orderBy('timestamp','asc').onSnapshot(snap=>{ if(!messagesList) return; messagesList.innerHTML=''; if(snap.empty) messagesList.innerHTML='<p style="text-align:center;color:#888;padding:20px;">🎉 لا توجد رسائل بعد. كن أول من يكتب!</p>'; else{ let newMsg=false; cachedMessages=[]; snap.forEach(doc=>{const m=doc.data(); cachedMessages.push({id:doc.id,...m}); const t=m.timestamp?m.timestamp.toDate().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}):''; const isMe=m.senderEmail===currentUser?.email, isAdmin=currentUser?.email===ADMIN_EMAIL; if(chatInitialized&&lastKnownTimestamp&&m.timestamp&&m.timestamp.toMillis()>lastKnownTimestamp.toMillis()&&!isMe) newMsg=true; const d=document.createElement('div'); d.className='message-item'+(isMe?' my-message':''); d.innerHTML=`<div class="sender">${escapeHtml(m.senderName||'مستخدم')}</div><span class="time">${t}</span><span class="text">${escapeHtml(m.text)}</span>`; if(isMe||isAdmin){const btn=document.createElement('button'); btn.className='msg-delete-btn'; btn.textContent='🗑️'; btn.title='حذف الرسالة'; btn.onclick=async()=>{if(confirm('هل تريد حذف هذه الرسالة نهائياً؟')){try{await db.collection('messages').doc(doc.id).delete();}catch(e){alert('❌ فشل الحذف')}}}; d.appendChild(btn);} messagesList.appendChild(d); if(m.timestamp&&(!lastKnownTimestamp||m.timestamp.toMillis()>lastKnownTimestamp.toMillis())) lastKnownTimestamp=m.timestamp; }); if(newMsg&&!isTabActive){unreadCount++; updateNotificationBadge(); playNotificationSound(); if(chatContainer) chatContainer.style.animation='flashBorder 1s ease-in-out';} if(newMsg) loadAdvancedStats(); } chatInitialized=true; if(chatContainer) chatContainer.scrollTop=chatContainer.scrollHeight; }, err=>{console.error("❌ خطأ في الدردشة:",err); if(messagesList) messagesList.innerHTML=`<p style="color:#c00;text-align:center;padding:20px;">❌ خطأ: ${err.message}</p>`; }); }
 
-    <div id="topbar">
-        <div class="wrap">
-            <span class="Spacer">&nbsp;</span>
-            <a href="#" class="button" id="nav-home">الرئيسية</a>
-            <a href="#" class="button" id="nav-publish">انشر</a>
-            <a href="#" class="button" id="nav-settings">الإعدادات</a>
-            <button id="theme-toggle" class="button">🌙 وضع ليلي</button>
-            <a href="#" class="button" id="nav-logout" style="display:none; background:#b91c1c;">خروج</a>
-        </div>
-    </div>
+    if (chatSendBtn) { chatSendBtn.addEventListener('click', async () => { const t=chatInput?.value.trim(); if(!t||!currentUser) return; chatSendBtn.disabled=true; chatSendBtn.textContent='...'; try{await db.collection('messages').add({text:t, senderName:currentUser.displayName||currentUser.email.split('@')[0], senderEmail:currentUser.email, userId:currentUser.uid, timestamp:firebase.firestore.FieldValue.serverTimestamp()}); if(chatInput) chatInput.value='';}catch(err){alert('❌ فشل إرسال الرسالة')} finally{chatSendBtn.disabled=false; chatSendBtn.textContent='إرسال';} }); if(chatInput) chatInput.addEventListener('keypress', e=>{if(e.key==='Enter'&&!chatSendBtn.disabled) chatSendBtn.click();}); }
 
-    <!-- ✅ شريط القوائم المنسدلة (4 قوائم) -->
-    <div id="bar3">
-        <div class="wrap">
-            <!-- قائمة الرسائل -->
-            <a href="#" id="hovmenu4" class="submenuitem">
-                <font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">رسائل</font></font>
-                <span class="submenu-arrow">▼</span>
-            </a>
-            <div id="hovmenu4-content" class="submenu-content">
-                <a href="#" class="sublink" data-target="posts"><span class="submenuimg" style="background-position: -198px 0px"></span> رسائل</a>
-                <a href="#" class="sublink" data-target="postsarc"><span class="submenuimg" style="background-position: 0px -44px"></span> أرشيف</a>
-                <a href="#" class="sublink" data-target="sticky"><span class="submenuimg" style="background-position: 0px -22px"></span> رسالة لاصقة</a>
-                <a href="#" class="sublink" data-target="channels"><span class="submenuimg" style="background-position: -22px -22px"></span> القنوات</a>
-                <a href="#" class="sublink" data-target="webhook"><span class="submenuimg" style="background-position: 0px -178px"></span> رابط الويب</a>
-            </div>
+    function escapeHtml(text) { const d=document.createElement('div'); d.appendChild(document.createTextNode(text||'')); return d.innerHTML; }
+    function translateFirebaseError(code) { const m={'auth/invalid-credential':'البريد أو كلمة المرور غير صحيحة','auth/email-already-in-use':'البريد مسجل مسبقاً','auth/invalid-email':'صيغة البريد غير صحيحة','auth/user-not-found':'البريد غير مسجل','auth/wrong-password':'كلمة المرور غير صحيحة','auth/weak-password':'كلمة المرور يجب أن تكون 6 أحرف على الأقل','auth/too-many-requests':'محاولات كثيرة، انتظر قليلاً'}; return m[code]||code; }
 
-            <!-- قائمة المستخدمون -->
-            <a href="#" id="hovmenu5" class="submenuitem">
-                <font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">المستخدمون</font></font>
-                <span class="submenu-arrow">▼</span>
-            </a>
-            <div id="hovmenu5-content" class="submenu-content">
-                <a href="#" class="sublink" data-target="users"><span class="submenuimg" style="background-position: -44px 0px"></span> المستخدمون المسجلون</a>
-                <a href="#" class="sublink" data-target="bans"><span class="submenuimg" style="background-position: -88px 0px"></span> المستخدمون المحظورون</a>
-                <a href="#" class="sublink" data-target="userint"><span class="submenuimg" style="background-position: 0px -88px"></span> تكامل المستخدم</a>
-            </div>
+    // 📋 جميع الصفحات الفرعية
+    const allSubPages = {
+        posts: `<div class="subpage"><h2>📩 إدارة الرسائل</h2><div class="notice">عرض جميع الرسائل الواردة في الصندوق</div><div class="card"><p>🔍 بحث: <input type="text" class="txtbox" placeholder="ابحث في الرسائل..." style="width:200px;display:inline-block;"></p><p>📅 تصفية: <select class="txtbox" style="width:150px;display:inline-block;"><option>الكل</option><option>اليوم</option><option>هذا الأسبوع</option></select></p><div style="margin-top:15px;"><p style="color:#888;">لا توجد رسائل لعرضها حالياً</p></div></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
+        postsarc: `<div class="subpage"><h2>🗄️ الأرشيف</h2><div class="notice">الرسائل المؤرشفة والمحذوفة</div><div class="card"><p>📦 إجمالي المؤرشف: <strong>0</strong></p><p>🗑️ إجمالي المحذوف: <strong>0</strong></p><button class="btn-primary" style="margin-top:10px;background:#64748b;">استعادة رسائل</button></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
+        sticky: `<div class="subpage"><h2>📌 رسالة لاصقة</h2><div class="notice">تعيين رسالة تظهر دائماً في أعلى الدردشة</div><div class="card"><fieldset><legend>نص الرسالة اللاصقة</legend><textarea class="txtbox" rows="4" placeholder="اكتب الرسالة التي تريد تثبيتها..." style="width:100%;"></textarea><button class="btn-primary" style="margin-top:10px;" id="save-sticky-btn">تثبيت الرسالة</button><button class="btn-primary" style="margin-top:10px;background:#dc2626;" id="remove-sticky-btn">إزالة التثبيت</button></fieldset></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
+        channels: `<div class="subpage"><h2>📺 القنوات</h2><div class="notice">إدارة قنوات الدردشة المتعددة</div><div class="card"><p>➕ <a href="#" id="add-channel-link">إنشاء قناة جديدة</a></p><ul id="channels-list" style="list-style:none;padding-right:0;margin-top:10px;"><li style="padding:8px;border-bottom:1px solid var(--border-color);">🟢 <strong>عام</strong> <span style="color:#888;font-size:11px;">(القناة الافتراضية)</span></li></ul></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
+        webhook: `<div class="subpage"><h2>🔗 رابط الويب (Webhook)</h2><div class="notice">ربط الصندوق بخدمات خارجية مثل Discord أو Slack</div><div class="card"><label>رابط الويب هووك:</label><input type="text" class="txtbox" value="https://your-webhook-url.com/endpoint" readonly style="width:100%;direction:ltr;text-align:left;"><button class="btn-primary" style="margin-top:10px;" onclick="navigator.clipboard.writeText(this.previousElementSibling.value); alert('✅ تم نسخ الرابط!')">📋 نسخ الرابط</button><p style="margin-top:15px;font-size:11px;color:#666;">💡 استخدم هذا الرابط لإرسال رسائل تلقائية من خدماتك إلى صندوق التحكم.</p></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
+        users: `<div class="subpage"><h2>👥 المستخدمون المسجلون</h2><div class="notice">قائمة بجميع المستخدمين الذين أنشأوا حسابات</div><div class="card"><div id="users-table" style="max-height:300px;overflow-y:auto;"></div><button class="btn-primary" style="margin-top:10px;background:#64748b;" onclick="alert('✅ سيتم تحديث القائمة')">تحديث القائمة</button></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
+        bans: `<div class="subpage"><h2>🚫 المستخدمون المحظورون</h2><div class="notice">المستخدمون الذين تم منعهم من الدخول أو الكتابة</div><div class="card"><p style="color:#888;text-align:center;padding:20px;">لا يوجد مستخدمون محظورون حالياً</p><button class="btn-primary" style="margin-top:10px;">إضافة حظر جديد</button></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
+        userint: `<div class="subpage"><h2>🔗 تكامل المستخدم</h2><div class="notice">ربط الحسابات بمنصات خارجية (Discord, Telegram, إلخ)</div><div class="card"><p>🔌 <strong>Discord:</strong> <span style="color:#c00">غير متصل</span></p><p>🔌 <strong>Telegram:</strong> <span style="color:#16a34a">متصل</span></p><p style="margin-top:15px;"><button class="btn-primary">إدارة التكاملات</button></p></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
+        filtering: `<div class="subpage"><h2>🔍 تصفية المحتوى</h2><div class="notice">إعداد كلمات محظورة، فلاتر الروابط، ومراقبة تلقائية</div><div class="card"><fieldset><legend>كلمات محظورة</legend><textarea class="txtbox" rows="3" placeholder="اكتب الكلمات مفصولة بفاصلة..." style="width:100%;"></textarea><button class="btn-primary" style="margin-top:10px;">حفظ الفلاتر</button></fieldset></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
+        smilies: `<div class="subpage"><h2>😊 الرموز التعبيرية</h2><div class="notice">تفعيل أو تعطيل الرموز التعبيرية وتخصيصها</div><div class="card"><label><input type="checkbox" checked> تفعيل الرموز التعبيرية تلقائياً</label><br><label><input type="checkbox"> تحويل الروابط إلى معاينات</label><button class="btn-primary" style="margin-top:10px;">حفظ الإعدادات</button></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
+        dateopt: `<div class="subpage"><h2>📅 خيارات التاريخ</h2><div class="notice">تنسيق التاريخ والوقت المعروض في اللوحة والدردشة</div><div class="card"><label>التنسيق:</label><select class="txtbox" style="width:100%;margin-top:5px;"><option>24 ساعة (14:30)</option><option>12 ساعة (2:30 م)</option><option>منذ (منذ 5 دقائق)</option></select><button class="btn-primary" style="margin-top:10px;">تطبيق</button></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
+        postopt: `<div class="subpage"><h2>📝 خيارات النشر</h2><div class="notice">التحكم في طول الرسائل، عدد الأسطر، وتأخير النشر</div><div class="card"><label>الحد الأقصى للأحرف:</label><input type="number" class="txtbox" value="500" style="width:100%;margin-top:5px;"><label>تأخير النشر (ثواني):</label><input type="number" class="txtbox" value="3" style="width:100%;margin-top:5px;"><button class="btn-primary" style="margin-top:10px;">حفظ</button></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
+        style: `<div class="subpage"><h2>🎨 محرر السمات</h2><div class="notice">تخصيص ألوان وخطوط واجهة الدردشة</div><div class="card"><fieldset><legend>الألوان الأساسية</legend><label>لون الخلفية: <input type="color" value="#ffffff"></label><br><label>لون النص: <input type="color" value="#333333"></label><br><label>لون الرابط: <input type="color" value="#2563eb"></label></fieldset><button class="btn-primary" style="margin-top:10px;">معاينة وحفظ</button></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`,
+        layout: `<div class="subpage"><h2>📐 خيارات التخطيط</h2><div class="notice">التحكم في عرض العناصر، حجم الخط، وترتيب الأقسام</div><div class="card"><label>عرض الصندوق:</label><select class="txtbox" style="width:100%;margin-top:5px;"><option>كامل الشاشة</option><option>متوسط (960px)</option><option>ضيق (720px)</option></select><label>حجم الخط الأساسي:</label><input type="range" class="txtbox" min="10" max="16" value="12" style="width:100%;margin-top:5px;"><button class="btn-primary" style="margin-top:10px;">تطبيق التخطيط</button></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`
+    };
 
-            <!-- قائمة الخيارات -->
-            <a href="#" id="hovmenu6" class="submenuitem">
-                <font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">خيارات</font></font>
-                <span class="submenu-arrow">▼</span>
-            </a>
-            <div id="hovmenu6-content" class="submenu-content">
-                <a href="#" class="sublink" data-target="filtering"><span class="submenuimg" style="background-position: -220px 0px"></span> تصفية</a>
-                <a href="#" class="sublink" data-target="smilies"><span class="submenuimg" style="background-position: 0px -132px"></span> الرموز التعبيرية</a>
-                <a href="#" class="sublink" data-target="dateopt"><span class="submenuimg" style="background-position: -176px 0px"></span> خيارات التاريخ</a>
-                <a href="#" class="sublink" data-target="postopt"><span class="submenuimg" style="background-position: -44px -132px"></span> خيارات النشر</a>
-            </div>
+    // 📋 نظام القوائم المنسدلة
+    const dropdowns = [
+        { trigger: document.getElementById('hovmenu4'), content: document.getElementById('hovmenu4-content') },
+        { trigger: document.getElementById('hovmenu5'), content: document.getElementById('hovmenu5-content') },
+        { trigger: document.getElementById('hovmenu6'), content: document.getElementById('hovmenu6-content') },
+        { trigger: document.getElementById('hovmenu7'), content: document.getElementById('hovmenu7-content') }
+    ];
 
-            <!-- قائمة المظهر والملمس -->
-            <a href="#" id="hovmenu7" class="submenuitem">
-                <font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">المظهر والملمس</font></font>
-                <span class="submenu-arrow">▼</span>
-            </a>
-            <div id="hovmenu7-content" class="submenu-content">
-                <a href="#" class="sublink" data-target="style"><span class="submenuimg" style="background-position: -0px 0px"></span> محرر السمات</a>
-                <a href="#" class="sublink" data-target="layout"><span class="submenuimg" style="background-position: -154px 0px"></span> خيارات التخطيط</a>
-            </div>
-        </div>
-    </div>
+    function closeAllDropdowns() { dropdowns.forEach(d => { if(d.content) d.content.classList.remove('show'); const a=d.trigger?.querySelector('.submenu-arrow'); if(a) a.style.transform='rotate(0deg)'; }); }
 
-    <div id="wideimg" style="position:relative; width:100%; left:0"></div>
+    dropdowns.forEach(({ trigger, content }) => {
+        if (!trigger || !content) return;
+        trigger.addEventListener('click', function(e) {
+            e.preventDefault(); e.stopPropagation();
+            const isOpen = content.classList.toggle('show');
+            const arrow = this.querySelector('.submenu-arrow');
+            if(arrow) arrow.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+            dropdowns.forEach(d => { if (d.content !== content && d.content) { d.content.classList.remove('show'); const oa=d.trigger.querySelector('.submenu-arrow'); if(oa) oa.style.transform='rotate(0deg)'; } });
+        });
+        content.querySelectorAll('.sublink').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault(); content.classList.remove('show'); const arrow=trigger.querySelector('.submenu-arrow'); if(arrow) arrow.style.transform='rotate(0deg)';
+                content.querySelectorAll('.sublink').forEach(l => l.classList.remove('active')); this.classList.add('active');
+                const target = this.getAttribute('data-target'); showSection('subpage'); subpageView.innerHTML = allSubPages[target] || '<p>صفحة غير متوفرة</p>'; if(errorBar) errorBar.textContent = this.textContent.trim();
+            });
+        });
+    });
 
-    <div id="main" class="wrap">
-        <div id="content">
-            <!-- قسم تسجيل الدخول -->
-            <div id="login-section">
-                <h1>لوحة التحكم</h1>
-                <div class="notice" id="main-notice">يرجى تسجيل الدخول أدناه للوصول إلى هذه الصفحة.</div>
-                <form id="auth-form" action="#" onsubmit="return false;">
-                    <fieldset>
-                        <legend id="form-title">تسجيل الدخول</legend>
-                        <label>البريد الإلكتروني:</label>
-                        <input type="email" id="email-input" class="txtbox" required placeholder="admin@cbox.com">
-                        <label>كلمة المرور (6 أحرف على الأقل):</label>
-                        <input type="password" id="pass-input" class="txtbox" minlength="6" required>
-                        <button type="button" id="auth-btn">تسجيل الدخول</button>
-                    </fieldset>
-                </form>
-                <p id="toggle-text">ليس لديك حساب؟ <a href="#" id="toggle-auth">إنشاء حساب جديد</a></p>
-                <p><a href="#" id="reset-link">نسيت كلمة المرور؟</a> | <a href="/help?id=12">تفعيل ملفات تعريف الارتباط</a></p>
-            </div>
+    document.addEventListener('click', function(e) {
+        dropdowns.forEach(({ trigger, content }) => { if (content?.classList.contains('show') && !trigger.contains(e.target) && !content.contains(e.target)) { content.classList.remove('show'); const a=trigger.querySelector('.submenu-arrow'); if(a) a.style.transform='rotate(0deg)'; } });
+        if (e.target.classList.contains('back-link')) { e.preventDefault(); showSection(e.target.getAttribute('data-return')||'dashboard'); closeAllDropdowns(); if(errorBar) errorBar.textContent='متصل بـ Firebase ✅'; }
+    });
 
-            <!-- لوحة التحكم الرئيسية -->
-            <div id="dashboard-section" style="display:none;">
-                <h1>👋 مرحباً، <span id="user-name-display">مستخدم</span>!</h1>
-                <div class="notice" style="background:#d1fae5; border-color:#6ee7b7; color:#065f46;">✅ تم تسجيل الدخول بنجاح عبر Firebase</div>
-                <div class="dashboard-grid">
-                    <div class="card"><h3>📊 الإحصائيات</h3><p>جلسات مسجلة: <strong id="session-count">0</strong></p></div>
-                    <div class="card"><h3>⚙️ الحالة</h3><p>الحساب: <span style="color:#16a34a">نشط</span></p><p>آخر دخول: <span id="last-login">--</span></p></div>
-                    <div class="card"><h3>📩 سجل الدخول</h3><ul id="login-history" style="text-align:right; padding-right:20px; margin-top:5px;"></ul></div>
-                </div>
-                <div class="dashboard-grid" style="margin-top:15px;">
-                    <div class="card"><h3>📈 رسائل اليوم</h3><p id="today-msg-count" style="font-size:24px; font-weight:bold; color:var(--btn-bg);">0</p></div>
-                    <div class="card"><h3>👥 مستخدمون نشطون (7 أيام)</h3><p id="active-users-count" style="font-size:24px; font-weight:bold; color:#16a34a;">0</p></div>
-                    <div class="card" style="display:flex; align-items:center; justify-content:center;"><button id="export-btn" class="export-btn">📥 تصدير الدردشة (CSV)</button></div>
-                </div>
-                <div class="card" style="margin-top: 20px;">
-                    <h3>💬 الدردشة المباشرة</h3>
-                    <div id="chat-container" class="chat-box">
-                        <div id="messages-list" class="messages-list"><p class="loading-msg">جاري تحميل الرسائل...</p></div>
-                    </div>
-                    <form id="chat-form" class="chat-input-area" onsubmit="return false;">
-                        <input type="text" id="chat-input" class="txtbox" placeholder="اكتب رسالتك هنا..." maxlength="500" disabled>
-                        <button type="button" id="chat-send-btn" class="btn-primary" disabled>إرسال</button>
-                    </form>
-                </div>
-                <button id="logout-btn" class="btn-primary" style="margin-top:20px; background:#dc2626;">تسجيل الخروج</button>
-            </div>
+    // 🆕 دوال صفحة "انشر"
+    var curCode = "default";
+    function switchcode() {
+        var v = document.getElementById("variation-select")?.value || "default";
+        document.querySelectorAll('[id^="cboxcode_"]').forEach(ta => ta.style.display = "none");
+        var target = document.getElementById("cboxcode_" + (v === "default" ? "default" : v));
+        if(target) target.style.display = ""; curCode = v;
+    }
+    function copytext() {
+        var $ta = document.getElementById("cboxcode_" + curCode); if(!$ta) return;
+        $ta.focus(); $ta.select();
+        try { if (!document.execCommand("copy")) { navigator.clipboard.writeText($ta.value); }
+            var $btnCopy = document.getElementById("btnCopy"); var orig = $btnCopy.textContent;
+            $btnCopy.textContent = "✅ تم النسخ!"; setTimeout(() => { $btnCopy.textContent = orig; }, 2000);
+        } catch (e) { alert("اضغط على الكود ثم اضغط Ctrl+C للنسخ يدوياً."); }
+    }
+    function gentag() {
+        var x = document.getElementById("hashtag"); if(!x) return;
+        var t = Math.round(Math.random()*1838265624).toString(35);
+        t = t.replace('u','z').replace('i','5').replace('o','w'); x.value = t.substring(0,6);
+    }
+    var curInstructions = "generic";
+    function updateinst() {
+        var a = document.getElementById("sitetype-select")?.value || "generic";
+        document.querySelectorAll('[id^="ii_"]').forEach(div => div.style.display = "none");
+        var target = document.getElementById("ii_" + a + "_v10") || document.getElementById("ii_generic_v10");
+        if(target) target.style.display = ""; curInstructions = a;
+    }
 
-            <!-- 🆕 صفحة "انشر" الجديدة -->
-            <div id="publish-section" style="display:none;">
-                <h1><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">انشر صندوق بريدك الإلكتروني</font></font></h1>
-                <p><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">إذا كنت تدير موقعك الخاص، يمكنك تضمين Cbox مباشرة في صفحات موقعك.</font></font></p>
-
-                <iframe src="javascript:false" name="t_fsnippet" width="1" height="1" class="frmiframe" style="display:none;"></iframe>
-                <form name="fsnippet" target="t_fsnippet" method="post" action="#" onsubmit="return false;">
-                    <fieldset class="Med WithSuffix">
-                        <legend><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">خيارات التضمين</font></font></legend>
-                        <label><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">رابط موقعك الإلكتروني:</font></font></label>
-                        <input type="text" name="site" size="35" maxlength="100" class="txtbox" value="https://example.com">
-                        
-                        <label for="privchk"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">تفعيل القائمة البيضاء للمواقع:</font></font></label>
-                        <div class="slideThree"><input type="checkbox" name="private" value="1" id="privchk"><label></label></div>
-                        <textarea id="moreaddr" name="whitelist" cols="20" rows="6" class="txtbox" placeholder="أدخل عناوين URL للقائمة البيضاء، عنوان واحد في كل سطر." style="display: none;"></textarea>
-
-                        <label for="codessl"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">استخدم بروتوكول HTTP الآمن (TLS/SSL):</font></font></label>
-                        <div class="slideThree"><input type="checkbox" name="codessl" value="1" id="codessl" checked><label></label></div>
-                        
-                        <label><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">علامة الأمان:</font></font></label>
-                        <input type="text" name="hashtag" id="hashtag" size="10" maxlength="6" class="txtbox" value="52gxr7">
-                        <a href="javascript:void(0);" onclick="gentag()"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">&nbsp;[إنشاء جديد]</font></font></a>
-                        
-                        <button type="button" class="btn-primary" onclick="alert('✅ تم حفظ الإعدادات')">يحفظ</button>
-                    </fieldset>
-                </form>
-
-                <form name="fsnippet2" action="#" method="post" onsubmit="return false;">
-                    <fieldset>
-                        <legend><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">احصل على رمز التضمين الخاص بك</font></font></legend>
-                        <label><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">تنويع الكود:</font></font></label>
-                        <select name="variation" class="txtbox" id="variation-select" onchange="switchcode()">
-                            <optgroup label="Standard codes">
-                                <option value="default">قياسي مضمن</option>
-                                <option value="pop">رابط منبثق</option>
-                                <option value="bar">زر ثابت</option>
-                                <option value="defer">التحميل المؤجل</option>
-                            </optgroup>
-                            <optgroup label="Platform-specific codes">
-                                <option value="myleague">موقع MyLeague</option>
-                            </optgroup>
-                        </select>
-
-                        <textarea cols="70" rows="8" spellcheck="false" class="txtarea" id="cboxcode_v10_inline" style="display: none; width: 100%">&lt;iframe src="https://www4.cbox.ws/box/?boxid=4257987&amp;boxtag=52gxr7" width="400" height="400" allowtransparency="yes" allow="autoplay" frameborder="0" marginheight="0" marginwidth="0" scrolling="auto"&gt;&lt;/iframe&gt;</textarea>
-                        
-                        <textarea cols="70" rows="8" spellcheck="false" class="txtarea" id="cboxcode_v10_button" style="display: none; width: 100%">&lt;script&gt;
-window['CboxReady'] = function (Cbox) { Cbox('button', '4-4257987-52gxr7'); }
-&lt;/script&gt;
-&lt;script src="https://static.cbox.ws/embed/2.js" async&gt;&lt;/script&gt;</textarea>
-                        
-                        <textarea cols="70" rows="16" spellcheck="false" class="txtarea" id="cboxcode_default" style="width: 100%;">&lt;!-- BEGIN CBOX - www.cbox.ws - v4.3 --&gt;
-&lt;div id="cboxdiv" style="position: relative; margin: 0 auto; width: 400px; font-size: 0; line-height: 0;"&gt;
-&lt;div style="position: relative; height: 293px; overflow: auto; overflow-y: auto; -webkit-overflow-scrolling: touch; border: 0px solid;"&gt;&lt;iframe src="https://www4.cbox.ws/box/?boxid=4257987&amp;boxtag=52gxr7&amp;sec=main" marginheight="0" marginwidth="0" frameborder="0" width="100%" height="100%" scrolling="auto" allowtransparency="yes" name="cboxmain4-4257987" id="cboxmain4-4257987"&gt;&lt;/iframe&gt;&lt;/div&gt;
-&lt;div style="position: relative; height: 107px; overflow: hidden; border: 0px solid; border-top: 0px;"&gt;&lt;iframe src="https://www4.cbox.ws/box/?boxid=4257987&amp;boxtag=52gxr7&amp;sec=form" allow="autoplay" marginheight="0" marginwidth="0" frameborder="0" width="100%" height="100%" scrolling="no" allowtransparency="yes" name="cboxform4-4257987" id="cboxform4-4257987"&gt;&lt;/iframe&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;!-- END CBOX --&gt;</textarea>
-
-                        <textarea cols="70" rows="16" spellcheck="false" class="txtarea" id="cboxcode_defer" style="display: none; width: 100%">&lt;div id="cboxwrap"&gt;&lt;/div&gt;
-&lt;script&gt;(function(){var showByDefault=true;var cboxContainer=document.getElementById("cboxwrap");var cboxHTML='&lt;iframe src="https://www4.cbox.ws/box/?boxid=4257987&amp;boxtag=52gxr7" width="400" height="400"&gt;&lt;/iframe&gt;';cboxContainer.innerHTML=cboxHTML;})();&lt;/script&gt;</textarea>
-
-                        <textarea cols="70" rows="16" spellcheck="false" class="txtarea" id="cboxcode_pop" style="display: none; width: 100%">&lt;script&gt;function popcbox(){var w=window.open("https://www4.cbox.ws/box/?boxid=4257987&amp;boxtag=52gxr7","Cbox","width=400,height=400");}&lt;/script&gt;
-&lt;a href="JavaScript:popcbox();"&gt;Pop up my Cbox&lt;/a&gt;</textarea>
-
-                        <textarea cols="70" rows="16" spellcheck="false" class="txtarea" id="cboxcode_bar" style="display: none; width: 100%">&lt;div id="cboxbutton" style="position:fixed;bottom:8px;right:16px;padding:3px 20px;background:#EDF3F7;border:#C3D7E5 1px solid;border-radius:3px;cursor:pointer"&gt;Open Cbox&lt;/div&gt;
-&lt;div id="cboxwrap" style="position:fixed;bottom:48px;right:16px;display:none"&gt;&lt;iframe src="https://www4.cbox.ws/box/?boxid=4257987&amp;boxtag=52gxr7" width="400" height="400"&gt;&lt;/iframe&gt;&lt;/div&gt;
-&lt;script&gt;document.getElementById('cboxbutton').onclick=function(){var w=document.getElementById('cboxwrap');w.style.display=w.style.display==='none'?'block':'none';};&lt;/script&gt;</textarea>
-
-                        <textarea cols="70" rows="16" spellcheck="false" class="txtarea" id="cboxcode_myleague" style="display: none; width: 100%">&lt;!-- BEGIN CBOX - MyLeague --&gt;
-&lt;iframe src="https://www4.cbox.ws/box/?boxid=4257987&amp;boxtag=52gxr7&amp;sec=main&amp;nme=[cbox_name]" width="400" height="400"&gt;&lt;/iframe&gt;
-&lt;!-- END CBOX --&gt;</textarea>
-
-                        <div style="float:right; margin-top:10px;">
-                            <button type="button" class="btn-primary" id="btnCopy" onclick="copytext()">انسخ إلى الحافظة</button>
-                        </div>
-                    </fieldset>
-                </form>
-
-                <div style="float: right; margin-top:15px;">
-                    <font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">تعليمات لـ: </font></font>
-                    <select name="sitetype" class="txtbox" id="sitetype-select" onchange="updateinst()">
-                        <option value="generic">أي موقع</option>
-                        <option value="forum">المنتديات</option>
-                        <option value="blogger" selected>بلوجر / بلوجر سبوت</option>
-                        <option value="joomla">جوملا</option>
-                        <option value="myleague">MyLeague.com</option>
-                        <option value="phpbb3">phpBB 3.x</option>
-                        <option value="smf">منتدى الآلات البسيطة (SMF)</option>
-                        <option value="webs">Webs.com</option>
-                    </select>
-                </div>
-
-                <h2 style="clear:both; margin-top:30px;"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">تعليمات التضمين</font></font></h2>
-
-                <div id="ii_generic_v10">
-                    <ol>
-                        <li>انسخ الكود الخاص بك إلى الحافظة بالنقر على الزر أعلاه.</li>
-                        <li>افتح محرر الصفحات أو القوالب لموقعك.</li>
-                        <li>قم بالتبديل إلى وضع التحرير HTML أو وضع التحرير الخام.</li>
-                        <li>ألصق الكود الخاص بك في المحرر.</li>
-                        <li>احفظ التغييرات وانشرها.</li>
-                    </ol>
-                    <h3>هل تواجه مشاكل في التثبيت؟</h3>
-                    <p>إذا رأيت رمزًا على صفحتك بدلاً من Cbox الخاص بك، فقد يقوم محرر النصوص الخاص بك بإزالة أو تنظيف HTML الخاص بـ Cbox.</p>
-                    <p>إذا كانت منصتك تدعم التطبيقات أو الأدوات المصغّرة، ابحث عن تطبيق يدعم "iframe" أو "embed".</p>
-                    <p>رابطك المباشر: <a href="https://my.cbox.ws/MSASDWEC2015HKARNO" target="_blank">https://my.cbox.ws/MSASDWEC2015HKARNO</a></p>
-                </div>
-
-                <div id="ii_blogger_v10" style="display:none;">
-                    <ol>
-                        <li>افتح محرر Blogger الخاص بك.</li>
-                        <li>اختر "التخطيط" من القائمة.</li>
-                        <li>في المنطقة التي تريد عرض صندوق Cbox الخاص بك فيها، انقر فوق "إضافة أداة".</li>
-                        <li>اختر "HTML/JavaScript" من فئة الأساسيات.</li>
-                        <li>في قسم "المحتوى"، الصق رمز تضمين Cbox الخاص بك.</li>
-                        <li>احفظ التغييرات.</li>
-                    </ol>
-                </div>
-
-                <div id="ii_forum_v10" style="display:none;">
-                    <ol>
-                        <li>انسخ الكود إلى الحافظة.</li>
-                        <li>إذا كنت تستخدم منتدى مستضاف، سجّل الدخول في لوحة التحكم.</li>
-                        <li>ابحث عن محرر "footer" والصق الكود هناك.</li>
-                        <li>إذا كنت تستضيف المنتدى بنفسك، يمكنك إدراج الكود في ملفات القالب مباشرة.</li>
-                    </ol>
-                </div>
-
-                <div id="ii_joomla_v10" style="display:none;">
-                    <ol>
-                        <li>انسخ الكود إلى الحافظة.</li>
-                        <li>في لوحة تحكم جوملا، اذهب إلى <b>Extensions</b> → <b>Install/Uninstall</b>.</li>
-                        <li>استخدم أداة <b>Upload Package File</b> لرفع وحدة Cbox.</li>
-                        <li>اذهب إلى <b>Extensions → Module Manager</b> وانقر على <b>Cbox</b>.</li>
-                        <li>اضبط <b>Enabled</b> على <code>Yes</code>، والصق الكود في المربع.</li>
-                        <li>انقر <b>Save</b>.</li>
-                    </ol>
-                </div>
-
-                <div id="ii_phpbb3_v10" style="display:none;">
-                    <ol>
-                        <li>انسخ الكود إلى الحافظة.</li>
-                        <li>اذهب إلى لوحة تحكم phpBB.</li>
-                        <li>انقر تبويب <b>Styles</b> → <b>Templates</b> → <b>Edit</b>.</li>
-                        <li>اختر ملف <b>overall_footer.html</b> أو <b>overall_header.html</b>.</li>
-                        <li>الصق كود Cbox HTML في المكان المطلوب.</li>
-                        <li><b>مهم:</b> احذف وسوم &lt;!-- BEGIN CBOX --&gt; و &lt;!-- END CBOX --&gt; من الكود.</li>
-                        <li>احفظ وحدث المنتدى للتأكيد.</li>
-                    </ol>
-                </div>
-
-                <div id="ii_myleague_v10" style="display:none;">
-                    <ol>
-                        <li>انسخ الكود إلى الحافظة.</li>
-                        <li>اذهب إلى إدارة MyLeague وسجّل الدخول.</li>
-                        <li>تحت League Settings → Look & Feel → Edit Modules، اختر "Front Page Top".</li>
-                        <li>فعّل عرض مصدر HTML بالنقر على زر "&lt;&gt;".</li>
-                        <li>الصق الكود في أسفل القسم.</li>
-                        <li>أوقف عرض مصدر HTML وانقر زر الحفظ.</li>
-                    </ol>
-                </div>
-            </div>
-
-            <!-- قسم الإعدادات -->
-            <div id="settings-section" style="display:none;">
-                <h1>⚙️ الإعدادات</h1>
-                <div class="notice">إعدادات الحساب متصلة بـ Firebase وتحفظ تلقائياً.</div>
-                <form id="settings-form" action="#" onsubmit="return false;">
-                    <fieldset>
-                        <legend>الملف الشخصي</legend>
-                        <label>الاسم المعروض:</label>
-                        <input type="text" id="settings-name" class="txtbox" placeholder="أدخل اسمك الجديد">
-                        <button type="button" id="save-settings-btn" class="btn-primary">حفظ التغييرات</button>
-                    </fieldset>
-                </form>
-                <p><a href="#" id="back-to-dashboard">← العودة للوحة التحكم</a></p>
-            </div>
-
-            <!-- حاوية الصفحات الفرعية -->
-            <div id="subpage-view" style="display:none;"></div>
-        </div>
-        <div style="clear:both"></div>
-    </div>
-</div>
-
-<div id="siteErrorBar"><div class="wrap" id="siteErrorBarCont">جاهز...</div></div>
-<div id="footer">
-    <a href="/">عن</a><a href="/products">الخطط والأسعار</a><a href="/terms">الشروط</a><a href="/privacy">الخصوصية</a><a href="/contact">اتصل بنا</a>
-    <div class="verybottom">© 2024 صندوق التحكم</div>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="script.js"></script>
-<script>
-window.addEventListener('load', function() {
-    setTimeout(function() {
-        const loader = document.getElementById('loading-screen');
-        if(loader) { loader.style.opacity = '0'; setTimeout(function(){ loader.style.display='none'; }, 300); }
-    }, 500);
+    // تهيئة عند التحميل
+    if(document.getElementById("variation-select")) switchcode();
+    if(document.getElementById("sitetype-select")) updateinst();
 });
-</script>
-</body>
-</html>
