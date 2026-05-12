@@ -52,22 +52,20 @@
         </div>
     </div>
 
-    <!-- 📋 شريط القوائم المنسدلة الجديد -->
+    <!-- 📋 القائمة المنسدلة المطلوبة بالضبط -->
     <div id="bar3">
         <div class="wrap">
-            <div class="dropdown-container">
-                <button id="dropdown-trigger" class="dropdown-btn">
-                    <span class="submenuimg" style="background-position: -198px 0px"></span>
-                    <span>رسائل</span>
-                    <span class="dropdown-arrow">▼</span>
-                </button>
-                <div id="dropdown-menu" class="dropdown-content">
-                    <a href="#" class="sublink" data-target="posts"><span class="submenuimg" style="background-position: -198px 0px"></span> رسائل</a>
-                    <a href="#" class="sublink" data-target="postsarc"><span class="submenuimg" style="background-position: 0px -44px"></span> أرشيف</a>
-                    <a href="#" class="sublink" data-target="sticky"><span class="submenuimg" style="background-position: 0px -22px"></span> رسالة لاصقة</a>
-                    <a href="#" class="sublink" data-target="channels"><span class="submenuimg" style="background-position: -22px -22px"></span> القنوات</a>
-                    <a href="#" class="sublink" data-target="webhook"><span class="submenuimg" style="background-position: 0px -178px"></span> رابط الويب</a>
-                </div>
+            <a href="#" id="hovmenu4" class="submenuitem" onmousedown="return hovmenu(this, 4)">
+                <font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">رسائل</font></font>
+                <span class="submenu-arrow">▼</span>
+            </a>
+            <!-- حاوية القائمة الفرعية -->
+            <div id="hovmenu4-content" class="submenu-content">
+                <a href="#" class="sublink" data-target="posts"><span class="submenuimg" style="background-position: -198px 0px"></span> رسائل</a>
+                <a href="#" class="sublink" data-target="postsarc"><span class="submenuimg" style="background-position: 0px -44px"></span> أرشيف</a>
+                <a href="#" class="sublink" data-target="sticky"><span class="submenuimg" style="background-position: 0px -22px"></span> رسالة لاصقة</a>
+                <a href="#" class="sublink" data-target="channels"><span class="submenuimg" style="background-position: -22px -22px"></span> القنوات</a>
+                <a href="#" class="sublink" data-target="webhook"><span class="submenuimg" style="background-position: 0px -178px"></span> رابط الويب</a>
             </div>
         </div>
     </div>
