@@ -1,249 +1,110 @@
-console.log("🚀 النظام يبدأ...");
+console.log("✅ النظام يبدأ...");
 
-// دالة مساعدة آمنة
-const $ = (id) => {
-    const el = document.getElementById(id);
-    if (!el) console.warn("⚠️ عنصر غير موجود:", id);
-    return el;
-};
-
-// 🧭 التنقل بين الأقسام
-window.show = function(sec) {
-    console.log("🔀 الانتقال إلى:", sec);
-    try {
-        // إخفاء كل الأقسام
-        ['login','dashboard','publish','mailbox','settings','subpage'].forEach(s => {
-            const e = $(s);
-            if (e) e.style.display = 'none';
-        });
-        // إظهار القسم المطلوب
-        const t = $(sec);
-        if (t) {
-            t.style.display = 'block';
-            console.log("✅ عرض:", sec);
-        } else {
-            console.error("❌ القسم غير موجود:", sec);
-        }
-        // إغلاق القوائم
-        closeDrops();
-    } catch(err) {
-        console.error("❌ خطأ في show():", err);
-        alert("حدث خطأ في التنقل. افتح F12 ← Console للتفاصيل");
+// 🧭 التنقل بين الصفحات الرئيسية
+window.showPage = function(id) {
+    console.log("🔀 صفحة:", id);
+    const sections = ['sec-login','sec-dash','sec-pub','sec-mail','sec-set','sec-sub'];
+    sections.forEach(s => {
+        const el = document.getElementById(s);
+        if(el) el.style.display = 'none';
+    });
+    const target = document.getElementById('sec-' + id);
+    if(target) {
+        target.style.display = 'block';
+        console.log("✅ ظهر:", id);
     }
+    hideAll(); // إغلاق القوائم عند التنقل
 };
 
-// 📋 الصفحات الفرعية
-window.sub = function(pg) {
-    console.log("📄 صفحة فرعية:", pg);
-    show('subpage');
-    const c = $('subpage');
-    if (!c) return;
+// 📋 عرض الصفحات الفرعية
+window.showSub = function(pg) {
+    console.log("📄 فرعي:", pg);
+    showPage('sub');
+    const box = document.getElementById('sec-sub');
+    if(!box) return;
     
-    const pages = {
-        'style': '<div><h3>🎨 سمات</h3><p>تخصيص الألوان</p><a onclick="show(\'dashboard\')">← عودة</a></div>',
-        'layout': '<div><h3>📐 تخطيط</h3><p>خيارات العرض</p><a onclick="show(\'dashboard\')">← عودة</a></div>',
-        'filter': '<div><h3>🔍 تصفية</h3><p>كلمات محظورة</p><a onclick="show(\'dashboard\')">← عودة</a></div>',
-        'smilies': '<div><h3>😊 رموز</h3><p>إدارة الابتسامات</p><a onclick="show(\'dashboard\')">← عودة</a></div>',
-        'users': '<div><h3>👥 مسجلون</h3><p>قائمة المستخدمين</p><a onclick="show(\'dashboard\')">← عودة</a></div>',
-        'bans': '<div><h3>🚫 محظورون</h3><p>قائمة الحظر</p><a onclick="show(\'dashboard\')">← عودة</a></div>',
-        'msgs': '<div><h3>📩 رسائل</h3><p>إدارة الرسائل</p><a onclick="show(\'dashboard\')">← عودة</a></div>',
-        'archive': '<div><h3>🗄️ أرشيف</h3><p>الرسائل المؤرشفة</p><a onclick="show(\'dashboard\')">← عودة</a></div>'
+    const content = {
+        'style': '<div class="card"><h3>🎨 سمات</h3><p>تخصيص الألوان</p><a onclick="showPage(\'dashboard\')">← عودة</a></div>',
+        'layout': '<div class="card"><h3>📐 تخطيط</h3><p>خيارات العرض</p><a onclick="showPage(\'dashboard\')">← عودة</a></div>',
+        'filter': '<div class="card"><h3>🔍 تصفية</h3><p>كلمات محظورة</p><a onclick="showPage(\'dashboard\')">← عودة</a></div>',
+        'smilies': '<div class="card"><h3>😊 رموز</h3><p>إدارة الابتسامات</p><a onclick="showPage(\'dashboard\')">← عودة</a></div>',
+        'users': '<div class="card"><h3>👥 مسجلون</h3><p>قائمة المستخدمين</p><a onclick="showPage(\'dashboard\')">← عودة</a></div>',
+        'bans': '<div class="card"><h3>🚫 محظورون</h3><p>قائمة الحظر</p><a onclick="showPage(\'dashboard\')">← عودة</a></div>',
+        'msgs': '<div class="card"><h3>📩 رسائل</h3><p>إدارة الرسائل</p><a onclick="showPage(\'dashboard\')">← عودة</a></div>',
+        'archive': '<div class="card"><h3>🗄️ أرشيف</h3><p>المؤرشف</p><a onclick="showPage(\'dashboard\')">← عودة</a></div>'
     };
-    
-    c.innerHTML = pages[pg] || '<p>غير متاح <a onclick="show(\'dashboard\')">← عودة</a></p>';
+    box.innerHTML = content[pg] || '<p>غير متاح <a onclick="showPage(\'dashboard\')">← عودة</a></p>';
 };
 
 // 🔐 تسجيل الدخول
 window.doLogin = function(e) {
     e.preventDefault();
-    console.log("🔐 محاولة الدخول...");
-    try {
-        const em = $('em')?.value.trim();
-        const pw = $('pw')?.value.trim();
-        
-        if (!em || !pw) {
-            alert("⚠️ املأ جميع الحقول");
-            return false;
-        }
-        if (!em.includes('@')) {
-            alert("⚠️ أدخل بريد إلكتروني صحيح");
-            return false;
-        }
-        
-        // محاكاة الدخول الناجح
-        const name = em.split('@')[0];
-        if ($('name')) $('name').textContent = name;
-        if ($('userDisplay')) $('userDisplay').textContent = em;
-        
-        show('dashboard');
-        alert("✅ مرحباً، " + name + "!");
-        console.log("✅ تم الدخول:", em);
-        return false;
-    } catch(err) {
-        console.error("❌ خطأ في doLogin():", err);
-        alert("حدث خطأ في تسجيل الدخول");
-        return false;
-    }
+    const em = document.getElementById('inp-em')?.value.trim();
+    const pw = document.getElementById('inp-pw')?.value.trim();
+    if(!em || !pw || !em.includes('@')) return alert("⚠️ بيانات خاطئة");
+    
+    const name = em.split('@')[0];
+    document.getElementById('lbl-name').textContent = name;
+    document.getElementById('userDisplay').textContent = em;
+    showPage('dash');
+    alert("✅ مرحباً، " + name + "!");
+    return false;
 };
 
-// 🚪 تسجيل الخروج
-window.logout = function() {
-    console.log("🚪 تسجيل الخروج");
-    if ($('userDisplay')) $('userDisplay').textContent = 'ضيف';
-    show('login');
+window.doLogout = function() {
+    document.getElementById('userDisplay').textContent = 'ضيف';
+    showPage('login');
     alert("✅ تم الخروج");
 };
 
-// 💬 إرسال رسالة في الدردشة الكلاسيكية
-window.sendChat = function() {
-    console.log("💬 إرسال رسالة...");
-    try {
-        const msg = $('cMsg')?.value.trim();
-        if (!msg) {
-            alert("⚠️ اكتب رسالة أولاً");
-            return;
-        }
-        
-        // محاكاة الإرسال
-        const btn = $('cMsg')?.closest('td')?.querySelector('button');
-        if (btn) {
-            btn.disabled = true;
-            btn.textContent = 'جاري...';
-        }
-        
-        setTimeout(() => {
-            alert("✅ تم إرسال: " + msg);
-            if ($('cMsg')) $('cMsg').value = '';
-            if (btn) {
-                btn.disabled = false;
-                btn.textContent = 'إرسال';
-            }
-            // تحديث الحالة
-            if ($('status')) {
-                $('status').textContent = '💬 مرسلة';
-                setTimeout(() => { if ($('status')) $('status').textContent = '🟢 متصل'; }, 1500);
-            }
-        }, 300);
-    } catch(err) {
-        console.error("❌ خطأ في sendChat():", err);
-        alert("فشل إرسال الرسالة");
+// 📋 إدارة القوائم المنسدلة (مضمونة 100%)
+window.toggleDrop = function(id) {
+    console.log("🔽 تبديل:", id);
+    hideAll(); // أغلق الكل أولاً
+    const menu = document.getElementById(id);
+    if(menu) {
+        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+        console.log("  → " + (menu.style.display === 'block' ? 'فتح' : 'إغلاق'));
     }
 };
 
-// 🔄 تحديث الدردشة
-window.refreshChat = function() {
-    console.log("🔄 تحديث الدردشة...");
-    try {
-        const main = $('chatMain');
-        const form = $('chatForm');
-        
-        if (main) {
-            const src = main.src;
-            main.src = src; // إعادة التحميل
-        }
-        if (form) {
-            const src = form.src;
-            form.src = src;
-        }
-        
-        if ($('status')) {
-            $('status').textContent = '🔄 جاري...';
-            setTimeout(() => { if ($('status')) $('status').textContent = '🟢 متصل'; }, 1000);
-        }
-        alert("✅ تم تحديث الدردشة");
-    } catch(err) {
-        console.error("❌ خطأ في refreshChat():", err);
-    }
-};
-
-// 😊 الرموز التعبيرية
-window.toggleSmilies = function() {
-    console.log("😊 تبديل الرموز");
-    const p = $('smilies');
-    if (p) {
-        p.style.display = (p.style.display === 'none' || !p.style.display) ? 'block' : 'none';
-    }
-};
-window.addSmiley = function(em) {
-    console.log("😊 إضافة رمز:", em);
-    const f = $('cMsg');
-    if (f) {
-        f.value += ' ' + em + ' ';
-        f.focus();
-    }
-};
-
-// ❓ مساعدة + 👤 ملفي
-window.showHelp = function() {
-    alert("❓ مساعدة الدردشة:\n• اكتب اسمك ورسالتك ثم اضغط إرسال\n• استخدم زر الرموز لإضافة ابتسامات\n• زر التحديث ينشّط الدردشة");
-};
-window.showProfile = function() {
-    const n = $('cName')?.value.trim() || 'ضيف';
-    alert("👤 ملفك:\nالاسم: " + n + "\nالحالة: متصل 🟢");
-};
-
-// 🧪 اختبار النظام
-window.test = function() {
-    console.log("🧪 اختبار النظام");
-    const now = new Date().toLocaleTimeString('ar-EG');
-    if ($('out')) {
-        $('out').innerHTML = "✅ يعمل!<br>⏰ " + now + "<br>👤 " + ($('userDisplay')?.textContent || 'غير معروف');
-    }
-    alert("✅ الجافاسكربت يعمل!\nالوقت: " + now);
-};
-
-// 📋 إدارة القوائم المنسدلة (نسخة مضمونة 100%)
-window.toggleMenu = function(id) {
-    console.log("🔽 تبديل القائمة:", id);
-    // إغلاق جميع القوائم الأخرى
-    ['m1','m2','m3','m4'].forEach(mid => {
-        const el = document.getElementById(mid);
-        if (el && mid !== id) el.style.display = 'none';
-    });
-    // فتح/إغلاق القائمة المطلوبة
-    const target = document.getElementById(id);
-    if (target) {
-        target.style.display = (target.style.display === 'block') ? 'none' : 'block';
-    }
-};
-
-// إغلاق القوائم تلقائياً عند النقر خارجها
-document.addEventListener('click', function(e) {
-    if (!e.target.closest('.drop') && !e.target.closest('.drop-c')) {
-        ['m1','m2','m3','m4'].forEach(mid => {
-            const el = document.getElementById(mid);
-            if (el) el.style.display = 'none';
-        });
-    }
-});
-function closeDrops() {
+window.hideAll = function() {
     ['m1','m2','m3','m4'].forEach(id => {
-        const m = $(id);
-        if (m) m.classList.remove('show');
+        const el = document.getElementById(id);
+        if(el) el.style.display = 'none';
     });
-}
+};
 
-// بدء النظام
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("✅ DOM جاهز - النظام يبدأ");
-    
-    // إغلاق القوائم عند النقر خارجها
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.drop') && !e.target.closest('.drop-c')) {
-            closeDrops();
-        }
-    });
-    
-    // إرسال الرسالة عند ضغط Enter
-    const msgInput = $('cMsg');
-    if (msgInput) {
-        msgInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendChat();
-            }
-        });
+// إغلاق القوائم عند النقر خارجها
+document.addEventListener('click', function(e) {
+    if(!e.target.closest('.drop-btn') && !e.target.closest('.drop-menu')) {
+        hideAll();
     }
-    
-    console.log("✅ النظام جاهز تماماً!");
 });
+
+// 💬 وظائف الدردشة
+window.sendChat = function() {
+    const msg = document.getElementById('cMsg')?.value.trim();
+    if(!msg) return alert("⚠️ اكتب رسالة");
+    alert("✅ تم: " + msg);
+    document.getElementById('cMsg').value = '';
+};
+window.refreshChat = function() {
+    document.getElementById('chatStatus').textContent = '🔄 جاري...';
+    setTimeout(() => document.getElementById('chatStatus').textContent = '🟢 متصل', 800);
+};
+window.toggleSmilies = function() {
+    const box = document.getElementById('smiliesBox');
+    box.style.display = (box.style.display === 'none' || !box.style.display) ? 'block' : 'none';
+};
+window.insertSmiley = function(emo) {
+    const inp = document.getElementById('cMsg');
+    if(inp) { inp.value += ' ' + emo + ' '; inp.focus(); }
+};
+window.testSys = function() {
+    const t = new Date().toLocaleTimeString('ar-EG');
+    document.getElementById('testOut').innerHTML = `✅ يعمل!<br>⏰ ${t}`;
+    alert("✅ النظام يعمل!\n" + t);
+};
+
+console.log("✅ النظام جاهز تماماً!");
