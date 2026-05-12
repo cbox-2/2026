@@ -1,4 +1,4 @@
-console.log("🚀 النظام المتكامل يبدأ...");
+console.log("🚀 النظام المتكامل يبدأ مع رابط: https://cbox-2.github.io/2026/?#");
 
 // 🔑 إعدادات Firebase
 const firebaseConfig = {
@@ -11,15 +11,55 @@ const firebaseConfig = {
     measurementId: "G-0BP0P4KWL8"
 };
 
+// 🌐 الثوابت - رابطك الأساسي
+const BASE_URL = 'https://cbox-2.github.io/2026/?#';
+const CHAT_URL = BASE_URL + 'chat';
+const PUBLISH_URL = BASE_URL + 'publish';
+
 try {
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // 🌐 المتغيرات العامة
     let currentUser = null, userRole = 'user', isBanned = false, unsubChat = null;
     let notifAllowed = false;
     const $ = id => document.getElementById(id);
+
+    // 🧭 نظام التوجيه بالهاش (مثل my.cbox.ws)
+    function handleHashRoute() {
+        const hash = window.location.hash.replace('?#', '').replace('#', '') || 'login';
+        console.log("🔀 توجيه إلى:", hash);
+        
+        // إخفاء كل الأقسام
+        document.querySelectorAll('main section').forEach(sec => sec.style.display = 'none');
+        
+        // إظهار القسم المطلوب
+        const target = document.getElementById('sec-' + hash);
+        if (target) {
+            target.style.display = 'block';
+            if (hash === 'dash') {
+                if (currentUser) { initChat(); loadStats(); }
+            } else if (hash === 'publish') {
+                if (document.getElementById('codeVar')) updateCode();
+            } else if (hash === 'stats') {
+                loadStats();
+            }
+        } else {
+            // إذا لم يوجد القسم، عد للرئيسية
+            window.location.hash = '#dashboard';
+        }
+        
+        hideAll(); // إغلاق القوائم
+    }
+
+    // الاستماع لتغيير الهاش
+    window.addEventListener('hashchange', handleHashRoute);
+    window.addEventListener('load', handleHashRoute);
+
+    // دالة التنقل العامة
+    window.go = function(sec) {
+        window.location.hash = '#' + sec;
+    };
 
     // 🔐 تسجيل الدخول
     window.doLogin = async (e) => {
@@ -34,7 +74,7 @@ try {
             const cred = await auth.signInWithEmailAndPassword(em, pw);
             currentUser = cred.user;
             await checkRoleAndBan();
-            go('dash');
+            window.location.hash = '#dashboard';
             alert("✅ مرحباً، " + em.split('@')[0] + "!");
         } catch (err) {
             alert("❌ " + (err.code === 'auth/invalid-credential' ? 'بيانات خاطئة' : err.message));
@@ -48,15 +88,13 @@ try {
         if (!currentUser) return;
         const email = currentUser.email;
         
-        // 1. فحص الحظر
         const banSnap = await db.collection('banned').doc(email).get();
         if (banSnap.exists) {
             isBanned = true;
             alert("🚫 حسابك محظور من الدخول. تواصل مع الإدارة.");
-            auth.signOut(); currentUser = null; go('login'); return;
+            auth.signOut(); currentUser = null; window.location.hash = '#login'; return;
         }
 
-        // 2. تحديد الصلاحيات وإنشاء الحساب إذا جديد
         const userRef = db.collection('users').doc(currentUser.uid);
         const userSnap = await userRef.get();
         
@@ -72,7 +110,6 @@ try {
             userRole = userSnap.data().role || 'user';
         }
 
-        // تحديث الواجهة
         $('name').textContent = currentUser.displayName || email.split('@')[0];
         $('userDisplay').textContent = email;
         $('role-badge').textContent = userRole === 'admin' ? 'أدمن 👑' : 'مستخدم 👤';
@@ -80,24 +117,19 @@ try {
         $('cName').value = $('name').textContent;
         $('cEmail').value = email;
         $('sendBtn').disabled = false;
-
-        initChat();
-        loadStats();
-        requestNotifPermission();
     }
 
-    // 🚪 تسجيل الخروج
     window.logout = () => {
         if(unsubChat) unsubChat();
         auth.signOut();
         currentUser = null; userRole = 'user'; isBanned = false;
         $('chatMain').innerHTML = '<p style="text-align:center;color:#888;padding:40px">مرحباً! ابدأ المحادثة...</p>';
         $('userDisplay').textContent = 'ضيف';
-        go('login');
+        window.location.hash = '#login';
         alert("✅ تم تسجيل الخروج");
     };
 
-    // 💬 دردشة لحظية (Firebase)
+    // 💬 دردشة لحظية
     function initChat() {
         if (!currentUser || unsubChat) return;
         $('chatMain').innerHTML = '<p style="text-align:center;color:#888;padding:40px">جاري التحميل...</p>';
@@ -111,7 +143,6 @@ try {
                     $('chatMain').innerHTML = '<p style="text-align:center;color:#888;padding:40px">🎉 لا توجد رسائل بعد</p>';
                     return;
                 }
-
                 const msgs = [];
                 snapshot.forEach(doc => msgs.push({ id: doc.id, ...doc.data() }));
                 msgs.reverse().forEach(m => renderMessage(m));
@@ -161,7 +192,7 @@ try {
         try { await db.collection('messages').doc(id).delete(); } catch(err) { alert("❌ فشل الحذف"); }
     };
 
-    // 📊 إحصائيات متقدمة
+    // 📊 إحصائيات
     async function loadStats() {
         if (!currentUser) return;
         try {
@@ -179,7 +210,6 @@ try {
             $('stat-today').textContent = today.toLocaleString('ar-EG');
             $('stat-users').textContent = uniqueUsers.toLocaleString('ar-EG');
 
-            // رسم بياني بسيط (آخر 7 أيام)
             const chart = $('chart'); chart.innerHTML = '';
             const days = ['أحد','إثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
             const counts = Array(7).fill(0);
@@ -222,7 +252,7 @@ try {
         finally { btn.textContent = '📥 تصدير البيانات (Excel/CSV)'; btn.disabled = false; }
     };
 
-    // 🔔 إشعارات ذكية
+    // 🔔 إشعارات
     function requestNotifPermission() {
         if ("Notification" in window && Notification.permission === "default") {
             Notification.requestPermission();
@@ -245,35 +275,20 @@ try {
             o.stop(ctx.currentTime + 0.2);
         } catch(e) {}
     }
-    function showBrowserNotif(text) {
-        if (notifAllowed && document.hidden && Notification.permission === "granted") {
-            new Notification("صندوق التحكم", { body: "رسالة جديدة: " + text.substring(0, 30) + "...", icon: "📦" });
-        }
-    }
 
-    // 🧭 التنقل والقوائم
-    window.go = function(sec) {
-        ['sec-login','sec-dash','sec-pub','sec-mail','sec-set','sec-stats','sec-sub','sec-publish'].forEach(s => {
-            const el = document.getElementById(s); if(el) el.style.display = 'none';
-        });
-        const t = document.getElementById('sec-' + sec); if(t) t.style.display = 'block';
-        hideAll();
-        if(sec === 'stats') loadStats();
-        if(sec === 'publish' && document.getElementById('codeVar')) updateCode();
-    };
-    
+    // 📋 القوائم المنسدلة
     window.pick = function(pg) {
-        go('sub');
+        window.location.hash = '#sub';
         const box = $('sec-sub'); if(!box) return;
         const map = {
-            'style':'<div class="card"><h3>🎨 سمات</h3><p>تخصيص الألوان</p><a onclick="go(\'dash\')">← عودة</a></div>',
-            'layout':'<div class="card"><h3>📐 تخطيط</h3><p>خيارات العرض</p><a onclick="go(\'dash\')">← عودة</a></div>',
-            'filter':'<div class="card"><h3>🔍 تصفية</h3><p>كلمات محظورة</p><a onclick="go(\'dash\')">← عودة</a></div>',
-            'smilies':'<div class="card"><h3>😊 رموز</h3><p>إدارة الابتسامات</p><a onclick="go(\'dash\')">← عودة</a></div>',
-            'users':'<div class="card"><h3>👥 مسجلون</h3><p>قائمة المستخدمين</p><a onclick="go(\'dash\')">← عودة</a></div>',
-            'bans':'<div class="card"><h3>🚫 محظورون</h3><p><button onclick="alert(\'لحظر مستخدم: أضف بريده يدوياً في Firebase Console\')" class="cb">إضافة حظر (أدمن فقط)</button></p><a onclick="go(\'dash\')">← عودة</a></div>',
-            'msgs':'<div class="card"><h3>📩 رسائل</h3><p>إدارة الرسائل</p><a onclick="go(\'dash\')">← عودة</a></div>',
-            'archive':'<div class="card"><h3>🗄️ أرشيف</h3><p>المؤرشف</p><a onclick="go(\'dash\')">← عودة</a></div>'
+            'style':'<div class="card"><h3>🎨 سمات</h3><p>تخصيص الألوان</p><a href="?#" onclick="go(\'dash\');return false">← عودة</a></div>',
+            'layout':'<div class="card"><h3>📐 تخطيط</h3><p>خيارات العرض</p><a href="?#" onclick="go(\'dash\');return false">← عودة</a></div>',
+            'filter':'<div class="card"><h3>🔍 تصفية</h3><p>كلمات محظورة</p><a href="?#" onclick="go(\'dash\');return false">← عودة</a></div>',
+            'smilies':'<div class="card"><h3>😊 رموز</h3><p>إدارة الابتسامات</p><a href="?#" onclick="go(\'dash\');return false">← عودة</a></div>',
+            'users':'<div class="card"><h3>👥 مسجلون</h3><p>قائمة المستخدمين</p><a href="?#" onclick="go(\'dash\');return false">← عودة</a></div>',
+            'bans':'<div class="card"><h3>🚫 محظورون</h3><p><button onclick="alert(\'لحظر مستخدم: أضف بريده يدوياً في Firebase Console\')" class="cb">إضافة حظر (أدمن فقط)</button></p><a href="?#" onclick="go(\'dash\');return false">← عودة</a></div>',
+            'messages':'<div class="card"><h3>📩 رسائل</h3><p>إدارة الرسائل</p><a href="?#" onclick="go(\'dash\');return false">← عودة</a></div>',
+            'archive':'<div class="card"><h3>🗄️ أرشيف</h3><p>المؤرشف</p><a href="?#" onclick="go(\'dash\');return false">← عودة</a></div>'
         };
         box.innerHTML = map[pg] || '<p>غير متاح</p>';
     };
@@ -301,7 +316,7 @@ try {
     window.test = () => { const t = new Date().toLocaleTimeString('ar-EG'); $('out').innerHTML = `✅ يعمل!<br>⏰ ${t}`; alert("✅ النظام يعمل!\n" + t); };
     function escape(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
 
-    // 📤 وظائف صفحة "انشر"
+    // 📤 وظائف صفحة "انشر" - مولدة أكواد تشير لرابطك
     window.generateTag = function() {
         const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
         let tag = '';
@@ -322,31 +337,34 @@ try {
         alert('✅ Embed options saved!');
     };
 
+    // 🎯 توليد أكواد التضمين تشير لرابطك وليس لـ cbox.ws
     window.updateCode = function() {
         const varType = document.getElementById('codeVar')?.value || 'inline';
         const tag = document.getElementById('securityTag')?.value || '52gxr7';
         const ssl = document.getElementById('sslChk')?.checked;
         const proto = ssl ? 'https' : 'http';
-        const boxUrl = `${proto}://www4.cbox.ws/box/?boxid=4257987&boxtag=${tag}`;
+        
+        // ✅ استخدام رابطك بدلاً من cbox.ws
+        const YOUR_CHAT_URL = `${proto}://cbox-2.github.io/2026/?#chat`;
         
         const codes = {
-            'inline': `<!-- BEGIN CBOX - www.cbox.ws - v4.3 -->
+            'inline': `<!-- BEGIN CHAT BOX - ${BASE_URL} -->
 <div id="cboxdiv" style="position:relative;margin:0 auto;width:400px;font-size:0;line-height:0">
-<div style="position:relative;height:293px;overflow:auto;border:0"><iframe src="${boxUrl}&sec=main" marginheight="0" marginwidth="0" frameborder="0" width="100%" height="100%" scrolling="auto" allowtransparency="yes"></iframe></div>
-<div style="position:relative;height:107px;overflow:hidden;border:0;border-top:0"><iframe src="${boxUrl}&sec=form" marginheight="0" marginwidth="0" frameborder="0" width="100%" height="100%" scrolling="no" allowtransparency="yes"></iframe></div>
+<div style="position:relative;height:293px;overflow:auto;border:0"><iframe src="${YOUR_CHAT_URL}&sec=main" marginheight="0" marginwidth="0" frameborder="0" width="100%" height="100%" scrolling="auto" allowtransparency="yes"></iframe></div>
+<div style="position:relative;height:107px;overflow:hidden;border:0;border-top:0"><iframe src="${YOUR_CHAT_URL}&sec=form" marginheight="0" marginwidth="0" frameborder="0" width="100%" height="100%" scrolling="no" allowtransparency="yes"></iframe></div>
 </div>
-<!-- END CBOX -->`,
+<!-- END CHAT BOX -->`,
             'popup': `<script>
-function popcbox(){var w=window.open("${boxUrl}","Cbox","width=400,height=400,toolbar=no,scrollbars=no");}
+function popchat(){var w=window.open("${YOUR_CHAT_URL}","Chat","width=400,height=400,toolbar=no,scrollbars=no");}
 <\/script>
-<a href="JavaScript:popcbox()">Open my Cbox</a>`,
-            'button': `<div id="cboxbtn" style="position:fixed;bottom:10px;right:10px;padding:8px 16px;background:#2563eb;color:#fff;border-radius:6px;cursor:pointer;z-index:9999">💬 Chat</div>
+<a href="JavaScript:popchat()">Open my Chat Box</a>`,
+            'button': `<div id="chatbtn" style="position:fixed;bottom:10px;right:10px;padding:8px 16px;background:#2563eb;color:#fff;border-radius:6px;cursor:pointer;z-index:9999">💬 Chat</div>
 <script>
-document.getElementById('cboxbtn').onclick=function(){window.open("${boxUrl}","Cbox","width=400,height=450");};
+document.getElementById('chatbtn').onclick=function(){window.open("${YOUR_CHAT_URL}","Chat","width=400,height=450");};
 <\/script>`,
-            'defer': `<div id="cboxwrap"></div>
+            'defer': `<div id="chatwrap"></div>
 <script>
-(function(){var c=document.getElementById("cboxwrap");c.innerHTML='<iframe src="${boxUrl}" width="400" height="400" frameborder="0"><\\/iframe>';})();
+(function(){var c=document.getElementById("chatwrap");c.innerHTML='<iframe src="${YOUR_CHAT_URL}" width="400" height="400" frameborder="0"><\\/iframe>';})();
 <\/script>`
         };
         const box = document.getElementById('codeBox');
@@ -394,15 +412,14 @@ document.getElementById('cboxbtn').onclick=function(){window.open("${boxUrl}","C
         if (user) {
             currentUser = user;
             checkRoleAndBan();
-            go('dash');
+            // لا نغير الهاش هنا لأن handleHashRoute سيتولى العرض
         } else {
-            go('login');
+            if(window.location.hash !== '#login') window.location.hash = '#login';
         }
     });
 
     // تهيئة عند التحميل
     document.addEventListener('DOMContentLoaded', function() {
-        // استعادة خيارات التضمين المحفوظة
         try {
             const saved = JSON.parse(localStorage.getItem('cbox-embed-opts'));
             if(saved) {
@@ -417,10 +434,8 @@ document.getElementById('cboxbtn').onclick=function(){window.open("${boxUrl}","C
             }
         } catch(e) {}
         
-        // تحديث كود التضمين الأولي
         if($('codeVar')) updateCode();
         
-        // إظهار/إخفاء حقل القائمة البيضاء
         if($('whitelistChk') && $('whitelistTxt')) {
             $('whitelistChk').onchange = function() { 
                 $('whitelistTxt').style.display = this.checked ? 'block' : 'none'; 
@@ -428,7 +443,7 @@ document.getElementById('cboxbtn').onclick=function(){window.open("${boxUrl}","C
             $('whitelistChk').onchange();
         }
         
-        console.log("✅ النظام المتكامل جاهز تماماً!");
+        console.log("✅ النظام المتكامل جاهز تماماً مع رابط: " + BASE_URL);
     });
 
 } catch (err) {
