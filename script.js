@@ -151,7 +151,7 @@ try {
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
             $('cMsg').value = '';
-            playSound(); // صوت محلي عند الإرسال
+            playSound();
         } catch(err) { alert("❌ فشل الإرسال"); }
         finally { btn.disabled = false; btn.textContent = 'إرسال'; }
     };
@@ -251,15 +251,17 @@ try {
         }
     }
 
-    // 🧭 التنقل والقوائم (نفس النسخة المضمونة)
+    // 🧭 التنقل والقوائم
     window.go = function(sec) {
-        ['sec-login','sec-dash','sec-pub','sec-mail','sec-set','sec-stats','sec-sub'].forEach(s => {
+        ['sec-login','sec-dash','sec-pub','sec-mail','sec-set','sec-stats','sec-sub','sec-publish'].forEach(s => {
             const el = document.getElementById(s); if(el) el.style.display = 'none';
         });
         const t = document.getElementById('sec-' + sec); if(t) t.style.display = 'block';
         hideAll();
         if(sec === 'stats') loadStats();
+        if(sec === 'publish' && document.getElementById('codeVar')) updateCode();
     };
+    
     window.pick = function(pg) {
         go('sub');
         const box = $('sec-sub'); if(!box) return;
@@ -275,16 +277,19 @@ try {
         };
         box.innerHTML = map[pg] || '<p>غير متاح</p>';
     };
+    
     window.openMenu = function(id) {
         hideAll();
         const menu = document.getElementById(id);
         if(menu) menu.style.display = 'block';
     };
+    
     window.hideAll = function() {
         ['m1','m2','m3','m4'].forEach(id => {
             const el = document.getElementById(id); if(el) el.style.display = 'none';
         });
     };
+    
     document.addEventListener('click', function(e) {
         if(!e.target.closest('.menu-wrap')) hideAll();
     });
@@ -295,6 +300,94 @@ try {
     window.ins = (em) => { const i = $('cMsg'); if(i) { i.value += ' '+em+' '; i.focus(); } };
     window.test = () => { const t = new Date().toLocaleTimeString('ar-EG'); $('out').innerHTML = `✅ يعمل!<br>⏰ ${t}`; alert("✅ النظام يعمل!\n" + t); };
     function escape(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+
+    // 📤 وظائف صفحة "انشر"
+    window.generateTag = function() {
+        const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        let tag = '';
+        for(let i=0; i<6; i++) tag += chars.charAt(Math.floor(Math.random() * chars.length));
+        document.getElementById('securityTag').value = tag;
+        updateCode();
+        alert('✅ New security tag: ' + tag);
+    };
+
+    window.saveEmbedOpts = function() {
+        const opts = {
+            siteUrl: document.getElementById('siteUrl')?.value,
+            whitelist: document.getElementById('whitelistChk')?.checked ? document.getElementById('whitelistTxt')?.value : '',
+            ssl: document.getElementById('sslChk')?.checked,
+            tag: document.getElementById('securityTag')?.value
+        };
+        localStorage.setItem('cbox-embed-opts', JSON.stringify(opts));
+        alert('✅ Embed options saved!');
+    };
+
+    window.updateCode = function() {
+        const varType = document.getElementById('codeVar')?.value || 'inline';
+        const tag = document.getElementById('securityTag')?.value || '52gxr7';
+        const ssl = document.getElementById('sslChk')?.checked;
+        const proto = ssl ? 'https' : 'http';
+        const boxUrl = `${proto}://www4.cbox.ws/box/?boxid=4257987&boxtag=${tag}`;
+        
+        const codes = {
+            'inline': `<!-- BEGIN CBOX - www.cbox.ws - v4.3 -->
+<div id="cboxdiv" style="position:relative;margin:0 auto;width:400px;font-size:0;line-height:0">
+<div style="position:relative;height:293px;overflow:auto;border:0"><iframe src="${boxUrl}&sec=main" marginheight="0" marginwidth="0" frameborder="0" width="100%" height="100%" scrolling="auto" allowtransparency="yes"></iframe></div>
+<div style="position:relative;height:107px;overflow:hidden;border:0;border-top:0"><iframe src="${boxUrl}&sec=form" marginheight="0" marginwidth="0" frameborder="0" width="100%" height="100%" scrolling="no" allowtransparency="yes"></iframe></div>
+</div>
+<!-- END CBOX -->`,
+            'popup': `<script>
+function popcbox(){var w=window.open("${boxUrl}","Cbox","width=400,height=400,toolbar=no,scrollbars=no");}
+<\/script>
+<a href="JavaScript:popcbox()">Open my Cbox</a>`,
+            'button': `<div id="cboxbtn" style="position:fixed;bottom:10px;right:10px;padding:8px 16px;background:#2563eb;color:#fff;border-radius:6px;cursor:pointer;z-index:9999">💬 Chat</div>
+<script>
+document.getElementById('cboxbtn').onclick=function(){window.open("${boxUrl}","Cbox","width=400,height=450");};
+<\/script>`,
+            'defer': `<div id="cboxwrap"></div>
+<script>
+(function(){var c=document.getElementById("cboxwrap");c.innerHTML='<iframe src="${boxUrl}" width="400" height="400" frameborder="0"><\\/iframe>';})();
+<\/script>`
+        };
+        const box = document.getElementById('codeBox');
+        if(box) box.value = codes[varType] || codes['inline'];
+    };
+
+    window.copyCode = function() {
+        const box = document.getElementById('codeBox');
+        if(!box) return;
+        box.select();
+        box.setSelectionRange(0, 99999);
+        try {
+            document.execCommand('copy');
+            const btn = event?.target;
+            if(btn) { const orig = btn.textContent; btn.textContent = '✅ Copied!'; setTimeout(()=>btn.textContent=orig, 1500); }
+            else alert('✅ Code copied to clipboard!');
+        } catch(err) {
+            alert('Press Ctrl+C (or Cmd+C) to copy the code manually.');
+        }
+    };
+
+    window.previewCode = function() {
+        const code = document.getElementById('codeBox')?.value;
+        if(!code) return;
+        const win = window.open('', '_blank', 'width=500,height=500');
+        win.document.write('<html><head><title>Preview</title><style>body{font-family:sans-serif;padding:20px}</style></head><body><h3>👁️ Embed Code Preview</h3><pre style="background:#f1f5f9;padding:15px;border-radius:6px;overflow-x:auto;font-size:11px">'+escapeHtml(code)+'</pre><p style="margin-top:15px"><small>This is a preview only. The actual embed will render on your site.</small></p></body></html>');
+        win.document.close();
+    };
+
+    window.updateInstructions = function() {
+        const plat = document.getElementById('platformSel')?.value || 'generic';
+        document.querySelectorAll('.instructions').forEach(el => el.style.display = 'none');
+        const target = document.getElementById('instr-' + plat);
+        if(target) target.style.display = 'block';
+    };
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
 
     // بدء المراقبة
     auth.onAuthStateChanged(user => {
@@ -307,7 +400,37 @@ try {
         }
     });
 
-    console.log("✅ النظام المتكامل جاهز تماماً!");
+    // تهيئة عند التحميل
+    document.addEventListener('DOMContentLoaded', function() {
+        // استعادة خيارات التضمين المحفوظة
+        try {
+            const saved = JSON.parse(localStorage.getItem('cbox-embed-opts'));
+            if(saved) {
+                if(saved.siteUrl && $('siteUrl')) $('siteUrl').value = saved.siteUrl;
+                if(saved.whitelist && $('whitelistChk') && $('whitelistTxt')) { 
+                    $('whitelistChk').checked = true; 
+                    $('whitelistTxt').value = saved.whitelist; 
+                    $('whitelistTxt').style.display = 'block';
+                }
+                if(saved.ssl !== undefined && $('sslChk')) $('sslChk').checked = saved.ssl;
+                if(saved.tag && $('securityTag')) $('securityTag').value = saved.tag;
+            }
+        } catch(e) {}
+        
+        // تحديث كود التضمين الأولي
+        if($('codeVar')) updateCode();
+        
+        // إظهار/إخفاء حقل القائمة البيضاء
+        if($('whitelistChk') && $('whitelistTxt')) {
+            $('whitelistChk').onchange = function() { 
+                $('whitelistTxt').style.display = this.checked ? 'block' : 'none'; 
+            };
+            $('whitelistChk').onchange();
+        }
+        
+        console.log("✅ النظام المتكامل جاهز تماماً!");
+    });
+
 } catch (err) {
     console.error("❌ خطأ فادح في التهيئة:", err);
     alert("حدث خطأ في تحميل النظام. تأكد من اتصال الإنترنت أو تحقق من الكونسول.");
