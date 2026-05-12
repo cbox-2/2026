@@ -7,126 +7,111 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<!-- الهيدر -->
 <header>
     <div class="wrap">
         <strong>📦 صندوق التحكم</strong>
         <nav>
             <span id="userDisplay">ضيف</span>
-            <a onclick="show('mailbox')">صناديق</a>
-            <a onclick="show('settings')">حسابي</a>
-            <a onclick="logout()">خروج</a>
+            <a onclick="showPage('mailbox')">صناديق</a>
+            <a onclick="showPage('settings')">حسابي</a>
+            <a onclick="doLogout()">خروج</a>
         </nav>
     </div>
 </header>
 
-<!-- القوائم -->
 <nav class="menus">
     <div class="wrap">
-        <a onclick="show('dashboard')"><b>الرئيسية</b></a>
-        <a onclick="show('publish')">انشر</a>
+        <a onclick="showPage('dashboard')"><b>الرئيسية</b></a>
+        <a onclick="showPage('publish')">انشر</a>
         
-        <span class="drop" onclick="toggleMenu('m1')">المظهر ▼</span>
-        <div id="m1" class="drop-c">
-            <a onclick="sub('style');toggleMenu('m1')">سمات</a>
-            <a onclick="sub('layout');toggleMenu('m1')">تخطيط</a>
+        <span class="drop-btn" onclick="toggleDrop('m1')">المظهر ▼</span>
+        <div id="m1" class="drop-menu">
+            <a onclick="showSub('style');hideAll()">سمات</a>
+            <a onclick="showSub('layout');hideAll()">تخطيط</a>
         </div>
         
-        <span class="drop" onclick="toggleMenu('m2')">خيارات ▼</span>
-        <div id="m2" class="drop-c">
-            <a onclick="sub('filter');toggleMenu('m2')">تصفية</a>
-            <a onclick="sub('smilies');toggleMenu('m2')">رموز</a>
+        <span class="drop-btn" onclick="toggleDrop('m2')">خيارات ▼</span>
+        <div id="m2" class="drop-menu">
+            <a onclick="showSub('filter');hideAll()">تصفية</a>
+            <a onclick="showSub('smilies');hideAll()">رموز</a>
         </div>
         
-        <span class="drop" onclick="toggleMenu('m3')">مستخدمون ▼</span>
-        <div id="m3" class="drop-c">
-            <a onclick="sub('users');toggleMenu('m3')">مسجلون</a>
-            <a onclick="sub('bans');toggleMenu('m3')">محظورون</a>
+        <span class="drop-btn" onclick="toggleDrop('m3')">مستخدمون ▼</span>
+        <div id="m3" class="drop-menu">
+            <a onclick="showSub('users');hideAll()">مسجلون</a>
+            <a onclick="showSub('bans');hideAll()">محظورون</a>
         </div>
         
-        <span class="drop" onclick="toggleMenu('m4')">رسائل ▼</span>
-        <div id="m4" class="drop-c">
-            <a onclick="sub('msgs');toggleMenu('m4')">رسائل</a>
-            <a onclick="sub('archive');toggleMenu('m4')">أرشيف</a>
+        <span class="drop-btn" onclick="toggleDrop('m4')">رسائل ▼</span>
+        <div id="m4" class="drop-menu">
+            <a onclick="showSub('msgs');hideAll()">رسائل</a>
+            <a onclick="showSub('archive');hideAll()">أرشيف</a>
         </div>
     </div>
 </nav>
-<!-- المحتوى -->
+
 <main class="wrap">
-    <!-- تسجيل الدخول - ظاهر افتراضياً -->
-    <section id="login">
+    <section id="sec-login">
         <h2>تسجيل الدخول</h2>
         <form onsubmit="return doLogin(event)">
-            <input type="email" id="em" placeholder="البريد" value="admin@cbox.com" required>
-            <input type="password" id="pw" placeholder="كلمة المرور" value="123456" required>
+            <input type="email" id="inp-em" placeholder="البريد" value="admin@cbox.com" required>
+            <input type="password" id="inp-pw" placeholder="كلمة المرور" value="123456" required>
             <button type="submit">دخول</button>
         </form>
-        <p><small onclick="alert('وضع: إنشاء حساب')">إنشاء حساب جديد</small></p>
+        <p><small style="cursor:pointer;color:#2563eb" onclick="alert('وضع إنشاء حساب')">إنشاء حساب جديد</small></p>
     </section>
 
-    <!-- لوحة التحكم -->
-    <section id="dashboard" style="display:none">
-        <h2>👋 أهلاً، <span id="name">مستخدم</span>!</h2>
+    <section id="sec-dash" style="display:none">
+        <h2>👋 أهلاً، <span id="lbl-name">مستخدم</span>!</h2>
         
-        <!-- 🎯 الدردشة الكلاسيكية (نفس التصميم المطلوب) -->
-        <fieldset class="chat-box">
-            <iframe id="chatMain" frameborder="0" width="100%" height="305" 
-                src="https://placeholder-chat.com/main?box=12345" 
-                style="border:0;margin:0;padding:0;background:#fff">
-            </iframe>
-            <iframe id="chatForm" frameborder="0" width="100%" height="107" 
-                src="https://placeholder-chat.com/form?box=12345" 
-                style="border:0;margin:0;padding:0;background:#fff">
-            </iframe>
+        <fieldset class="classic-chat">
+            <iframe id="chatMain" src="https://placeholder-chat.com/main?box=12345" style="width:100%;height:305px;border:0;background:#fff"></iframe>
+            <iframe id="chatForm" src="https://placeholder-chat.com/form?box=12345" style="width:100%;height:107px;border:0;background:#fff"></iframe>
         </fieldset>
 
-        <!-- شريط التحكم الكلاسيكي -->
         <div class="chat-ctrl">
-            <table width="100%" cellpadding="4" cellspacing="0">
+            <table width="100%" cellpadding="4" cellspacing="0" style="border-collapse:collapse">
                 <tr>
-                    <td>
-                        <span id="status">🟢 متصل</span>
-                        <a onclick="refreshChat()">🔄 تحديث</a>
+                    <td style="padding:6px;background:#f8fafc;border-top:1px solid #ddd">
+                        <span id="chatStatus">🟢 متصل</span> · <a onclick="refreshChat()">🔄 تحديث</a>
                     </td>
                 </tr>
                 <tr>
-                    <td style="background:#f8fafc;border-top:1px solid #ddd;padding:8px">
-                        <input type="text" id="cName" placeholder="الاسم" class="inp" value="">
-                        <input type="text" id="cEmail" placeholder="البريد" class="inp" value="">
+                    <td style="padding:8px;background:#fff;border-top:1px solid #ddd">
+                        <input type="text" id="cName" placeholder="الاسم" class="c-inp" style="width:30%">
+                        <input type="text" id="cEmail" placeholder="البريد" class="c-inp" style="width:30%">
                         <br>
-                        <input type="text" id="cMsg" placeholder="اكتب رسالتك..." class="inp" style="width:70%">
-                        <button onclick="sendChat()" class="btn">إرسال</button>
+                        <input type="text" id="cMsg" placeholder="اكتب رسالتك..." class="c-inp" style="width:65%">
+                        <button onclick="sendChat()" class="c-btn">إرسال</button>
                     </td>
                 </tr>
                 <tr>
-                    <td style="background:#f1f5f9;border-top:1px solid #ddd;padding:6px;font-size:11px">
-                        <a onclick="showHelp()">❓ مساعدة</a> · 
+                    <td style="padding:6px;background:#f1f5f9;border-top:1px solid #ddd;font-size:11px">
+                        <a onclick="alert('❓ مساعدة الدردشة\n1. اكتب اسمك\n2. اكتب رسالتك\n3. اضغط إرسال')">❓ مساعدة</a> · 
                         <a onclick="toggleSmilies()">😊 رموز</a> · 
-                        <a onclick="showProfile()">👤 ملفي</a>
+                        <a onclick="alert('👤 الملف: ' + (document.getElementById('cName')?.value || 'ضيف'))">👤 ملفي</a>
                     </td>
                 </tr>
             </table>
         </div>
 
-        <!-- لوحة الرموز -->
-        <div id="smilies" style="display:none;background:#fff;border:1px solid #ddd;padding:10px;margin:10px 0;border-radius:4px">
-            <span onclick="addSmiley('🙂')" style="cursor:pointer;margin:2px">🙂</span>
-            <span onclick="addSmiley('😂')" style="cursor:pointer;margin:2px">😂</span>
-            <span onclick="addSmiley('❤️')" style="cursor:pointer;margin:2px">❤️</span>
-            <span onclick="addSmiley('👍')" style="cursor:pointer;margin:2px">👍</span>
-            <button onclick="toggleSmilies()" style="margin-right:10px;font-size:11px">✕ إغلاق</button>
+        <div id="smiliesBox" style="display:none;background:#fff;border:1px solid #ddd;padding:10px;margin:10px 0;border-radius:4px">
+            <span onclick="insertSmiley('🙂')" style="cursor:pointer;font-size:18px;margin:3px">🙂</span>
+            <span onclick="insertSmiley('😂')" style="cursor:pointer;font-size:18px;margin:3px">😂</span>
+            <span onclick="insertSmiley('❤️')" style="cursor:pointer;font-size:18px;margin:3px">❤️</span>
+            <span onclick="insertSmiley('👍')" style="cursor:pointer;font-size:18px;margin:3px">👍</span>
+            <button onclick="toggleSmilies()" style="margin-right:10px;font-size:11px;padding:2px 8px">✕ إغلاق</button>
         </div>
 
-        <button onclick="test()" class="btn" style="background:#7c3aed">🧪 اختبار</button>
-        <div id="out" style="margin:10px 0;font-size:12px;color:#666"></div>
-        <button onclick="logout()" class="btn" style="background:#dc2626">خروج</button>
+        <button onclick="testSys()" class="c-btn" style="background:#7c3aed;margin-top:15px">🧪 اختبار</button>
+        <div id="testOut" style="margin:10px 0;font-size:12px;color:#666"></div>
+        <button onclick="doLogout()" class="c-btn" style="background:#dc2626;margin-top:10px">خروج</button>
     </section>
 
-    <!-- صفحات أخرى -->
-    <section id="publish" style="display:none"><h2>📤 انشر</h2><p>صفحة النشر</p><a onclick="show('dashboard')">← عودة</a></section>
-    <section id="mailbox" style="display:none"><h2>📦 صندوق بريدي</h2><p>الإحصائيات هنا</p><a onclick="show('dashboard')">← عودة</a></section>
-    <section id="settings" style="display:none"><h2>⚙️ الإعدادات</h2><p>إعدادات الحساب</p><a onclick="show('dashboard')">← عودة</a></section>
-    <section id="subpage" style="display:none"></section>
+    <section id="sec-pub" style="display:none"><h2>📤 انشر</h2><p>صفحة النشر جاهزة</p><a onclick="showPage('dashboard')">← عودة</a></section>
+    <section id="sec-mail" style="display:none"><h2>📦 صندوق بريدي</h2><p>الإحصائيات هنا</p><a onclick="showPage('dashboard')">← عودة</a></section>
+    <section id="sec-set" style="display:none"><h2>⚙️ الإعدادات</h2><p>إعدادات الحساب</p><a onclick="showPage('dashboard')">← عودة</a></section>
+    <section id="sec-sub" style="display:none"></section>
 </main>
 
 <footer>© 2024 صندوق التحكم</footer>
