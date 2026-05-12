@@ -27,7 +27,6 @@ button,.cb{padding:8px 16px;background:#2563eb;color:#fff;border:none;border-rad
 button:hover,.cb:hover{opacity:0.9}
 
 .chat-box{border:1px solid #94a3b8;padding:0;margin:15px 0;background:#fff;border-radius:4px;overflow:hidden}
-.chat-ctrl{border:1px solid #94a3b8;border-top:none;border-radius:0 0 4px 4px}
 .ci{padding:5px 8px;border:1px solid #94a3b8;border-radius:3px;font-size:11px;margin:3px;background:#fff}
 .cb{padding:5px 15px;background:#2563eb;color:#fff;border:1px solid #1e40af;border-radius:3px;cursor:pointer;font-size:11px}
 
