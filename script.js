@@ -29,8 +29,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const messagesList = document.getElementById('messages-list'); const chatContainer = document.getElementById('chat-container');
     const themeToggle = document.getElementById('theme-toggle'); const todayMsgCount = document.getElementById('today-msg-count');
     const activeUsersCount = document.getElementById('active-users-count'); const exportBtn = document.getElementById('export-btn');
-    const dropdownTrigger = document.getElementById('dropdown-trigger');
-    const dropdownMenu = document.getElementById('dropdown-menu');
+    
+    const hovmenu4 = document.getElementById('hovmenu4');
+    const hovmenu4Content = document.getElementById('hovmenu4-content');
 
     let currentUser = null; let unsubscribeChat = null; let isLoginMode = true;
     let unreadCount = 0; let isTabActive = true; let lastKnownTimestamp = null;
@@ -76,18 +77,18 @@ document.addEventListener('DOMContentLoaded', function() {
     function escapeHtml(text) { const d=document.createElement('div'); d.appendChild(document.createTextNode(text||'')); return d.innerHTML; }
     function translateFirebaseError(code) { const m={'auth/invalid-credential':'البريد أو كلمة المرور غير صحيحة','auth/email-already-in-use':'البريد مسجل مسبقاً','auth/invalid-email':'صيغة البريد غير صحيحة','auth/user-not-found':'البريد غير مسجل','auth/wrong-password':'كلمة المرور غير صحيحة','auth/weak-password':'كلمة المرور يجب أن تكون 6 أحرف على الأقل','auth/too-many-requests':'محاولات كثيرة، انتظر قليلاً'}; return m[code]||code; }
 
-    // 📋 منطق القائمة المنسدلة
-    if (dropdownTrigger && dropdownMenu) {
-        dropdownTrigger.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const isOpen = dropdownMenu.classList.toggle('show');
-            dropdownTrigger.querySelector('.dropdown-arrow').style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+    // 📋 منطق القائمة المنسدلة المربوطة بـ #hovmenu4
+    if (hovmenu4 && hovmenu4Content) {
+        hovmenu4.addEventListener('click', function(e) {
+            e.preventDefault(); e.stopPropagation();
+            const isOpen = hovmenu4Content.classList.toggle('show');
+            this.querySelector('.submenu-arrow')?.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
         });
 
-        document.addEventListener('click', (e) => {
-            if (dropdownMenu.classList.contains('show') && !dropdownMenu.contains(e.target) && e.target !== dropdownTrigger) {
-                dropdownMenu.classList.remove('show');
-                dropdownTrigger.querySelector('.dropdown-arrow').style.transform = 'rotate(0deg)';
+        document.addEventListener('click', function(e) {
+            if (hovmenu4Content.classList.contains('show') && !hovmenu4.contains(e.target) && !hovmenu4Content.contains(e.target)) {
+                hovmenu4Content.classList.remove('show');
+                hovmenu4.querySelector('.submenu-arrow')?.style.transform = 'rotate(0deg)';
             }
         });
 
@@ -99,13 +100,13 @@ document.addEventListener('DOMContentLoaded', function() {
             webhook: `<div class="subpage"><h2>🔗 رابط الويب (Webhook)</h2><div class="notice">ربط الصندوق بخدمات خارجية مثل Discord أو Slack</div><div class="card"><label>رابط الويب هووك:</label><input type="text" class="txtbox" value="https://your-webhook-url.com/endpoint" readonly style="width:100%;direction:ltr;text-align:left;"><button class="btn-primary" style="margin-top:10px;" onclick="navigator.clipboard.writeText(this.previousElementSibling.value); alert('✅ تم نسخ الرابط!')">📋 نسخ الرابط</button><p style="margin-top:15px;font-size:11px;color:#666;">💡 استخدم هذا الرابط لإرسال رسائل تلقائية من خدماتك إلى صندوق التحكم.</p></div><a class="back-link" data-return="dashboard">← العودة للوحة التحكم</a></div>`
         };
 
-        document.querySelectorAll('#dropdown-menu .sublink').forEach(link => {
+        hovmenu4Content.querySelectorAll('.sublink').forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
-                dropdownMenu.classList.remove('show');
-                dropdownTrigger.querySelector('.dropdown-arrow').style.transform = 'rotate(0deg)';
+                hovmenu4Content.classList.remove('show');
+                hovmenu4.querySelector('.submenu-arrow')?.style.transform = 'rotate(0deg)';
                 
-                document.querySelectorAll('#dropdown-menu .sublink').forEach(l => l.classList.remove('active'));
+                hovmenu4Content.querySelectorAll('.sublink').forEach(l => l.classList.remove('active'));
                 this.classList.add('active');
                 
                 const target = this.getAttribute('data-target');
@@ -113,13 +114,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 subpageView.innerHTML = subPages[target] || '<p>صفحة غير متوفرة</p>';
                 if(errorBar) errorBar.textContent = this.textContent.trim();
 
-                if(target==='sticky'){
+                if(target==='sticky') {
                     setTimeout(()=>{
                         document.getElementById('save-sticky-btn')?.addEventListener('click',()=>{const t=subpageView.querySelector('textarea').value.trim(); if(!t) return alert('⚠️ اكتب النص أولاً'); alert('✅ تم تثبيت الرسالة');});
                         document.getElementById('remove-sticky-btn')?.addEventListener('click',()=>{if(confirm('هل تريد إزالة الرسالة اللاصقة؟')) alert('✅ تم الإزالة');});
                     },50);
                 }
-                if(target==='channels'){
+                if(target==='channels') {
                     setTimeout(()=>{
                         document.getElementById('add-channel-link')?.addEventListener('click',ev=>{ev.preventDefault(); const n=prompt('اسم القناة الجديدة:'); if(n){const l=document.getElementById('channels-list'), li=document.createElement('li'); li.style.cssText='padding:8px;border-bottom:1px solid var(--border-color);'; li.innerHTML=`🔵 <strong>${escapeHtml(n)}</strong> <span style="color:#888;font-size:11px;">(جديد)</span>`; l.appendChild(li); alert('✅ تم إنشاء القناة: '+n);}});
                     },50);
@@ -132,7 +133,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.target.classList.contains('back-link')) {
             e.preventDefault();
             showSection(e.target.getAttribute('data-return') || 'dashboard');
-            if(dropdownMenu) dropdownMenu.classList.remove('show');
+            if(hovmenu4Content) hovmenu4Content.classList.remove('show');
             if(errorBar) errorBar.textContent = 'متصل بـ Firebase ✅';
         }
     });
