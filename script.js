@@ -77,18 +77,20 @@ document.addEventListener('DOMContentLoaded', function() {
     function escapeHtml(text) { const d=document.createElement('div'); d.appendChild(document.createTextNode(text||'')); return d.innerHTML; }
     function translateFirebaseError(code) { const m={'auth/invalid-credential':'البريد أو كلمة المرور غير صحيحة','auth/email-already-in-use':'البريد مسجل مسبقاً','auth/invalid-email':'صيغة البريد غير صحيحة','auth/user-not-found':'البريد غير مسجل','auth/wrong-password':'كلمة المرور غير صحيحة','auth/weak-password':'كلمة المرور يجب أن تكون 6 أحرف على الأقل','auth/too-many-requests':'محاولات كثيرة، انتظر قليلاً'}; return m[code]||code; }
 
-    // 📋 منطق القائمة المنسدلة المربوطة بـ #hovmenu4
+    // 📋 منطق القائمة المنسدلة المُصلح
     if (hovmenu4 && hovmenu4Content) {
         hovmenu4.addEventListener('click', function(e) {
             e.preventDefault(); e.stopPropagation();
             const isOpen = hovmenu4Content.classList.toggle('show');
-            this.querySelector('.submenu-arrow')?.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+            const arrow = this.querySelector('.submenu-arrow');
+            if(arrow) arrow.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
         });
 
         document.addEventListener('click', function(e) {
             if (hovmenu4Content.classList.contains('show') && !hovmenu4.contains(e.target) && !hovmenu4Content.contains(e.target)) {
                 hovmenu4Content.classList.remove('show');
-                hovmenu4.querySelector('.submenu-arrow')?.style.transform = 'rotate(0deg)';
+                const arrow = hovmenu4.querySelector('.submenu-arrow');
+                if(arrow) arrow.style.transform = 'rotate(0deg)';
             }
         });
 
@@ -104,7 +106,8 @@ document.addEventListener('DOMContentLoaded', function() {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
                 hovmenu4Content.classList.remove('show');
-                hovmenu4.querySelector('.submenu-arrow')?.style.transform = 'rotate(0deg)';
+                const arrow = hovmenu4.querySelector('.submenu-arrow');
+                if(arrow) arrow.style.transform = 'rotate(0deg)';
                 
                 hovmenu4Content.querySelectorAll('.sublink').forEach(l => l.classList.remove('active'));
                 this.classList.add('active');
