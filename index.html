@@ -2,191 +2,225 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>صندوق التحكم المتكامل</title>
+    <title>صندوق التحكم</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <base href="https://cbox-2.github.io/2026/?#">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
 <header>
     <div class="wrap">
-        <a href="?#"><strong>📦 صندوق التحكم</strong></a>
+        <strong>📦 صندوق التحكم</strong>
         <nav>
             <span id="userDisplay">ضيف</span>
-            <a href="?#mailbox">صناديق</a>
-            <a href="?#stats">إحصائيات</a>
-            <a href="?#publish">انشر</a>
-            <a href="?#settings">حسابي</a>
-            <a href="?#logout">خروج</a>
+            <a onclick="nav('mailbox')">صناديق</a>
+            <a onclick="nav('stats')">إحصائيات</a>
+            <a onclick="nav('publish')">انشر</a>
+            <a onclick="nav('settings')">حسابي</a>
+            <a onclick="doLogout()">خروج</a>
         </nav>
     </div>
 </header>
 
 <nav class="menus">
     <div class="wrap">
-        <a href="?#dashboard"><b>الرئيسية</b></a>
-        <div class="menu-wrap">
-            <span class="drop-btn" onclick="openMenu('m1')">المظهر ▼</span>
-            <div id="m1" class="drop-menu">
-                <a href="?#style" onclick="hideAll()">سمات</a>
-                <a href="?#layout" onclick="hideAll()">تخطيط</a>
-            </div>
-        </div>
-        <div class="menu-wrap">
-            <span class="drop-btn" onclick="openMenu('m2')">خيارات ▼</span>
-            <div id="m2" class="drop-menu">
-                <a href="?#filter" onclick="hideAll()">تصفية</a>
-                <a href="?#smilies" onclick="hideAll()">رموز</a>
-            </div>
-        </div>
-        <div class="menu-wrap">
-            <span class="drop-btn" onclick="openMenu('m3')">مستخدمون ▼</span>
-            <div id="m3" class="drop-menu">
-                <a href="?#users" onclick="hideAll()">مسجلون</a>
-                <a href="?#bans" onclick="hideAll()">محظورون</a>
-            </div>
-        </div>
-        <div class="menu-wrap">
-            <span class="drop-btn" onclick="openMenu('m4')">رسائل ▼</span>
-            <div id="m4" class="drop-menu">
-                <a href="?#messages" onclick="hideAll()">رسائل</a>
-                <a href="?#archive" onclick="hideAll()">أرشيف</a>
-            </div>
-        </div>
+        <a onclick="nav('dashboard')"><b>الرئيسية</b></a>
+        <span class="drop" onclick="toggle('m1')">المظهر ▼</span>
+        <div id="m1" class="drop-c"><a onclick="sub('style')">سمات</a><a onclick="sub('layout')">تخطيط</a></div>
+        <span class="drop" onclick="toggle('m2')">خيارات ▼</span>
+        <div id="m2" class="drop-c"><a onclick="sub('filter')">تصفية</a><a onclick="sub('smilies')">رموز</a></div>
+        <span class="drop" onclick="toggle('m3')">مستخدمون ▼</span>
+        <div id="m3" class="drop-c"><a onclick="sub('users')">مسجلون</a><a onclick="sub('bans')">محظورون</a></div>
+        <span class="drop" onclick="toggle('m4')">رسائل ▼</span>
+        <div id="m4" class="drop-c"><a onclick="sub('msgs')">رسائل</a><a onclick="sub('archive')">أرشيف</a></div>
     </div>
 </nav>
 
 <main class="wrap">
-    <!-- تسجيل الدخول -->
-    <section id="sec-login">
+    <section id="login">
         <h2>تسجيل الدخول</h2>
         <form onsubmit="return doLogin(event)">
             <input type="email" id="em" placeholder="البريد" value="admin@cbox.com" required>
-            <input type="password" id="pw" placeholder="كلمة المرور" value="123456" minlength="6" required>
+            <input type="password" id="pw" placeholder="كلمة المرور" value="123456" required>
             <button type="submit">دخول</button>
         </form>
-        <p><small style="cursor:pointer;color:#2563eb" onclick="alert('وضع: إنشاء حساب جديد')">إنشاء حساب جديد</small></p>
+        <p><small style="cursor:pointer;color:#2563eb" onclick="alert('وضع إنشاء حساب')">إنشاء حساب جديد</small></p>
     </section>
 
-    <!-- لوحة التحكم مع الدردشة الكاملة -->
-    <section id="sec-dash" style="display:none">
-        <h2>👋 أهلاً، <span id="name">مستخدم</span>! <span id="role-badge" style="font-size:11px;background:#e2e8f0;padding:2px 6px;border-radius:4px">مستخدم</span></h2>
-        
-        <div style="background:#fff;border:1px solid #e2e8f0;padding:10px;border-radius:6px;margin-bottom:15px;display:flex;justify-content:space-between;align-items:center">
-            <span>🔔 الإشعارات: <span id="notifStatus">موقفة</span></span>
-            <button onclick="toggleNotif()" class="cb" id="notifBtn">تفعيل</button>
-        </div>
-
-        <!-- 🎯 الدردشة الكلاسيكية الكاملة -->
-        <fieldset class="chat-box">
-            <div id="chatMain" style="height:305px;overflow-y:auto;padding:10px;background:#fff;border-bottom:1px solid #e2e8f0">
+    <section id="dashboard" style="display:none">
+        <h2>👋 أهلاً، <span id="name">مستخدم</span>!</h2>
+        <fieldset class="chat">
+            <div id="chatBox" style="height:250px;overflow-y:auto;padding:10px;background:#fff;border:1px solid #ddd">
                 <p style="text-align:center;color:#888;padding:40px">مرحباً! ابدأ المحادثة...</p>
             </div>
-            <div style="padding:8px;background:#f8fafc">
-                <input type="text" id="cName" placeholder="الاسم" class="ci" readonly style="width:30%">
-                <input type="text" id="cEmail" placeholder="البريد" class="ci" readonly style="width:30%">
+            <div style="padding:8px;background:#f8f8f8;border-top:1px solid #ddd">
+                <input type="text" id="cName" placeholder="الاسم" class="inp" readonly>
+                <input type="text" id="cEmail" placeholder="البريد" class="inp" readonly>
                 <br>
-                <input type="text" id="cMsg" placeholder="اكتب رسالتك..." class="ci" style="width:65%">
-                <button onclick="sendMsg()" class="cb" id="sendBtn">إرسال</button>
+                <input type="text" id="cMsg" placeholder="اكتب رسالتك..." class="inp" style="width:70%">
+                <button onclick="send()" class="btn">إرسال</button>
             </div>
         </fieldset>
-
-        <!-- شريط التحكم -->
-        <div style="background:#f1f5f9;border:1px solid #e2e8f0;border-top:none;padding:6px 10px;font-size:11px;display:flex;justify-content:space-between;align-items:center">
-            <div>
-                <span id="chatStat">🟢 متصل</span> · <a onclick="refreshChat()">🔄 تحديث</a>
-            </div>
-            <div>
-                <a onclick="alert('اكتب اسمك ثم رسالتك واضغط إرسال')">❓ مساعدة</a> · 
-                <a onclick="toggleSmilies()">😊 رموز</a> · 
-                <a onclick="alert('👤 الملف: '+ (document.getElementById('cName').value||'ضيف'))">👤 ملفي</a>
-            </div>
+        <div style="background:#f1f5f9;padding:6px 10px;font-size:11px;border:1px solid #ddd;border-top:none">
+            <a onclick="alert('اكتب اسمك ثم رسالتك')">❓ مساعدة</a> · 
+            <a onclick="toggleSmilies()">😊 رموز</a> · 
+            <a onclick="alert('👤 '+document.getElementById('cName').value)">👤 ملفي</a>
         </div>
-
-        <!-- لوحة الرموز -->
-        <div id="smBox" style="display:none;background:#fff;border:1px solid #e2e8f0;padding:10px;margin:10px 0;border-radius:4px">
+        <div id="smBox" style="display:none;background:#fff;border:1px solid #ddd;padding:10px;margin:10px 0">
             <span onclick="ins('🙂')" style="cursor:pointer;font-size:18px;margin:3px">🙂</span>
             <span onclick="ins('😂')" style="cursor:pointer;font-size:18px;margin:3px">😂</span>
             <span onclick="ins('❤️')" style="cursor:pointer;font-size:18px;margin:3px">❤️</span>
-            <span onclick="ins('👍')" style="cursor:pointer;font-size:18px;margin:3px">👍</span>
-            <button onclick="toggleSmilies()" style="margin-right:10px;font-size:11px;padding:2px 8px">✕ إغلاق</button>
+            <button onclick="toggleSmilies()" style="margin-right:10px;font-size:11px">✕ إغلاق</button>
         </div>
-
-        <button onclick="test()" class="cb" style="background:#7c3aed;margin-top:15px">🧪 اختبار النظام</button>
+        <button onclick="test()" class="btn" style="background:#7c3aed;margin-top:15px">🧪 اختبار</button>
         <div id="out" style="margin:10px 0;font-size:12px;color:#666"></div>
-        <button onclick="logout()" class="cb" style="background:#dc2626;margin-top:10px">تسجيل الخروج</button>
+        <button onclick="doLogout()" class="btn" style="background:#dc2626;margin-top:10px">خروج</button>
     </section>
 
-    <!-- 📤 صفحة انشر -->
-    <section id="sec-publish" style="display:none">
-        <h2>📤 Publish Your Cbox</h2>
-        <p style="margin-bottom:20px;color:#64748b">Embed your chat box directly into any website using your own domain.</p>
-        
-        <fieldset style="margin-bottom:20px">
-            <legend>Embed options</legend>
-            <label style="display:block;margin:10px 0 4px">Your website URL:</label>
-            <input type="url" id="siteUrl" class="ci" placeholder="https://yoursite.com" value="https://example.com" style="direction:ltr;text-align:left">
-            <label style="display:block;margin:10px 0 4px"><input type="checkbox" id="whitelistChk" style="margin-left:5px"> Enable site whitelist:</label>
-            <textarea id="whitelistTxt" class="ci" placeholder="Enter whitelisted URLs, one per line" style="display:none;min-height:60px;direction:ltr;text-align:left"></textarea>
-            <label style="display:block;margin:10px 0 4px"><input type="checkbox" id="sslChk" checked style="margin-left:5px"> Use secure HTTP (TLS/SSL):</label>
-            <label style="display:block;margin:10px 0 4px">Security tag:</label>
-            <div style="display:flex;gap:8px;align-items:center"><input type="text" id="securityTag" class="ci" value="52gxr7" maxlength="10" style="width:100px;direction:ltr;text-align:left"><button onclick="generateTag()" class="cb" style="padding:5px 10px;font-size:11px">🔄 generate new</button></div>
-            <button onclick="saveEmbedOpts()" class="cb" style="margin-top:15px">💾 Save options</button>
-        </fieldset>
-
-        <fieldset style="margin-bottom:20px">
-            <legend>Get your embed code</legend>
-            <label style="display:block;margin:10px 0 4px">Code variation:</label>
-            <select id="codeVar" class="ci" onchange="updateCode()" style="margin-bottom:10px">
-                <option value="inline">Standard inline</option>
-                <option value="popup">Popup link</option>
-                <option value="button">Fixed button</option>
-                <option value="defer">Deferred load</option>
-            </select>
-            <textarea id="codeBox" class="ci" readonly style="min-height:120px;font-family:monospace;direction:ltr;text-align:left"></textarea>
-            <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap"><button onclick="copyCode()" class="cb">📋 Copy to clipboard</button><button onclick="previewCode()" class="cb" style="background:#16a34a">👁️ Preview</button></div>
-        </fieldset>
-
+    <section id="publish" style="display:none">
+        <h2>📤 انشر</h2>
         <fieldset>
-            <legend>Embed instructions</legend>
-            <label style="display:block;margin:10px 0 4px">Instructions for:</label>
-            <select id="platformSel" class="ci" onchange="updateInstructions()" style="margin-bottom:15px">
-                <option value="generic">Any site</option>
-                <option value="blogger" selected>Blogger / Blogspot</option>
-                <option value="wordpress">WordPress</option>
-                <option value="forum">Forums</option>
+            <legend>رمز التضمين</legend>
+            <select id="codeType" class="inp" onchange="swapCode()">
+                <option value="inline">مضمن</option>
+                <option value="popup">منبثق</option>
             </select>
-            <div id="instr-generic" class="instructions"><ol style="padding-right:20px;line-height:1.8"><li>Copy your code to the clipboard.</li><li>Open your site editor.</li><li>Switch to HTML mode.</li><li>Paste your code.</li><li>Save and publish.</li></ol></div>
-            <div id="instr-blogger" class="instructions" style="display:block"><ol style="padding-right:20px;line-height:1.8"><li>Copy your code.</li><li>Sign in at blogger.com.</li><li>Click <strong>Design</strong> → <strong>Add a Gadget</strong>.</li><li>Choose <strong>HTML/JavaScript</strong> and paste your code.</li><li>Save changes.</li></ol></div>
-            <div style="margin-top:20px;padding:15px;background:#fff7ed;border:1px solid #fed7aa;border-radius:6px"><strong style="color:#c2410c">Problems?</strong><ul style="margin-top:8px;padding-right:20px;line-height:1.8;color:#64748b"><li>If you see code instead of chat, your editor may strip HTML.</li><li>Try an "iframe" or "embed" widget.</li><li>URL required? Use: <code style="background:#f1f5f9;padding:2px 4px;border-radius:3px">https://cbox-2.github.io/2026/?#chat</code></li><li>Quick Link: <a href="https://cbox-2.github.io/2026/?#" target="_blank" style="color:#2563eb">https://cbox-2.github.io/2026/?#</a></li></ul></div>
+            <textarea id="codeBox" class="inp" readonly style="width:100%;min-height:100px;font-family:monospace">&lt;iframe src="https://cbox-2.github.io/2026/?#chat" width="400" height="400"&gt;&lt;/iframe&gt;</textarea>
+            <button onclick="copyCode()" class="btn" style="margin-top:10px">📋 نسخ</button>
         </fieldset>
-        <a href="?#" onclick="go('dash');return false" style="margin-top:20px;display:inline-block">← Back to Dashboard</a>
+        <a onclick="nav('dashboard')">← عودة</a>
     </section>
 
-    <!-- 📊 إحصائيات -->
-    <section id="sec-stats" style="display:none">
-        <h2>📊 إحصائيات النظام</h2>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:20px">
-            <div class="stat-card"><h3>📈 إجمالي الرسائل</h3><p id="stat-total" style="font-size:24px;font-weight:bold;color:#2563eb">0</p></div>
-            <div class="stat-card"><h3>📅 رسائل اليوم</h3><p id="stat-today" style="font-size:24px;font-weight:bold;color:#16a34a">0</p></div>
-            <div class="stat-card"><h3>👥 مستخدمون نشطون</h3><p id="stat-users" style="font-size:24px;font-weight:bold;color:#8b5cf6">0</p></div>
-        </div>
-        <h3>📉 النشاط الأسبوعي</h3>
-        <div id="chart" style="height:150px;display:flex;align-items:flex-end;gap:8px;background:#f8fafc;padding:15px;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:20px"></div>
-        <button onclick="exportCSV()" class="cb">📥 تصدير البيانات (Excel/CSV)</button>
-        <a href="?#" onclick="go('dash');return false" style="margin-right:15px">← العودة للرئيسية</a>
-    </section>
-
-    <!-- باقي الأقسام -->
-    <section id="sec-mailbox" style="display:none"><h2>📦 صندوق بريدي</h2><p>الإحصائيات هنا</p><a href="?#" onclick="go('stats');return false">عرض الإحصائيات</a></section>
-    <section id="sec-settings" style="display:none"><h2>⚙️ الإعدادات</h2><p>إدارة الحساب والصلاحيات</p><a href="?#" onclick="go('dash');return false">← عودة</a></section>
-    <section id="sec-sub" style="display:none"></section>
+    <section id="stats" style="display:none"><h2>📊 إحصائيات</h2><p>العدادات هنا</p><a onclick="nav('dashboard')">← عودة</a></section>
+    <section id="mailbox" style="display:none"><h2>📦 صندوق</h2><p>محتوى الصندوق</p><a onclick="nav('dashboard')">← عودة</a></section>
+    <section id="settings" style="display:none"><h2>⚙️ إعدادات</h2><p>إعدادات الحساب</p><a onclick="nav('dashboard')">← عودة</a></section>
+    <section id="sub" style="display:none"></section>
 </main>
-<footer><a href="?#">© 2024 صندوق التحكم المتكامل</a></footer>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="script.js"></script>
+<footer>© 2024 صندوق التحكم</footer>
+
+<script>
+console.log("✅ النظام يبدأ...");
+const $=id=>document.getElementById(id);
+let user=null;
+
+// 🧭 التنقل البسيط
+window.nav=function(sec){
+    console.log("🔀 إلى:",sec);
+    ['login','dashboard','publish','stats','mailbox','settings','sub'].forEach(s=>{
+        const e=$(s); if(e)e.style.display='none';
+    });
+    const t=$(sec); if(t)t.style.display='block';
+    hideDrops();
+    if(sec==='dashboard'&&user)startChat();
+};
+
+// 📋 الصفحات الفرعية
+window.sub=function(pg){
+    nav('sub');
+    const c=$('sub'); if(!c)return;
+    const pages={
+        'style':'<div><h3>🎨 سمات</h3><p>تخصيص الألوان</p><a onclick="nav(\'dashboard\')">← عودة</a></div>',
+        'layout':'<div><h3>📐 تخطيط</h3><p>خيارات العرض</p><a onclick="nav(\'dashboard\')">← عودة</a></div>',
+        'filter':'<div><h3>🔍 تصفية</h3><p>كلمات محظورة</p><a onclick="nav(\'dashboard\')">← عودة</a></div>',
+        'smilies':'<div><h3>😊 رموز</h3><p>إدارة الابتسامات</p><a onclick="nav(\'dashboard\')">← عودة</a></div>',
+        'users':'<div><h3>👥 مسجلون</h3><p>قائمة المستخدمين</p><a onclick="nav(\'dashboard\')">← عودة</a></div>',
+        'bans':'<div><h3>🚫 محظورون</h3><p>قائمة الحظر</p><a onclick="nav(\'dashboard\')">← عودة</a></div>',
+        'msgs':'<div><h3>📩 رسائل</h3><p>إدارة الرسائل</p><a onclick="nav(\'dashboard\')">← عودة</a></div>',
+        'archive':'<div><h3>🗄️ أرشيف</h3><p>المؤرشف</p><a onclick="nav(\'dashboard\')">← عودة</a></div>'
+    };
+    c.innerHTML=pages[pg]||'<p>غير متاح</p>';
+};
+
+// 🔐 تسجيل الدخول (يعمل حتى بدون Firebase)
+window.doLogin=function(e){
+    e.preventDefault();
+    const em=$('em')?.value.trim(), pw=$('pw')?.value.trim();
+    if(!em||!pw||!em.includes('@'))return alert("⚠️ بيانات خاطئة");
+    
+    // محاكاة الدخول الناجح (للتجربة)
+    user={email:em,name:em.split('@')[0]};
+    $('name').textContent=user.name;
+    $('userDisplay').textContent=em;
+    $('cName').value=user.name;
+    $('cEmail').value=em;
+    nav('dashboard');
+    alert("✅ مرحباً، "+user.name+"!");
+    console.log("✅ مستخدم:",user);
+    return false;
+};
+
+// 🚪 تسجيل الخروج
+window.doLogout=function(){
+    user=null;
+    $('userDisplay').textContent='ضيف';
+    $('chatBox').innerHTML='<p style="text-align:center;color:#888;padding:40px">مرحباً! ابدأ المحادثة...</p>';
+    nav('login');
+    alert("✅ تم الخروج");
+    console.log("🚪 خروج");
+};
+
+// 💬 دردشة بسيطة (محاكاة)
+window.startChat=function(){
+    if(!user)return;
+    $('chatBox').innerHTML='<p style="text-align:center;color:#888;padding:40px">🎉 جاهز للمحادثة!</p>';
+};
+window.send=function(){
+    const msg=$('cMsg')?.value.trim();
+    if(!msg||!user)return alert("⚠️ اكتب رسالة");
+    const box=$('chatBox');
+    const div=document.createElement('div');
+    div.style.cssText='margin:8px 0;padding:8px;background:#dbeafe;border-radius:6px';
+    div.innerHTML=`<strong style="color:#2563eb">${user.name}</strong>: ${msg}`;
+    box.appendChild(div);
+    $('cMsg').value='';
+    box.scrollTop=box.scrollHeight;
+    console.log("💬 أرسل:",msg);
+};
+window.toggleSmilies=function(){
+    const b=$('smBox');
+    b.style.display=(b.style.display==='none'||!b.style.display)?'block':'none';
+};
+window.ins=function(em){
+    const i=$('cMsg');
+    if(i){i.value+=' '+em+' ';i.focus();}
+};
+window.test=function(){
+    const t=new Date().toLocaleTimeString('ar-EG');
+    $('out').innerHTML=`✅ يعمل!<br>⏰ ${t}<br>👤 ${user?.name||'ضيف'}`;
+    alert("✅ النظام يعمل!\n"+t);
+};
+
+// 📋 القوائم المنسدلة
+window.toggle=function(id){
+    hideDrops();
+    const m=$(id);
+    if(m)m.style.display=(m.style.display==='block')?'none':'block';
+};
+window.hideDrops=function(){
+    ['m1','m2','m3','m4'].forEach(id=>{
+        const el=$(id); if(el)el.style.display='none';
+    });
+};
+document.addEventListener('click',e=>{
+    if(!e.target.closest('.drop')&&!e.target.closest('.drop-c'))hideDrops();
+});
+
+// 📤 صفحة انشر
+window.swapCode=function(){
+    const v=$('codeType')?.value||'inline', b=$('codeBox');
+    if(!b)return;
+    b.value = v==='inline' 
+        ? '<iframe src="https://cbox-2.github.io/2026/?#chat" width="400" height="400"></iframe>'
+        : '<a href="#" onclick="window.open(\'https://cbox-2.github.io/2026/?#chat\',\'Chat\',\'width=400,height=400\')">افتح الدردشة</a>';
+};
+window.copyCode=function(){
+    const b=$('codeBox'); if(!b)return;
+    b.select();
+    try{document.execCommand('copy');alert("✅ تم النسخ")}catch{alert("Ctrl+C للنسخ")}
+};
+
+// بدء
+console.log("✅ جاهز!");
+</script>
 </body>
 </html>
