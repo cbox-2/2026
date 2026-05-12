@@ -12,108 +12,93 @@
         <strong>📦 صندوق التحكم</strong>
         <nav>
             <span id="userDisplay">ضيف</span>
-            <a onclick="showPage('mailbox')">صناديق</a>
-            <a onclick="showPage('settings')">حسابي</a>
-            <a onclick="doLogout()">خروج</a>
+            <a onclick="go('mailbox')">صناديق</a>
+            <a onclick="go('settings')">حسابي</a>
+            <a onclick="logout()">خروج</a>
         </nav>
     </div>
 </header>
 
 <nav class="menus">
     <div class="wrap">
-        <a onclick="showPage('dashboard')"><b>الرئيسية</b></a>
-        <a onclick="showPage('publish')">انشر</a>
+        <a onclick="go('dashboard')"><b>الرئيسية</b></a>
+        <a onclick="go('publish')">انشر</a>
         
-        <span class="drop-btn" onclick="toggleDrop('m1')">المظهر ▼</span>
-        <div id="m1" class="drop-menu">
-            <a onclick="showSub('style');hideAll()">سمات</a>
-            <a onclick="showSub('layout');hideAll()">تخطيط</a>
+        <div class="menu-wrap">
+            <span class="drop-btn" onclick="openMenu('m1')">المظهر ▼</span>
+            <div id="m1" class="drop-menu">
+                <a onclick="pick('style')">سمات</a>
+                <a onclick="pick('layout')">تخطيط</a>
+            </div>
         </div>
         
-        <span class="drop-btn" onclick="toggleDrop('m2')">خيارات ▼</span>
-        <div id="m2" class="drop-menu">
-            <a onclick="showSub('filter');hideAll()">تصفية</a>
-            <a onclick="showSub('smilies');hideAll()">رموز</a>
+        <div class="menu-wrap">
+            <span class="drop-btn" onclick="openMenu('m2')">خيارات ▼</span>
+            <div id="m2" class="drop-menu">
+                <a onclick="pick('filter')">تصفية</a>
+                <a onclick="pick('smilies')">رموز</a>
+            </div>
         </div>
         
-        <span class="drop-btn" onclick="toggleDrop('m3')">مستخدمون ▼</span>
-        <div id="m3" class="drop-menu">
-            <a onclick="showSub('users');hideAll()">مسجلون</a>
-            <a onclick="showSub('bans');hideAll()">محظورون</a>
+        <div class="menu-wrap">
+            <span class="drop-btn" onclick="openMenu('m3')">مستخدمون ▼</span>
+            <div id="m3" class="drop-menu">
+                <a onclick="pick('users')">مسجلون</a>
+                <a onclick="pick('bans')">محظورون</a>
+            </div>
         </div>
         
-        <span class="drop-btn" onclick="toggleDrop('m4')">رسائل ▼</span>
-        <div id="m4" class="drop-menu">
-            <a onclick="showSub('msgs');hideAll()">رسائل</a>
-            <a onclick="showSub('archive');hideAll()">أرشيف</a>
+        <div class="menu-wrap">
+            <span class="drop-btn" onclick="openMenu('m4')">رسائل ▼</span>
+            <div id="m4" class="drop-menu">
+                <a onclick="pick('msgs')">رسائل</a>
+                <a onclick="pick('archive')">أرشيف</a>
+            </div>
         </div>
     </div>
 </nav>
 
 <main class="wrap">
-    <section id="sec-login">
+    <section id="login">
         <h2>تسجيل الدخول</h2>
         <form onsubmit="return doLogin(event)">
-            <input type="email" id="inp-em" placeholder="البريد" value="admin@cbox.com" required>
-            <input type="password" id="inp-pw" placeholder="كلمة المرور" value="123456" required>
+            <input type="email" id="em" placeholder="البريد" value="admin@cbox.com" required>
+            <input type="password" id="pw" placeholder="كلمة المرور" value="123456" required>
             <button type="submit">دخول</button>
         </form>
-        <p><small style="cursor:pointer;color:#2563eb" onclick="alert('وضع إنشاء حساب')">إنشاء حساب جديد</small></p>
+        <p><small style="cursor:pointer;color:#2563eb" onclick="alert('وضع: إنشاء حساب')">إنشاء حساب جديد</small></p>
     </section>
 
-    <section id="sec-dash" style="display:none">
-        <h2>👋 أهلاً، <span id="lbl-name">مستخدم</span>!</h2>
-        
-        <fieldset class="classic-chat">
+    <section id="dash" style="display:none">
+        <h2>👋 أهلاً، <span id="name">مستخدم</span>!</h2>
+        <fieldset class="chat-box">
             <iframe id="chatMain" src="https://placeholder-chat.com/main?box=12345" style="width:100%;height:305px;border:0;background:#fff"></iframe>
             <iframe id="chatForm" src="https://placeholder-chat.com/form?box=12345" style="width:100%;height:107px;border:0;background:#fff"></iframe>
         </fieldset>
-
         <div class="chat-ctrl">
             <table width="100%" cellpadding="4" cellspacing="0" style="border-collapse:collapse">
-                <tr>
-                    <td style="padding:6px;background:#f8fafc;border-top:1px solid #ddd">
-                        <span id="chatStatus">🟢 متصل</span> · <a onclick="refreshChat()">🔄 تحديث</a>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="padding:8px;background:#fff;border-top:1px solid #ddd">
-                        <input type="text" id="cName" placeholder="الاسم" class="c-inp" style="width:30%">
-                        <input type="text" id="cEmail" placeholder="البريد" class="c-inp" style="width:30%">
-                        <br>
-                        <input type="text" id="cMsg" placeholder="اكتب رسالتك..." class="c-inp" style="width:65%">
-                        <button onclick="sendChat()" class="c-btn">إرسال</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="padding:6px;background:#f1f5f9;border-top:1px solid #ddd;font-size:11px">
-                        <a onclick="alert('❓ مساعدة الدردشة\n1. اكتب اسمك\n2. اكتب رسالتك\n3. اضغط إرسال')">❓ مساعدة</a> · 
-                        <a onclick="toggleSmilies()">😊 رموز</a> · 
-                        <a onclick="alert('👤 الملف: ' + (document.getElementById('cName')?.value || 'ضيف'))">👤 ملفي</a>
-                    </td>
-                </tr>
+                <tr><td style="padding:6px;background:#f8fafc;border-top:1px solid #ddd"><span id="stat">🟢 متصل</span> · <a onclick="refresh()">🔄 تحديث</a></td></tr>
+                <tr><td style="padding:8px;background:#fff;border-top:1px solid #ddd"><input type="text" id="cName" placeholder="الاسم" class="ci"><input type="text" id="cEmail" placeholder="البريد" class="ci"><br><input type="text" id="cMsg" placeholder="اكتب..." class="ci" style="width:65%"><button onclick="send()" class="cb">إرسال</button></td></tr>
+                <tr><td style="padding:6px;background:#f1f5f9;border-top:1px solid #ddd;font-size:11px"><a onclick="alert('اكتب اسمك ثم رسالتك واضغط إرسال')">❓ مساعدة</a> · <a onclick="toggleSmilies()">😊 رموز</a> · <a onclick="alert('👤 '+ (document.getElementById('cName')?.value||'ضيف'))">👤 ملفي</a></td></tr>
             </table>
         </div>
-
-        <div id="smiliesBox" style="display:none;background:#fff;border:1px solid #ddd;padding:10px;margin:10px 0;border-radius:4px">
-            <span onclick="insertSmiley('🙂')" style="cursor:pointer;font-size:18px;margin:3px">🙂</span>
-            <span onclick="insertSmiley('😂')" style="cursor:pointer;font-size:18px;margin:3px">😂</span>
-            <span onclick="insertSmiley('❤️')" style="cursor:pointer;font-size:18px;margin:3px">❤️</span>
-            <span onclick="insertSmiley('👍')" style="cursor:pointer;font-size:18px;margin:3px">👍</span>
-            <button onclick="toggleSmilies()" style="margin-right:10px;font-size:11px;padding:2px 8px">✕ إغلاق</button>
+        <div id="smBox" style="display:none;background:#fff;border:1px solid #ddd;padding:10px;margin:10px 0;border-radius:4px">
+            <span onclick="ins('🙂')" style="cursor:pointer;font-size:18px;margin:3px">🙂</span>
+            <span onclick="ins('😂')" style="cursor:pointer;font-size:18px;margin:3px">😂</span>
+            <span onclick="ins('❤️')" style="cursor:pointer;font-size:18px;margin:3px">❤️</span>
+            <span onclick="ins('👍')" style="cursor:pointer;font-size:18px;margin:3px">👍</span>
+            <button onclick="toggleSmilies()" style="margin-right:10px;font-size:11px;padding:2px 8px">✕</button>
         </div>
-
-        <button onclick="testSys()" class="c-btn" style="background:#7c3aed;margin-top:15px">🧪 اختبار</button>
-        <div id="testOut" style="margin:10px 0;font-size:12px;color:#666"></div>
-        <button onclick="doLogout()" class="c-btn" style="background:#dc2626;margin-top:10px">خروج</button>
+        <button onclick="test()" class="cb" style="background:#7c3aed;margin-top:15px">🧪 اختبار</button>
+        <div id="out" style="margin:10px 0;font-size:12px;color:#666"></div>
+        <button onclick="logout()" class="cb" style="background:#dc2626;margin-top:10px">خروج</button>
     </section>
 
-    <section id="sec-pub" style="display:none"><h2>📤 انشر</h2><p>صفحة النشر جاهزة</p><a onclick="showPage('dashboard')">← عودة</a></section>
-    <section id="sec-mail" style="display:none"><h2>📦 صندوق بريدي</h2><p>الإحصائيات هنا</p><a onclick="showPage('dashboard')">← عودة</a></section>
-    <section id="sec-set" style="display:none"><h2>⚙️ الإعدادات</h2><p>إعدادات الحساب</p><a onclick="showPage('dashboard')">← عودة</a></section>
-    <section id="sec-sub" style="display:none"></section>
+    <section id="pub" style="display:none"><h2>📤 انشر</h2><p>جاهزة</p><a onclick="go('dash')">← عودة</a></section>
+    <section id="mail" style="display:none"><h2>📦 صندوق</h2><p>إحصائيات</p><a onclick="go('dash')">← عودة</a></section>
+    <section id="set" style="display:none"><h2>⚙️ إعدادات</h2><p>حسابك</p><a onclick="go('dash')">← عودة</a></section>
+    <section id="sub" style="display:none"></section>
 </main>
-
 <footer>© 2024 صندوق التحكم</footer>
 <script src="script.js"></script>
 </body>
