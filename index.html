@@ -13,7 +13,6 @@
     <meta property="og:type" content="website">
     <meta property="og:locale" content="ar_AR">
     <meta name="theme-color" content="#2563eb">
-    
     <link href="image/x-icon;base64,AAABAAEAEBACAAAAAACwAAAAFgAAACgAAAAQAAAAIAAAAAEAAQAAAAAAQAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA" rel="icon" type="image/x-icon">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -21,7 +20,6 @@
 <script>var rcvdformresponse = function () {};</script>
 <div id="mask"></div>
 
-<!-- 🎬 شاشة التحميل -->
 <div id="loading-screen" style="position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg-body, #fff); display:flex; align-items:center; justify-content:center; z-index:9999; transition: opacity 0.3s;">
     <div style="text-align:center;">
         <div style="width:50px; height:50px; border:4px solid #e2e8f0; border-top-color:#2563eb; border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 15px;"></div>
@@ -54,14 +52,23 @@
         </div>
     </div>
 
-    <!-- 📋 شريط القوائم الفرعية -->
+    <!-- 📋 شريط القوائم المنسدلة الجديد -->
     <div id="bar3">
-        <div id="hovmenu" class="wrap" style="display: block;">
-            <a href="#" class="sublink" data-target="posts"><span class="submenuimg" style="background-position: -198px 0px"></span><span class="subtext">رسائل</span></a>
-            <a href="#" class="sublink" data-target="postsarc"><span class="submenuimg" style="background-position: 0px -44px"></span><span class="subtext">أرشيف</span></a>
-            <a href="#" class="sublink" data-target="sticky"><span class="submenuimg" style="background-position: 0px -22px"></span><span class="subtext">رسالة لاصقة</span></a>
-            <a href="#" class="sublink" data-target="channels"><span class="submenuimg" style="background-position: -22px -22px"></span><span class="subtext">القنوات</span></a>
-            <a href="#" class="sublink" data-target="webhook"><span class="submenuimg" style="background-position: 0px -178px"></span><span class="subtext">رابط الويب</span></a>
+        <div class="wrap">
+            <div class="dropdown-container">
+                <button id="dropdown-trigger" class="dropdown-btn">
+                    <span class="submenuimg" style="background-position: -198px 0px"></span>
+                    <span>رسائل</span>
+                    <span class="dropdown-arrow">▼</span>
+                </button>
+                <div id="dropdown-menu" class="dropdown-content">
+                    <a href="#" class="sublink" data-target="posts"><span class="submenuimg" style="background-position: -198px 0px"></span> رسائل</a>
+                    <a href="#" class="sublink" data-target="postsarc"><span class="submenuimg" style="background-position: 0px -44px"></span> أرشيف</a>
+                    <a href="#" class="sublink" data-target="sticky"><span class="submenuimg" style="background-position: 0px -22px"></span> رسالة لاصقة</a>
+                    <a href="#" class="sublink" data-target="channels"><span class="submenuimg" style="background-position: -22px -22px"></span> القنوات</a>
+                    <a href="#" class="sublink" data-target="webhook"><span class="submenuimg" style="background-position: 0px -178px"></span> رابط الويب</a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -69,7 +76,6 @@
 
     <div id="main" class="wrap">
         <div id="content">
-            <!-- قسم تسجيل الدخول -->
             <div id="login-section">
                 <h1>لوحة التحكم</h1>
                 <div class="notice" id="main-notice">يرجى تسجيل الدخول أدناه للوصول إلى هذه الصفحة.</div>
@@ -87,23 +93,19 @@
                 <p><a href="#" id="reset-link">نسيت كلمة المرور؟</a> | <a href="/help?id=12">تفعيل ملفات تعريف الارتباط</a></p>
             </div>
 
-            <!-- لوحة التحكم -->
             <div id="dashboard-section" style="display:none;">
                 <h1>👋 مرحباً، <span id="user-name-display">مستخدم</span>!</h1>
                 <div class="notice" style="background:#d1fae5; border-color:#6ee7b7; color:#065f46;">✅ تم تسجيل الدخول بنجاح عبر Firebase</div>
-                
                 <div class="dashboard-grid">
                     <div class="card"><h3>📊 الإحصائيات</h3><p>جلسات مسجلة: <strong id="session-count">0</strong></p></div>
                     <div class="card"><h3>⚙️ الحالة</h3><p>الحساب: <span style="color:#16a34a">نشط</span></p><p>آخر دخول: <span id="last-login">--</span></p></div>
                     <div class="card"><h3>📩 سجل الدخول</h3><ul id="login-history" style="text-align:right; padding-right:20px; margin-top:5px;"></ul></div>
                 </div>
-
                 <div class="dashboard-grid" style="margin-top:15px;">
                     <div class="card"><h3>📈 رسائل اليوم</h3><p id="today-msg-count" style="font-size:24px; font-weight:bold; color:var(--btn-bg);">0</p></div>
                     <div class="card"><h3>👥 مستخدمون نشطون (7 أيام)</h3><p id="active-users-count" style="font-size:24px; font-weight:bold; color:#16a34a;">0</p></div>
                     <div class="card" style="display:flex; align-items:center; justify-content:center;"><button id="export-btn" class="export-btn">📥 تصدير الدردشة (CSV)</button></div>
                 </div>
-
                 <div class="card" style="margin-top: 20px;">
                     <h3>💬 الدردشة المباشرة</h3>
                     <div id="chat-container" class="chat-box">
@@ -117,7 +119,6 @@
                 <button id="logout-btn" class="btn-primary" style="margin-top:20px; background:#dc2626;">تسجيل الخروج</button>
             </div>
 
-            <!-- الإعدادات -->
             <div id="settings-section" style="display:none;">
                 <h1>⚙️ الإعدادات</h1>
                 <div class="notice">إعدادات الحساب متصلة بـ Firebase وتحفظ تلقائياً.</div>
@@ -132,7 +133,6 @@
                 <p><a href="#" id="back-to-dashboard">← العودة للوحة التحكم</a></p>
             </div>
 
-            <!-- 🆕 حاوية الصفحات الفرعية -->
             <div id="subpage-view" style="display:none;"></div>
         </div>
         <div style="clear:both"></div>
@@ -149,7 +149,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="script.js"></script>
-
 <script>
 window.addEventListener('load', function() {
     setTimeout(function() {
