@@ -3,21 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>صندوق التحكم - نظام توليد لوحات الدردشة</title>
+    <title>صندوق التحكم - نظام دردشة لحظي</title>
+    <meta name="description" content="نظام دردشة فوري مثل Cbox.ws - مجاني، آمن، وسهل التضمين">
+    
+    <!-- === مكتبات خارجية === -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    
     <style>
-        /* === المتغيرات والألوان === */
+        /* === 🎨 المتغيرات والتصميم الأساسي === */
         :root {
             --primary: #2563eb; --primary-dark: #1d4ed8; --success: #16a34a;
             --danger: #dc2626; --warning: #f59e0b; --bg: #f8fafc; --card: #fff;
             --text: #1e293b; --text-muted: #64748b; --border: #e2e8f0;
-            --shadow: 0 2px 8px rgba(0,0,0,0.08);
+            --shadow: 0 2px 8px rgba(0,0,0,0.08); --chat-bg: #f1f5f9;
+            --msg-me: #dbeafe; --msg-other: #fff;
         }
         [data-theme="dark"] {
             --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --text-muted: #94a3b8;
             --border: #334155; --shadow: 0 2px 8px rgba(0,0,0,0.3);
+            --chat-bg: #0f172a; --msg-me: #1e3a8a; --msg-other: #1e293b;
         }
-
-        /* === الأساسيات === */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: Tahoma, Arial, sans-serif; }
         body { background: var(--bg); color: var(--text); direction: rtl; text-align: right; line-height: 1.6; transition: background 0.3s, color 0.3s; }
         a { color: var(--primary); text-decoration: none; cursor: pointer; }
@@ -25,13 +32,15 @@
         .wrap { max-width: 1100px; margin: 0 auto; padding: 0 15px; }
 
         /* === الهيدر === */
-        header { background: var(--card); border-bottom: 1px solid var(--border); padding: 12px 0; position: sticky; top: 0; z-index: 100; }
+        header { background: var(--card); border-bottom: 1px solid var(--border); padding: 12px 0; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow); }
         header .wrap { display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 18px; font-weight: bold; color: var(--primary); }
+        .logo { font-size: 18px; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 8px; }
         header nav { display: flex; align-items: center; gap: 15px; }
         header nav span { font-size: 13px; color: var(--text-muted); }
-        header nav a { font-size: 13px; }
-        .theme-toggle { background: none; border: 1px solid var(--border); padding: 5px 10px; border-radius: 4px; cursor: pointer; color: var(--text); }
+        header nav a { font-size: 13px; padding: 5px 8px; border-radius: 4px; transition: background 0.2s; }
+        header nav a:hover { background: var(--bg); }
+        .theme-toggle { background: none; border: 1px solid var(--border); padding: 5px 10px; border-radius: 4px; cursor: pointer; color: var(--text); font-size: 13px; }
+        .theme-toggle:hover { background: var(--bg); }
 
         /* === القوائم العلوية === */
         .top-menus { background: var(--card); border-bottom: 1px solid var(--border); padding: 0; }
@@ -61,6 +70,7 @@
         .btn-danger { background: var(--danger); }
         .btn-success { background: var(--success); }
         .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
         /* === البطاقات والجداول === */
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
@@ -68,43 +78,66 @@
         .card h4 { margin-bottom: 8px; font-size: 14px; }
         .card p { font-size: 13px; color: var(--text-muted); }
         .stat-value { font-size: 24px; font-weight: bold; color: var(--primary); }
-
         table { width: 100%; border-collapse: collapse; margin: 10px 0; }
         th, td { padding: 12px; text-align: right; border-bottom: 1px solid var(--border); font-size: 13px; }
         th { background: var(--bg); font-weight: 600; }
 
-        /* === الدردشة === */
-        .chat-box { height: 300px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); overflow-y: auto; padding: 15px; margin-bottom: 15px; }
-        .chat-msg { margin-bottom: 10px; padding: 8px 12px; background: var(--card); border-radius: 6px; border: 1px solid var(--border); }
-        .chat-msg .sender { font-weight: bold; font-size: 12px; color: var(--primary); }
-        .chat-msg .time { font-size: 10px; color: var(--text-muted); float: left; }
-        .chat-input { display: flex; gap: 10px; }
-        .chat-input input { flex: 1; }
+        /* === 💬 واجهة الدردشة الكلاسيكية === */
+        .chat-container { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--card); }
+        .chat-header { background: var(--primary); color: #fff; padding: 10px 15px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        .chat-messages { height: 350px; overflow-y: auto; padding: 15px; background: var(--chat-bg); }
+        .message { margin-bottom: 12px; padding: 8px 12px; border-radius: 6px; background: var(--msg-other); border: 1px solid var(--border); animation: fadeIn 0.3s ease; }
+        .message.me { background: var(--msg-me); border-color: #93c5fd; margin-right: 20px; }
+        .message .sender { font-weight: bold; font-size: 12px; color: var(--primary); margin-bottom: 4px; }
+        .message .time { font-size: 10px; color: var(--text-muted); float: left; }
+        .message .text { word-break: break-word; line-height: 1.4; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .chat-input-area { padding: 12px 15px; background: var(--card); border-top: 1px solid var(--border); display: flex; gap: 10px; }
+        .chat-input-area input { flex: 1; }
+        
+        /* === 👥 قائمة المتصلين === */
+        .online-users { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 15px; }
+        .online-users h4 { margin-bottom: 8px; font-size: 13px; }
+        .user-item { display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 4px 0; }
+        .user-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; }
 
-        /* === صفحة النشر === */
+        /* === 😊 الرموز التعبيرية === */
+        .smilies-panel { display: none; background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin: 10px 0; }
+        .smilies-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; }
+        .smiley { font-size: 18px; cursor: pointer; text-align: center; padding: 4px; border-radius: 4px; transition: background 0.2s; }
+        .smiley:hover { background: var(--bg); transform: scale(1.1); }
+
+        /* === 📤 صفحة النشر === */
         .code-box { width: 100%; min-height: 120px; padding: 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); font-family: monospace; font-size: 12px; direction: ltr; text-align: left; margin: 10px 0; }
         .instructions { background: var(--bg); padding: 15px; border-radius: 6px; border: 1px solid var(--border); margin: 15px 0; }
         .instructions ol { padding-right: 20px; margin: 10px 0; }
         .instructions li { margin: 5px 0; font-size: 13px; }
 
-        /* === الإشعارات === */
+        /* === ⚠️ الإشعارات === */
         .alert { padding: 12px 15px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; }
         .alert-success { background: #dcfce7; border: 1px solid #86efac; color: #166534; }
         .alert-error { background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; }
 
-        /* === التجاوب === */
+        /* === 🛡️ عناصر الحماية === */
+        .captcha-box { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+        .captcha-text { font-family: monospace; font-size: 18px; font-weight: bold; letter-spacing: 3px; background: var(--bg); padding: 8px 15px; border-radius: 4px; border: 1px solid var(--border); }
+
+        /* === 📱 التجاوب === */
         @media (max-width: 768px) {
             header .wrap { flex-direction: column; gap: 10px; }
             .top-menus .wrap { justify-content: center; }
             .dropdown { width: 100%; right: auto; left: 0; }
             .grid { grid-template-columns: 1fr; }
-            .chat-input { flex-direction: column; }
+            .chat-input-area { flex-direction: column; }
+            .smilies-grid { grid-template-columns: repeat(4, 1fr); }
+            .chat-messages { height: 250px; }
         }
     </style>
 </head>
 <body>
 
-<!-- الهيدر -->
+<!-- === الهيدر === -->
 <header>
     <div class="wrap">
         <div class="logo">📦 صندوق التحكم</div>
@@ -119,7 +152,7 @@
     </div>
 </header>
 
-<!-- القوائم العلوية -->
+<!-- === القوائم العلوية === -->
 <nav class="top-menus">
     <div class="wrap">
         <div class="menu-item">
@@ -160,10 +193,10 @@
     </div>
 </nav>
 
-<!-- المحتوى الرئيسي -->
+<!-- === المحتوى الرئيسي === -->
 <main class="wrap">
 
-    <!-- قسم الدخول -->
+    <!-- 🔐 قسم الدخول -->
     <section id="sec-login">
         <h2>🔐 تسجيل الدخول</h2>
         <div class="form-group">
@@ -172,16 +205,21 @@
         </div>
         <div class="form-group">
             <label>كلمة المرور</label>
-            <input type="password" id="login-pass" class="input" placeholder="••••••" value="123456">
+            <input type="password" id="login-pass" class="input" placeholder="••••••" value="123456" minlength="6">
         </div>
-        <button class="btn" onclick="doLogin()">دخول</button>
+        <div class="captcha-box">
+            <span class="captcha-text" id="captcha-text">ABC123</span>
+            <input type="text" id="captcha-input" class="input" placeholder="أدخل الرمز" style="width:100px">
+        </div>
+        <button class="btn" onclick="doLogin()" id="login-btn">دخول</button>
         <p style="margin-top:15px;font-size:13px"><a onclick="alert('إنشاء حساب جديد')">إنشاء حساب جديد</a></p>
     </section>
 
-    <!-- لوحة التحكم -->
+    <!-- 🏠 لوحة التحكم مع الدردشة اللحظية -->
     <section id="sec-dashboard" class="hidden">
-        <h2>👋 أهلاً، <span id="dash-name">مستخدم</span>!</h2>
+        <h2>👋 أهلاً، <span id="dash-name">مستخدم</span>! <span id="role-badge" style="font-size:11px;background:#e2e8f0;padding:2px 6px;border-radius:4px">مستخدم</span></h2>
         
+        <!-- 📊 إحصائيات سريعة -->
         <div class="grid" style="margin-bottom:25px">
             <div class="card">
                 <h4>📦 لوحاتك</h4>
@@ -192,28 +230,69 @@
                 <p class="stat-value" id="stat-msgs">0</p>
             </div>
             <div class="card">
-                <h4>👥 مستخدمون نشطون</h4>
-                <p class="stat-value" id="stat-users">0</p>
+                <h4>👥 متصلون الآن</h4>
+                <p class="stat-value" id="stat-online">0</p>
             </div>
         </div>
 
-        <h3>➕ إنشاء لوحة دردشة جديدة</h3>
-        <div class="form-group">
-            <label>اسم اللوحة</label>
-            <input type="text" id="new-box-name" class="input" placeholder="مثال: دردشة الموقع">
+        <!-- 👥 قائمة المتصلين -->
+        <div class="online-users">
+            <h4>🟢 متصلون الآن</h4>
+            <div id="online-list">
+                <div class="user-item"><span class="user-dot"></span><span>مستخدم1</span></div>
+                <div class="user-item"><span class="user-dot"></span><span>مستخدم2</span></div>
+            </div>
         </div>
-        <button class="btn btn-success" onclick="createBox()">إنشاء اللوحة</button>
 
-        <h3 style="margin-top:30px">📋 لوحاتك الحالية</h3>
-        <div id="boxes-list">
-            <p style="color:var(--text-muted)">لا توجد لوحات بعد</p>
+        <!-- 💬 واجهة الدردشة الكلاسيكية -->
+        <div class="chat-container">
+            <div class="chat-header">
+                <span id="chat-title">دردشة عامة</span>
+                <span style="font-size:12px" id="chat-status">🟢 متصل</span>
+            </div>
+            <div class="chat-messages" id="chat-box">
+                <p style="text-align:center;color:var(--text-muted);padding-top:80px">مرحباً! ابدأ المحادثة...</p>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" class="input" placeholder="اكتب رسالتك هنا..." maxlength="500">
+                <button class="btn" onclick="sendMsg()" id="send-btn">إرسال</button>
+            </div>
         </div>
+
+        <!-- 😊 لوحة الرموز -->
+        <div class="smilies-panel" id="smilies-panel">
+            <div class="smilies-grid">
+                <span class="smiley" onclick="insertSmiley('🙂')">🙂</span>
+                <span class="smiley" onclick="insertSmiley('😂')">😂</span>
+                <span class="smiley" onclick="insertSmiley('❤️')">❤️</span>
+                <span class="smiley" onclick="insertSmiley('👍')">👍</span>
+                <span class="smiley" onclick="insertSmiley('🎉')">🎉</span>
+                <span class="smiley" onclick="insertSmiley('🔥')">🔥</span>
+                <span class="smiley" onclick="insertSmiley('✨')">✨</span>
+                <span class="smiley" onclick="insertSmiley('💬')">💬</span>
+                <span class="smiley" onclick="insertSmiley('😍')">😍</span>
+                <span class="smiley" onclick="insertSmiley('🤔')">🤔</span>
+                <span class="smiley" onclick="insertSmiley('👋')">👋</span>
+                <span class="smiley" onclick="insertSmiley('🙏')">🙏</span>
+            </div>
+            <button class="btn btn-sm" style="margin-top:10px" onclick="toggleSmilies()">✕ إغلاق</button>
+        </div>
+
+        <!-- أزرار التحكم -->
+        <div style="margin-top:15px;display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-sm" onclick="toggleSmilies()">😊 رموز</button>
+            <button class="btn btn-sm" onclick="refreshChat()">🔄 تحديث</button>
+            <button class="btn btn-sm btn-danger" id="admin-delete-btn" onclick="clearChat()" style="display:none">🗑️ مسح الكل (أدمن)</button>
+            <button class="btn btn-sm" style="background:#7c3aed" onclick="test()">🧪 اختبار</button>
+            <button class="btn btn-sm btn-danger" onclick="doLogout()">🚪 خروج</button>
+        </div>
+        <div id="out" style="margin-top:10px;font-size:12px;color:var(--text-muted)"></div>
     </section>
 
-    <!-- صفحة انشر -->
+    <!-- 📤 صفحة النشر (Embed Generator) -->
     <section id="sec-publish" class="hidden">
         <h2>📤 Publish Your Chat Box</h2>
-        <p style="margin-bottom:20px;color:var(--text-muted)">Embed your chat box directly into any website using your own domain.</p>
+        <p style="margin-bottom:20px;color:var(--text-muted)">Embed your real-time chat box directly into any website.</p>
         
         <div class="form-group">
             <label>Your website URL:</label>
@@ -234,9 +313,9 @@
         <div class="form-group">
             <label>Code variation:</label>
             <select id="code-var" class="input" onchange="updateCode()" style="margin-bottom:10px">
-                <option value="inline">Standard inline</option>
+                <option value="inline">Standard inline (iframe)</option>
                 <option value="popup">Popup link</option>
-                <option value="button">Fixed button</option>
+                <option value="button">Fixed chat button</option>
             </select>
             <textarea id="code-box" class="code-box" readonly></textarea>
             <div style="display:flex;gap:10px;margin-top:10px">
@@ -252,7 +331,8 @@
                 <option value="generic">Any site</option>
                 <option value="blogger" selected>Blogger / Blogspot</option>
                 <option value="wordpress">WordPress</option>
-                <option value="forum">Forums</option>
+                <option value="forum">Forums (phpBB, SMF)</option>
+                <option value="wix">Wix.com</option>
             </select>
         </div>
         <div id="instr-generic" class="instructions">
@@ -276,16 +356,15 @@
         <div style="margin-top:20px;padding:15px;background:#fff7ed;border:1px solid #fed7aa;border-radius:6px">
             <strong style="color:#c2410c">Problems installing?</strong>
             <ul style="margin-top:8px;padding-right:20px;line-height:1.8;color:var(--text-muted)">
-                <li>If you see code instead of chat, your editor may strip HTML.</li>
-                <li>Try an "iframe" or "embed" widget for your platform.</li>
-                <li>URL required? Use: <code style="background:var(--bg);padding:2px 6px;border-radius:3px">https://cbox-2.github.io/2026/?box=YOUR_ID</code></li>
+                <li>If you see code instead of chat, your editor may strip HTML. Try a "Custom HTML" widget.</li>
+                <li>URL required? Use: <code style="background:var(--bg);padding:2px 6px;border-radius:3px">https://cbox-2.github.io/2026/?box=YOUR_BOX_ID</code></li>
                 <li>Quick Link: <a href="https://cbox-2.github.io/2026/" target="_blank">https://cbox-2.github.io/2026/</a></li>
             </ul>
         </div>
         <a onclick="nav('dashboard')" style="margin-top:20px;display:inline-block">← Back to Dashboard</a>
     </section>
 
-    <!-- الإحصائيات -->
+    <!-- 📊 الإحصائيات -->
     <section id="sec-stats" class="hidden">
         <h2>📊 إحصائيات النظام</h2>
         <div class="grid" style="margin-bottom:25px">
@@ -299,7 +378,7 @@
         <a onclick="nav('dashboard')" style="margin-right:15px">← العودة</a>
     </section>
 
-    <!-- الإعدادات -->
+    <!-- ⚙️ الإعدادات -->
     <section id="sec-settings" class="hidden">
         <h2>⚙️ إعدادات الحساب</h2>
         <div class="form-group">
@@ -310,11 +389,14 @@
             <label>البريد الإلكتروني</label>
             <input type="email" id="set-email" class="input" value="user@example.com" readonly>
         </div>
+        <div class="form-group">
+            <label><input type="checkbox" id="notif-chk"> تفعيل إشعارات المتصفح</label>
+        </div>
         <button class="btn" onclick="saveSettings()">حفظ التغييرات</button>
         <a onclick="nav('dashboard')" style="margin-right:15px">← العودة</a>
     </section>
 
-    <!-- الصفحات الفرعية -->
+    <!-- 📄 الصفحات الفرعية -->
     <section id="sec-sub" class="hidden">
         <h2 id="sub-title">عنوان الصفحة</h2>
         <div id="sub-content" style="padding:20px;background:var(--bg);border-radius:8px"></div>
@@ -328,65 +410,342 @@
 </footer>
 
 <script>
-/* === 🔑 إعدادات النظام === */
-const BASE_URL = 'https://cbox-2.github.io/2026/';
+/* === 🔑 تهيئة Firebase === */
+const firebaseConfig = {
+    apiKey: "AIzaSyD_UssZllzECYbTMR_0NCTzEGAIMeZAcos",
+    authDomain: "cbox22026.firebaseapp.com",
+    projectId: "cbox22026",
+    storageBucket: "cbox22026.firebasestorage.app",
+    messagingSenderId: "175894881657",
+    appId: "1:175894881657:web:ae5e693d843ee594eb7ba8",
+    measurementId: "G-0BP0P4KWL8"
+};
+
+/* === 🌐 المتغيرات العامة === */
+let auth, db, currentUser = null, userRole = 'user', currentBox = 'default';
+let unsubChat = null, captchaCode = '';
 const $ = id => document.getElementById(id);
+const BASE_URL = 'https://cbox-2.github.io/2026/';
 
-/* === 🌐 بيانات وهمية للتجربة (يمكن ربطها بـ Firebase لاحقاً) === */
-let currentUser = null;
-let userRole = 'user'; // 'admin' or 'user'
-let boxes = []; // [{id, name, createdAt, messages:[]}]
-let allMessages = []; // [{id, boxId, sender, text, timestamp}]
+/* === 🚀 بدء النظام === */
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        firebase.initializeApp(firebaseConfig);
+        auth = firebase.auth();
+        db = firebase.firestore();
+        console.log('✅ Firebase مهيأ');
+        
+        // توليد كود CAPTCHA
+        generateCaptcha();
+        
+        // مراقبة حالة المصادقة
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                checkRoleAndLoad();
+            } else {
+                currentUser = null;
+                nav('login');
+            }
+        });
+        
+        // تحميل التفضيلات
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+        
+        // معالجة الهاش في الرابط (للدعم المضمن)
+        handleHashRoute();
+        
+    } catch (err) {
+        console.error('❌ خطأ في التهيئة:', err);
+        alert('حدث خطأ في تحميل النظام. تأكد من اتصال الإنترنت.');
+    }
+});
 
-/* === 🧭 نظام التنقل === */
+/* === 🧭 نظام التوجيه (مثل cbox.ws) === */
+function handleHashRoute() {
+    const hash = window.location.hash.replace('#', '').replace('?', '');
+    const params = new URLSearchParams(hash);
+    const boxId = params.get('box');
+    
+    if (boxId) {
+        // وضع التضمين: عرض الدردشة فقط
+        currentBox = boxId;
+        document.querySelector('header').style.display = 'none';
+        document.querySelector('.top-menus').style.display = 'none';
+        document.querySelector('main').style.padding = '0';
+        document.querySelector('footer').style.display = 'none';
+        nav('dashboard');
+        initRealtimeChat();
+    }
+}
+
 function nav(section) {
     console.log('🔀 Navigation:', section);
-    // إخفاء كل الأقسام
     document.querySelectorAll('main section').forEach(sec => sec.classList.add('hidden'));
-    // إظهار القسم المطلوب
     const target = $('sec-' + section);
     if (target) {
         target.classList.remove('hidden');
-        if (section === 'dashboard' && currentUser) loadDashboard();
+        if (section === 'dashboard' && currentUser) {
+            loadDashboard();
+            if (!unsubChat) initRealtimeChat();
+        }
         if (section === 'publish') updateCode();
         if (section === 'stats') loadStats();
     }
     closeAll();
 }
 
-/* === 🔐 تسجيل الدخول (محاكاة) === */
-function doLogin() {
+/* === 🔐 تسجيل الدخول مع CAPTCHA === */
+function generateCaptcha() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    captchaCode = '';
+    for (let i = 0; i < 6; i++) captchaCode += chars.charAt(Math.floor(Math.random() * chars.length));
+    $('captcha-text').textContent = captchaCode;
+}
+
+async function doLogin() {
     const email = $('login-email')?.value.trim();
     const pass = $('login-pass')?.value.trim();
-    if (!email || !pass) return alert('⚠️ املأ جميع الحقول');
+    const captchaInput = $('captcha-input')?.value.trim().toUpperCase();
     
-    // محاكاة الدخول الناجح
-    currentUser = { email, name: email.split('@')[0], id: Date.now() };
+    if (!email || !pass) return alert('⚠️ املأ جميع الحقول');
+    if (captchaInput !== captchaCode) {
+        alert('⚠️ رمز CAPTCHA غير صحيح');
+        generateCaptcha();
+        return;
+    }
+    
+    const btn = $('login-btn');
+    btn.disabled = true; btn.textContent = 'جاري...';
+    
+    try {
+        await auth.signInWithEmailAndPassword(email, pass);
+        // سيتم التعامل مع النجاح عبر onAuthStateChanged
+    } catch (err) {
+        let msg = 'حدث خطأ';
+        if (err.code === 'auth/invalid-credential') msg = 'بيانات الدخول غير صحيحة';
+        else if (err.code === 'auth/too-many-requests') msg = 'محاولات كثيرة، انتظر قليلاً';
+        alert('❌ ' + msg);
+    } finally {
+        btn.disabled = false; btn.textContent = 'دخول';
+        generateCaptcha();
+        $('captcha-input').value = '';
+    }
+}
+
+async function checkRoleAndLoad() {
+    if (!currentUser) return;
+    const email = currentUser.email;
+    
+    // فحص الحظر
+    try {
+        const banSnap = await db.collection('banned').doc(email).get();
+        if (banSnap.exists) {
+            alert('🚫 حسابك محظور. تواصل مع الإدارة.');
+            auth.signOut();
+            return;
+        }
+    } catch (e) { console.warn('⚠️ فحص الحظر:', e); }
+    
+    // تحديد الصلاحيات
     userRole = email === 'admin@cbox.com' ? 'admin' : 'user';
     
     // تحديث الواجهة
-    $('user-display').textContent = currentUser.name;
-    $('dash-name').textContent = currentUser.name;
-    $('set-email').value = currentUser.email;
+    $('user-display').textContent = currentUser.displayName || email.split('@')[0];
+    $('dash-name').textContent = currentUser.displayName || email.split('@')[0];
+    $('set-email').value = email;
+    $('role-badge').textContent = userRole === 'admin' ? 'أدمن 👑' : 'مستخدم 👤';
+    $('role-badge').style.background = userRole === 'admin' ? '#fef3c7' : '#e2e8f0';
     $('logout-link').classList.remove('hidden');
     
-    // إنشاء لوحة تجريبية إذا كانت جديدة
-    if (boxes.length === 0) {
-        boxes.push({ id: 'box-' + Date.now(), name: 'دردشة تجريبية', createdAt: new Date(), messages: [] });
+    // إظهار زر الأدمن إذا لزم
+    if (userRole === 'admin') {
+        $('admin-delete-btn').style.display = 'inline-block';
     }
     
     nav('dashboard');
-    alert('✅ مرحباً، ' + currentUser.name + '!');
-    console.log('✅ Logged in:', currentUser);
+    alert('✅ مرحباً، ' + (currentUser.displayName || email.split('@')[0]) + '!');
 }
 
-/* === 🚪 تسجيل الخروج === */
 function doLogout() {
+    if (unsubChat) unsubChat();
+    auth.signOut();
     currentUser = null;
     $('user-display').textContent = 'ضيف';
     $('logout-link').classList.add('hidden');
+    $('admin-delete-btn').style.display = 'none';
     nav('login');
     alert('✅ تم تسجيل الخروج');
+}
+
+/* === 💬 الدردشة اللحظية (Firestore Realtime) === */
+function initRealtimeChat() {
+    if (!currentUser || unsubChat) return;
+    
+    $('chat-box').innerHTML = '<p style="text-align:center;color:var(--text-muted);padding-top:80px">جاري التحميل...</p>';
+    
+    // الاستماع للرسائل الجديدة لحظياً
+    unsubChat = db.collection('boxes').doc(currentBox).collection('messages')
+        .orderBy('timestamp', 'desc')
+        .limit(50)
+        .onSnapshot(snapshot => {
+            $('chat-box').innerHTML = '';
+            if (snapshot.empty) {
+                $('chat-box').innerHTML = '<p style="text-align:center;color:var(--text-muted);padding-top:80px">🎉 لا توجد رسائل بعد. كن أول من يكتب!</p>';
+                return;
+            }
+            
+            // عرض الرسائل (معكوسة للظهور من الأقدم للأحدث)
+            const msgs = [];
+            snapshot.forEach(doc => msgs.push({ id: doc.id, ...doc.data() }));
+            msgs.reverse().forEach(m => renderMessage(m));
+            
+            // النزول لأسفل الدردشة
+            $('chat-box').scrollTop = $('chat-box').scrollHeight;
+            
+            // تحديث حالة الاتصال
+            $('chat-status').textContent = '🟢 ' + msgs.length + ' رسالة';
+            
+        }, err => {
+            console.error('❌ خطأ في الدردشة:', err);
+            $('chat-box').innerHTML = `<p style="color:var(--danger);text-align:center;padding:20px">⚠️ ${err.message?.includes('permission') ? 'أذونات قاعدة البيانات مطلوبة' : 'فشل التحميل'}</p>`;
+        });
+    
+    // تحديث قائمة المتصلين (محاكاة)
+    updateOnlineUsers();
+}
+
+function renderMessage(m) {
+    const div = document.createElement('div');
+    const isMe = m.senderEmail === currentUser?.email;
+    div.className = 'message' + (isMe ? ' me' : '');
+    
+    const time = m.timestamp ? new Date(m.timestamp.toDate()).toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'}) : '';
+    
+    // تنظيف النص لمنع XSS
+    const cleanText = escapeHtml(m.text);
+    const cleanSender = escapeHtml(m.senderName || 'مستخدم');
+    
+    div.innerHTML = `
+        <div class="sender">${cleanSender} ${isMe ? '(أنت)' : ''}</div>
+        <span class="time">${time}</span>
+        <div class="text">${cleanText}</div>
+    `;
+    
+    // زر حذف للأدمن أو للمرسل
+    if (userRole === 'admin' || isMe) {
+        const delBtn = document.createElement('span');
+        delBtn.textContent = '🗑️';
+        delBtn.style.cssText = 'cursor:pointer;float:left;margin-top:4px;font-size:12px;opacity:0.6';
+        delBtn.title = 'حذف الرسالة';
+        delBtn.onclick = () => { if(confirm('حذف هذه الرسالة؟')) deleteMessage(m.id); };
+        div.appendChild(delBtn);
+    }
+    
+    $('chat-box').appendChild(div);
+}
+
+async function sendMsg() {
+    const txt = $('chat-input')?.value.trim();
+    if (!txt || !currentUser) return;
+    
+    // فلترة الكلمات المحظورة (محاكاة)
+    const bannedWords = ['spam', 'badword'];
+    if (bannedWords.some(w => txt.toLowerCase().includes(w))) {
+        return alert('⚠️ تحتوي رسالتك على كلمات غير مسموحة');
+    }
+    
+    const btn = $('send-btn');
+    btn.disabled = true; btn.textContent = '⏳';
+    
+    try {
+        await db.collection('boxes').doc(currentBox).collection('messages').add({
+            text: txt,
+            senderName: currentUser.displayName || currentUser.email.split('@')[0],
+            senderEmail: currentUser.email,
+            userId: currentUser.uid,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            ip: 'masked' // يمكن إضافة IP حقيقي عبر Firebase Functions
+        });
+        $('chat-input').value = '';
+        playSound(); // صوت محلي للإرسال
+        
+    } catch (err) {
+        console.error('❌ فشل الإرسال:', err);
+        alert('❌ فشل إرسال الرسالة. تأكد من اتصال الإنترنت.');
+    } finally {
+        btn.disabled = false; btn.textContent = 'إرسال';
+    }
+}
+
+async function deleteMessage(msgId) {
+    if (userRole !== 'admin' && !confirm('حذف الرسالة؟')) return;
+    try {
+        await db.collection('boxes').doc(currentBox).collection('messages').doc(msgId).delete();
+    } catch (err) {
+        alert('❌ فشل الحذف');
+    }
+}
+
+function clearChat() {
+    if (userRole !== 'admin' || !confirm('⚠️ هل تريد مسح جميع الرسائل في هذه اللوحة؟')) return;
+    // ملاحظة: هذا يتطلب صلاحيات خاصة في Firestore
+    alert('ℹ️ هذه الميزة تتطلب إعداد قواعد Firestore متقدمة. يمكن تفعيلها لاحقاً.');
+}
+
+function refreshChat() {
+    $('chat-status').textContent = '🔄 جاري...';
+    setTimeout(() => {
+        $('chat-status').textContent = '🟢 متصل';
+        if (unsubChat) unsubChat();
+        initRealtimeChat();
+    }, 800);
+}
+
+/* === 👥 قائمة المتصلين (محاكاة) === */
+function updateOnlineUsers() {
+    // في النظام الحقيقي، نستخدم Firestore لحضور المستخدمين
+    const users = ['مستخدم1', 'مستخدم2', 'أدمن'];
+    const list = $('online-list');
+    list.innerHTML = users.map(u => `<div class="user-item"><span class="user-dot"></span><span>${u}</span></div>`).join('');
+    $('stat-online').textContent = users.length;
+}
+
+/* === 😊 الرموز التعبيرية === */
+function toggleSmilies() {
+    const panel = $('smilies-panel');
+    panel.style.display = (panel.style.display === 'none' || !panel.style.display) ? 'block' : 'none';
+}
+function insertSmiley(em) {
+    const input = $('chat-input');
+    if (input) {
+        input.value += ' ' + em + ' ';
+        input.focus();
+    }
+}
+
+/* === 🔔 إشعارات المتصفح === */
+function requestNotifPermission() {
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+}
+function showBrowserNotif(text) {
+    if (Notification.permission === 'granted' && document.hidden) {
+        new Notification('صندوق التحكم', { body: 'رسالة جديدة: ' + text.substring(0, 30) + '...', icon: '📦' });
+    }
+}
+function playSound() {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.frequency.value = 800; g.gain.value = 0.1;
+        o.start(); g.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.2);
+        o.stop(ctx.currentTime + 0.2);
+    } catch(e) {}
 }
 
 /* === 📋 القوائم المنسدلة === */
@@ -420,57 +779,7 @@ function showSub(key) {
     $('sub-content').innerHTML = subPages[key];
 }
 
-/* === 📦 إدارة اللوحات === */
-function createBox() {
-    const name = $('new-box-name')?.value.trim();
-    if (!name || !currentUser) return alert('⚠️ أدخل اسم اللوحة');
-    
-    const newBox = {
-        id: 'box-' + Math.random().toString(36).slice(2, 8),
-        name,
-        createdAt: new Date(),
-        messages: [],
-        settings: { theme: 'light', width: '400px', height: '400px' }
-    };
-    boxes.push(newBox);
-    $('new-box-name').value = '';
-    loadDashboard();
-    alert('✅ تم إنشاء اللوحة: ' + name);
-}
-
-function loadDashboard() {
-    if (!currentUser) return;
-    $('stat-boxes').textContent = boxes.filter(b => true).length; // كل اللوحات للمستخدم الحالي
-    $('stat-msgs').textContent = allMessages.length;
-    $('stat-users').textContent = new Set(boxes.flatMap(b => b.messages?.map(m => m.sender))).size || 1;
-    
-    const list = $('boxes-list');
-    if (boxes.length === 0) {
-        list.innerHTML = '<p style="color:var(--text-muted)">لا توجد لوحات بعد</p>';
-        return;
-    }
-    list.innerHTML = boxes.map(box => `
-        <div class="card" style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
-            <div>
-                <strong>${box.name}</strong><br>
-                <small style="color:var(--text-muted)">ID: ${box.id}</small>
-            </div>
-            <div style="display:flex;gap:8px">
-                <button class="btn btn-sm" onclick="getEmbed('${box.id}')">📤 تضمين</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteBox('${box.id}')">🗑️ حذف</button>
-            </div>
-        </div>
-    `).join('');
-}
-
-function deleteBox(id) {
-    if (!confirm('هل تريد حذف هذه اللوحة نهائياً؟')) return;
-    boxes = boxes.filter(b => b.id !== id);
-    loadDashboard();
-    alert('✅ تم حذف اللوحة');
-}
-
-/* === 📤 صفحة النشر - توليد الأكواد === */
+/* === 📤 صفحة النشر - توليد أكواد التضمين === */
 function generateTag() {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
     let tag = '';
@@ -490,15 +799,15 @@ function updateCode() {
     const codes = {
         'inline': `<!-- BEGIN CHAT BOX - ${BASE_URL} -->
 <div id="cboxdiv" style="position:relative;margin:0 auto;width:400px">
-<iframe src="${YOUR_URL}&sec=main" width="100%" height="293" frameborder="0" scrolling="auto"></iframe>
-<iframe src="${YOUR_URL}&sec=form" width="100%" height="107" frameborder="0" scrolling="no"></iframe>
+<iframe src="${YOUR_URL}&sec=main" width="100%" height="293" frameborder="0" scrolling="auto" allowtransparency="yes"></iframe>
+<iframe src="${YOUR_URL}&sec=form" width="100%" height="107" frameborder="0" scrolling="no" allowtransparency="yes"></iframe>
 </div>
 <!-- END CHAT BOX -->`,
         'popup': `<script>
-function popchat(){window.open("${YOUR_URL}","Chat","width=400,height=400");}
+function popchat(){window.open("${YOUR_URL}","Chat","width=400,height=400,toolbar=no,scrollbars=no");}
 <\/script>
 <a href="JavaScript:popchat()">Open my Chat Box</a>`,
-        'button': `<div id="chatbtn" style="position:fixed;bottom:10px;right:10px;padding:8px 16px;background:#2563eb;color:#fff;border-radius:6px;cursor:pointer">💬 Chat</div>
+        'button': `<div id="chatbtn" style="position:fixed;bottom:10px;right:10px;padding:8px 16px;background:#2563eb;color:#fff;border-radius:6px;cursor:pointer;z-index:9999">💬 Chat</div>
 <script>
 document.getElementById('chatbtn').onclick=function(){window.open("${YOUR_URL}","Chat","width=400,height=450");};
 <\/script>`
@@ -510,6 +819,7 @@ function copyCode() {
     const box = $('code-box');
     if (!box) return;
     box.select();
+    box.setSelectionRange(0, 99999);
     try {
         document.execCommand('copy');
         alert('✅ Code copied to clipboard!');
@@ -533,42 +843,47 @@ function updateInstructions() {
     if (target) target.style.display = 'block';
 }
 
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
 /* === 📊 الإحصائيات === */
-function loadStats() {
-    $('stat-total').textContent = allMessages.length.toLocaleString('ar-EG');
-    $('stat-today').textContent = allMessages.filter(m => {
-        const d = m.timestamp || new Date();
-        return new Date(d).toDateString() === new Date().toDateString();
-    }).length.toLocaleString('ar-EG');
-    $('stat-active').textContent = new Set(allMessages.map(m => m.sender)).size || 1;
-    
-    // رسم بياني بسيط
-    const chart = $('chart');
-    chart.innerHTML = '';
-    const days = ['أحد','إثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
-    const counts = [12, 8, 15, 3, 20, 10, 5]; // بيانات تجريبية
-    const max = Math.max(...counts);
-    counts.forEach((c, i) => {
-        const h = Math.max(5, (c / max) * 100);
-        chart.innerHTML += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">
-            <div style="width:100%;background:var(--primary);border-radius:4px 4px 0 0;transition:height 0.5s" style="height:${h}%"></div>
-            <div style="font-size:10px;color:var(--text-muted);margin-top:4px">${days[i]}</div>
-        </div>`;
-    });
+async function loadStats() {
+    if (!currentUser) return;
+    try {
+        const snap = await db.collection('boxes').doc(currentBox).collection('messages').get();
+        const total = snap.size;
+        const today = snap.docs.filter(d => {
+            if (!d.data().timestamp) return false;
+            const msgDate = d.data().timestamp.toDate();
+            const now = new Date();
+            return msgDate.toDateString() === now.toDateString();
+        }).length;
+        const uniqueUsers = new Set(snap.docs.map(d => d.data().senderEmail)).size;
+        
+        $('stat-total').textContent = total.toLocaleString('ar-EG');
+        $('stat-today').textContent = today.toLocaleString('ar-EG');
+        $('stat-active').textContent = uniqueUsers.toLocaleString('ar-EG');
+        
+        // رسم بياني بسيط (بيانات تجريبية)
+        const chart = $('chart');
+        chart.innerHTML = '';
+        const days = ['أحد','إثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
+        const counts = [12, 8, 15, 3, 20, 10, 5];
+        const max = Math.max(...counts);
+        counts.forEach((c, i) => {
+            const h = Math.max(5, (c / max) * 100);
+            chart.innerHTML += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">
+                <div style="width:100%;background:var(--primary);border-radius:4px 4px 0 0;transition:height 0.5s;height:${h}%"></div>
+                <div style="font-size:10px;color:var(--text-muted);margin-top:4px">${days[i]}</div>
+            </div>`;
+        });
+    } catch (err) {
+        console.error('❌ خطأ في الإحصائيات:', err);
+    }
 }
 
 function exportCSV() {
-    let csv = '"التاريخ","الوقت","المرسل","الرسالة"\n';
-    allMessages.forEach(m => {
-        const d = m.timestamp ? new Date(m.timestamp) : new Date();
-        csv += `"${d.toLocaleDateString('ar-EG')}","${d.toLocaleTimeString('ar-EG')}","${m.sender}","${(m.text||'').replace(/"/g,'""')}"\n`;
-    });
+    let csv = '"التاريخ","الوقت","المرسل","البريد","الرسالة"\n';
+    // في النظام الحقيقي، نجلب البيانات من Firebase
+    csv += `"${new Date().toLocaleDateString('ar-EG')}","${new Date().toLocaleTimeString('ar-EG')}","مستخدم","user@example.com","رسالة تجريبية"\n`;
+    
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -582,6 +897,7 @@ function exportCSV() {
 function saveSettings() {
     const name = $('set-name')?.value.trim();
     if (!name) return alert('⚠️ أدخل اسماً');
+    // في النظام الحقيقي: تحديث Firestore
     $('dash-name').textContent = name;
     $('user-display').textContent = name;
     alert('✅ تم حفظ التغييرات');
@@ -593,13 +909,29 @@ function toggleTheme() {
     document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
     localStorage.setItem('theme', isDark ? 'light' : 'dark');
 }
-// تحميل التفضيل المحفوظ
-if (localStorage.getItem('theme') === 'dark') {
-    document.documentElement.setAttribute('data-theme', 'dark');
+
+/* === 🛡️ دوال الحماية === */
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
-/* === بدء النظام === */
-console.log('✅ نظام لوحات الدردشة جاهز على:', BASE_URL);
+/* === 🧪 اختبار النظام === */
+function test() {
+    const t = new Date().toLocaleTimeString('ar-EG');
+    $('out').innerHTML = `✅ يعمل!<br>⏰ ${t}<br>👤 ${currentUser?.displayName || 'ضيف'}<br>🔗 ${BASE_URL}`;
+    alert(`✅ النظام يعمل!\nالوقت: ${t}\nالرابط: ${BASE_URL}`);
+}
+
+/* === 📦 إدارة اللوحات (محاكاة) === */
+function loadDashboard() {
+    if (!currentUser) return;
+    // في النظام الحقيقي: جلب اللوحات من Firestore
+    $('stat-boxes').textContent = '1';
+    $('stat-msgs').textContent = '0';
+}
 </script>
 
 </body>
