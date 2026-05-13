@@ -3,286 +3,603 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>صندوق التحكم - القوائم تعمل 100%</title>
+    <title>صندوق التحكم - نظام توليد لوحات الدردشة</title>
     <style>
-        /* === 1. التنسيقات الأساسية === */
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Tahoma, sans-serif; }
-        body { background: #f4f6f9; color: #333; direction: rtl; }
-        a { text-decoration: none; cursor: pointer; color: #2563eb; }
+        /* === المتغيرات والألوان === */
+        :root {
+            --primary: #2563eb; --primary-dark: #1d4ed8; --success: #16a34a;
+            --danger: #dc2626; --warning: #f59e0b; --bg: #f8fafc; --card: #fff;
+            --text: #1e293b; --text-muted: #64748b; --border: #e2e8f0;
+            --shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        [data-theme="dark"] {
+            --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --text-muted: #94a3b8;
+            --border: #334155; --shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        /* === الأساسيات === */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Tahoma, Arial, sans-serif; }
+        body { background: var(--bg); color: var(--text); direction: rtl; text-align: right; line-height: 1.6; transition: background 0.3s, color 0.3s; }
+        a { color: var(--primary); text-decoration: none; cursor: pointer; }
         a:hover { text-decoration: underline; }
-        .wrap { max-width: 960px; margin: 0 auto; padding: 0 15px; }
+        .wrap { max-width: 1100px; margin: 0 auto; padding: 0 15px; }
 
-        /* === 2. الهيدر === */
-        header { background: #fff; padding: 12px 0; border-bottom: 1px solid #ddd; }
+        /* === الهيدر === */
+        header { background: var(--card); border-bottom: 1px solid var(--border); padding: 12px 0; position: sticky; top: 0; z-index: 100; }
         header .wrap { display: flex; justify-content: space-between; align-items: center; }
-        header nav span { font-weight: bold; margin-left: 10px; color: #555; }
-        header nav a { margin-right: 15px; font-size: 13px; }
+        .logo { font-size: 18px; font-weight: bold; color: var(--primary); }
+        header nav { display: flex; align-items: center; gap: 15px; }
+        header nav span { font-size: 13px; color: var(--text-muted); }
+        header nav a { font-size: 13px; }
+        .theme-toggle { background: none; border: 1px solid var(--border); padding: 5px 10px; border-radius: 4px; cursor: pointer; color: var(--text); }
 
-        /* === 3. شريط القوائم (الجزء المهم) === */
-        .menus { background: #e2e8f0; padding: 0; border-bottom: 1px solid #ccc; }
-        .menus .wrap { display: flex; align-items: center; gap: 5px; overflow: visible !important; } /* مهم جداً للظهور */
+        /* === القوائم العلوية === */
+        .top-menus { background: var(--card); border-bottom: 1px solid var(--border); padding: 0; }
+        .top-menus .wrap { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; }
+        .menu-item { position: relative; }
+        .menu-btn { padding: 12px 15px; cursor: pointer; font-size: 13px; display: block; font-weight: 500; transition: background 0.2s; }
+        .menu-btn:hover { background: var(--bg); }
+        .dropdown { display: none; position: absolute; top: 100%; right: 0; background: var(--card); border: 1px solid var(--border); border-radius: 0 0 6px 6px; min-width: 180px; z-index: 9999; box-shadow: var(--shadow); }
+        .dropdown.active { display: block !important; }
+        .dropdown a { display: block; padding: 10px 15px; color: var(--text); border-bottom: 1px solid var(--border); font-size: 12px; }
+        .dropdown a:hover { background: var(--bg); color: var(--primary); }
 
-        /* حاوية القائمة - تجعل الزر والقائمة مرتبطين */
-        .menu-item { position: relative; display: inline-block; }
-        
-        /* زر القائمة */
-        .menu-btn { 
-            padding: 10px 12px; 
-            cursor: pointer; 
-            font-size: 13px; 
-            display: block; 
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-        .menu-btn:hover { background: #cbd5e1; color: #1e293b; }
-        .menu-btn:active { background: #94a3b8; }
-
-        /* القائمة المنسدلة - مخفية افتراضياً */
-        .dropdown {
-            display: none;
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: #fff;
-            border: 1px solid #ccc;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-            min-width: 160px;
-            z-index: 9999; /* رقم عالي جداً لتظهر فوق كل شيء */
-            border-radius: 0 0 4px 4px;
-        }
-
-        /* الكلاس الذي سيضيفه الجافاسكربت لإظهار القائمة */
-        .dropdown.active { display: block !important; } /* !important لضمان التغلب على أي ستايل آخر */
-
-        .dropdown a {
-            display: block;
-            padding: 10px 15px;
-            color: #333;
-            border-bottom: 1px solid #eee;
-            font-size: 12px;
-        }
-        .dropdown a:hover { background: #f1f5f9; color: #000; }
-
-        /* === 4. المحتوى والأقسام === */
-        main { padding: 20px 0; min-height: 400px; }
-        section { background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
-        h2 { margin-bottom: 15px; color: #1e293b; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
-        
-        /* إخفاء الأقسام غير النشطة */
+        /* === المحتوى الرئيسي === */
+        main { padding: 25px 0; min-height: 500px; }
+        section { background: var(--card); padding: 25px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; box-shadow: var(--shadow); }
         .hidden { display: none !important; }
+        h1, h2 { margin-bottom: 20px; color: var(--text); border-bottom: 2px solid var(--border); padding-bottom: 12px; }
+        h3 { margin: 15px 0 10px; color: var(--text); }
 
-        /* تنسيقات مساعدة للنموذج والدردشة */
-        .form-box { max-width: 300px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .input { width: 100%; padding: 8px; margin: 5px 0 15px; border: 1px solid #ccc; border-radius: 4px; }
-        .btn { background: #2563eb; color: #fff; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; }
-        .chat-area { height: 200px; border: 1px solid #ccc; background: #f9f9f9; padding: 10px; margin-bottom: 10px; overflow-y: auto; }
+        /* === النماذج والأزرار === */
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 13px; }
+        .input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 13px; }
+        .input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .btn { padding: 10px 20px; background: var(--primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        .btn-danger { background: var(--danger); }
+        .btn-success { background: var(--success); }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+        /* === البطاقات والجداول === */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
+        .card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 15px; }
+        .card h4 { margin-bottom: 8px; font-size: 14px; }
+        .card p { font-size: 13px; color: var(--text-muted); }
+        .stat-value { font-size: 24px; font-weight: bold; color: var(--primary); }
+
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { padding: 12px; text-align: right; border-bottom: 1px solid var(--border); font-size: 13px; }
+        th { background: var(--bg); font-weight: 600; }
+
+        /* === الدردشة === */
+        .chat-box { height: 300px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); overflow-y: auto; padding: 15px; margin-bottom: 15px; }
+        .chat-msg { margin-bottom: 10px; padding: 8px 12px; background: var(--card); border-radius: 6px; border: 1px solid var(--border); }
+        .chat-msg .sender { font-weight: bold; font-size: 12px; color: var(--primary); }
+        .chat-msg .time { font-size: 10px; color: var(--text-muted); float: left; }
+        .chat-input { display: flex; gap: 10px; }
+        .chat-input input { flex: 1; }
+
+        /* === صفحة النشر === */
+        .code-box { width: 100%; min-height: 120px; padding: 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); font-family: monospace; font-size: 12px; direction: ltr; text-align: left; margin: 10px 0; }
+        .instructions { background: var(--bg); padding: 15px; border-radius: 6px; border: 1px solid var(--border); margin: 15px 0; }
+        .instructions ol { padding-right: 20px; margin: 10px 0; }
+        .instructions li { margin: 5px 0; font-size: 13px; }
+
+        /* === الإشعارات === */
+        .alert { padding: 12px 15px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; }
+        .alert-success { background: #dcfce7; border: 1px solid #86efac; color: #166534; }
+        .alert-error { background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; }
+
+        /* === التجاوب === */
+        @media (max-width: 768px) {
+            header .wrap { flex-direction: column; gap: 10px; }
+            .top-menus .wrap { justify-content: center; }
+            .dropdown { width: 100%; right: auto; left: 0; }
+            .grid { grid-template-columns: 1fr; }
+            .chat-input { flex-direction: column; }
+        }
     </style>
 </head>
 <body>
 
+<!-- الهيدر -->
 <header>
     <div class="wrap">
-        <strong>📦 صندوق التحكم</strong>
+        <div class="logo">📦 صندوق التحكم</div>
         <nav>
-            <span id="user-label">ضيف</span>
-            <a onclick="go('stats')">إحصائيات</a>
-            <a onclick="go('publish')">انشر</a>
-            <a onclick="go('settings')">حسابي</a>
-            <a onclick="doLogout()">خروج</a>
+            <span id="user-display">ضيف</span>
+            <a onclick="nav('stats')">📊 إحصائيات</a>
+            <a onclick="nav('publish')">📤 انشر</a>
+            <a onclick="nav('settings')">⚙️ إعدادات</a>
+            <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+            <a onclick="doLogout()" id="logout-link" class="hidden">🚪 خروج</a>
         </nav>
     </div>
 </header>
 
-<nav class="menus">
+<!-- القوائم العلوية -->
+<nav class="top-menus">
     <div class="wrap">
-        <a onclick="go('dashboard')" style="padding: 10px 15px; display:block; font-weight:bold">🏠 الرئيسية</a>
-
-        <!-- 🟢 القائمة 1: المظهر -->
         <div class="menu-item">
-            <div class="menu-btn" onclick="toggleMenu(this)">المظهر ▼</div>
+            <div class="menu-btn" onclick="toggleMenu(this)">🏠 الرئيسية ▼</div>
             <div class="dropdown">
-                <a onclick="showSub('style'); closeAll()">🎨 تعديل السمات</a>
-                <a onclick="showSub('layout'); closeAll()">📐 خيارات التخطيط</a>
+                <a onclick="nav('dashboard');closeAll()">لوحة التحكم</a>
+                <a onclick="nav('boxes');closeAll()">لوحاتي</a>
             </div>
         </div>
-
-        <!-- 🟢 القائمة 2: خيارات -->
         <div class="menu-item">
-            <div class="menu-btn" onclick="toggleMenu(this)">خيارات ▼</div>
+            <div class="menu-btn" onclick="toggleMenu(this)">🎨 المظهر ▼</div>
             <div class="dropdown">
-                <a onclick="showSub('filter'); closeAll()">🔍 التصفية</a>
-                <a onclick="showSub('smilies'); closeAll()">😊 الرموز التعبيرية</a>
+                <a onclick="showSub('style');closeAll()">تعديل السمات</a>
+                <a onclick="showSub('layout');closeAll()">خيارات التخطيط</a>
             </div>
         </div>
-
-        <!-- 🟢 القائمة 3: مستخدمون -->
         <div class="menu-item">
-            <div class="menu-btn" onclick="toggleMenu(this)">مستخدمون ▼</div>
+            <div class="menu-btn" onclick="toggleMenu(this)">⚙️ خيارات ▼</div>
             <div class="dropdown">
-                <a onclick="showSub('users'); closeAll()">👥 المسجلون</a>
-                <a onclick="showSub('bans'); closeAll()">🚫 المحظورون</a>
+                <a onclick="showSub('filter');closeAll()">التصفية</a>
+                <a onclick="showSub('smilies');closeAll()">الرموز التعبيرية</a>
             </div>
         </div>
-
-        <!-- 🟢 القائمة 4: رسائل -->
         <div class="menu-item">
-            <div class="menu-btn" onclick="toggleMenu(this)">رسائل ▼</div>
+            <div class="menu-btn" onclick="toggleMenu(this)">👥 مستخدمون ▼</div>
             <div class="dropdown">
-                <a onclick="showSub('msgs'); closeAll()">📩 إدارة الرسائل</a>
-                <a onclick="showSub('archive'); closeAll()">🗄️ الأرشيف</a>
+                <a onclick="showSub('users');closeAll()">المسجلون</a>
+                <a onclick="showSub('bans');closeAll()">المحظورون</a>
+            </div>
+        </div>
+        <div class="menu-item">
+            <div class="menu-btn" onclick="toggleMenu(this)">💬 رسائل ▼</div>
+            <div class="dropdown">
+                <a onclick="showSub('msgs');closeAll()">إدارة الرسائل</a>
+                <a onclick="showSub('archive');closeAll()">الأرشيف</a>
             </div>
         </div>
     </div>
 </nav>
 
+<!-- المحتوى الرئيسي -->
 <main class="wrap">
 
-    <!-- 1. قسم الدخول -->
+    <!-- قسم الدخول -->
     <section id="sec-login">
-        <div class="form-box">
-            <h2 style="text-align:center">تسجيل الدخول</h2>
-            <form onsubmit="doLogin(event)">
-                <label>البريد الإلكتروني:</label>
-                <input type="email" class="input" value="admin@cbox.com" required>
-                <label>كلمة المرور:</label>
-                <input type="password" class="input" value="123456" required>
-                <button type="submit" class="btn" style="width:100%">دخول</button>
-            </form>
+        <h2>🔐 تسجيل الدخول</h2>
+        <div class="form-group">
+            <label>البريد الإلكتروني</label>
+            <input type="email" id="login-email" class="input" placeholder="admin@cbox.com" value="admin@cbox.com">
         </div>
+        <div class="form-group">
+            <label>كلمة المرور</label>
+            <input type="password" id="login-pass" class="input" placeholder="••••••" value="123456">
+        </div>
+        <button class="btn" onclick="doLogin()">دخول</button>
+        <p style="margin-top:15px;font-size:13px"><a onclick="alert('إنشاء حساب جديد')">إنشاء حساب جديد</a></p>
     </section>
 
-    <!-- 2. لوحة التحكم -->
+    <!-- لوحة التحكم -->
     <section id="sec-dashboard" class="hidden">
-        <h2>👋 مرحباً، <span id="user-name">مدير</span></h2>
-        <div class="chat-area" id="chat-box">
-            <p style="text-align:center; color:#888; padding-top:80px;">لا توجد رسائل...</p>
+        <h2>👋 أهلاً، <span id="dash-name">مستخدم</span>!</h2>
+        
+        <div class="grid" style="margin-bottom:25px">
+            <div class="card">
+                <h4>📦 لوحاتك</h4>
+                <p class="stat-value" id="stat-boxes">0</p>
+            </div>
+            <div class="card">
+                <h4>💬 إجمالي الرسائل</h4>
+                <p class="stat-value" id="stat-msgs">0</p>
+            </div>
+            <div class="card">
+                <h4>👥 مستخدمون نشطون</h4>
+                <p class="stat-value" id="stat-users">0</p>
+            </div>
         </div>
-        <div style="display:flex; gap:10px;">
-            <input type="text" class="input" id="chat-input" placeholder="اكتب رسالة..." style="margin:0">
-            <button class="btn" onclick="sendMessage()">إرسال</button>
+
+        <h3>➕ إنشاء لوحة دردشة جديدة</h3>
+        <div class="form-group">
+            <label>اسم اللوحة</label>
+            <input type="text" id="new-box-name" class="input" placeholder="مثال: دردشة الموقع">
         </div>
-        <br>
-        <button class="btn" style="background:#ef4444" onclick="doLogout()">تسجيل خروج</button>
+        <button class="btn btn-success" onclick="createBox()">إنشاء اللوحة</button>
+
+        <h3 style="margin-top:30px">📋 لوحاتك الحالية</h3>
+        <div id="boxes-list">
+            <p style="color:var(--text-muted)">لا توجد لوحات بعد</p>
+        </div>
     </section>
 
-    <!-- 3. الصفحات الفرعية (للقوائم) -->
+    <!-- صفحة انشر -->
+    <section id="sec-publish" class="hidden">
+        <h2>📤 Publish Your Chat Box</h2>
+        <p style="margin-bottom:20px;color:var(--text-muted)">Embed your chat box directly into any website using your own domain.</p>
+        
+        <div class="form-group">
+            <label>Your website URL:</label>
+            <input type="url" id="site-url" class="input" placeholder="https://yoursite.com" value="https://example.com" style="direction:ltr;text-align:left">
+        </div>
+        <div class="form-group">
+            <label><input type="checkbox" id="ssl-chk" checked style="margin-left:5px"> Use secure HTTP (TLS/SSL)</label>
+        </div>
+        <div class="form-group">
+            <label>Security tag:</label>
+            <div style="display:flex;gap:10px;align-items:center">
+                <input type="text" id="security-tag" class="input" value="52gxr7" maxlength="10" style="width:120px;direction:ltr;text-align:left">
+                <button class="btn btn-sm" onclick="generateTag()">🔄 Generate New</button>
+            </div>
+        </div>
+
+        <h3 style="margin-top:25px">Get your embed code</h3>
+        <div class="form-group">
+            <label>Code variation:</label>
+            <select id="code-var" class="input" onchange="updateCode()" style="margin-bottom:10px">
+                <option value="inline">Standard inline</option>
+                <option value="popup">Popup link</option>
+                <option value="button">Fixed button</option>
+            </select>
+            <textarea id="code-box" class="code-box" readonly></textarea>
+            <div style="display:flex;gap:10px;margin-top:10px">
+                <button class="btn" onclick="copyCode()">📋 Copy to clipboard</button>
+                <button class="btn btn-success" onclick="previewCode()">👁️ Preview</button>
+            </div>
+        </div>
+
+        <h3 style="margin-top:25px">Embed instructions</h3>
+        <div class="form-group">
+            <label>Instructions for:</label>
+            <select id="platform-sel" class="input" onchange="updateInstructions()" style="margin-bottom:15px">
+                <option value="generic">Any site</option>
+                <option value="blogger" selected>Blogger / Blogspot</option>
+                <option value="wordpress">WordPress</option>
+                <option value="forum">Forums</option>
+            </select>
+        </div>
+        <div id="instr-generic" class="instructions">
+            <ol>
+                <li>Copy your code to the clipboard by clicking the button above.</li>
+                <li>Open the page or template editor for your site.</li>
+                <li>Switch to HTML or raw editing mode.</li>
+                <li>Paste your code into the editor.</li>
+                <li>Save and publish your changes.</li>
+            </ol>
+        </div>
+        <div id="instr-blogger" class="instructions" style="display:block">
+            <ol>
+                <li>Copy your code to the clipboard.</li>
+                <li>Sign in at <strong>blogger.com / blogspot.com</strong>.</li>
+                <li>On your blog, click on <strong>Design</strong> → <strong>Add a Gadget</strong>.</li>
+                <li>Choose <strong>HTML/JavaScript</strong>, click the content box and paste your code.</li>
+                <li>Save the changes.</li>
+            </ol>
+        </div>
+        <div style="margin-top:20px;padding:15px;background:#fff7ed;border:1px solid #fed7aa;border-radius:6px">
+            <strong style="color:#c2410c">Problems installing?</strong>
+            <ul style="margin-top:8px;padding-right:20px;line-height:1.8;color:var(--text-muted)">
+                <li>If you see code instead of chat, your editor may strip HTML.</li>
+                <li>Try an "iframe" or "embed" widget for your platform.</li>
+                <li>URL required? Use: <code style="background:var(--bg);padding:2px 6px;border-radius:3px">https://cbox-2.github.io/2026/?box=YOUR_ID</code></li>
+                <li>Quick Link: <a href="https://cbox-2.github.io/2026/" target="_blank">https://cbox-2.github.io/2026/</a></li>
+            </ul>
+        </div>
+        <a onclick="nav('dashboard')" style="margin-top:20px;display:inline-block">← Back to Dashboard</a>
+    </section>
+
+    <!-- الإحصائيات -->
+    <section id="sec-stats" class="hidden">
+        <h2>📊 إحصائيات النظام</h2>
+        <div class="grid" style="margin-bottom:25px">
+            <div class="card"><h4>📈 إجمالي الرسائل</h4><p class="stat-value" id="stat-total">0</p></div>
+            <div class="card"><h4>📅 رسائل اليوم</h4><p class="stat-value" id="stat-today">0</p></div>
+            <div class="card"><h4>👥 مستخدمون نشطون</h4><p class="stat-value" id="stat-active">0</p></div>
+        </div>
+        <h3>📉 النشاط الأسبوعي</h3>
+        <div id="chart" style="height:150px;display:flex;align-items:flex-end;gap:8px;background:var(--bg);padding:15px;border-radius:8px;border:1px solid var(--border);margin-bottom:20px"></div>
+        <button class="btn" onclick="exportCSV()">📥 تصدير البيانات (CSV)</button>
+        <a onclick="nav('dashboard')" style="margin-right:15px">← العودة</a>
+    </section>
+
+    <!-- الإعدادات -->
+    <section id="sec-settings" class="hidden">
+        <h2>⚙️ إعدادات الحساب</h2>
+        <div class="form-group">
+            <label>الاسم المعروض</label>
+            <input type="text" id="set-name" class="input" value="مستخدم">
+        </div>
+        <div class="form-group">
+            <label>البريد الإلكتروني</label>
+            <input type="email" id="set-email" class="input" value="user@example.com" readonly>
+        </div>
+        <button class="btn" onclick="saveSettings()">حفظ التغييرات</button>
+        <a onclick="nav('dashboard')" style="margin-right:15px">← العودة</a>
+    </section>
+
+    <!-- الصفحات الفرعية -->
     <section id="sec-sub" class="hidden">
         <h2 id="sub-title">عنوان الصفحة</h2>
-        <div id="sub-content" style="padding:20px; background:#f8fafc; border-radius:8px;">
-            المحتوى يظهر هنا
-        </div>
-        <br>
-        <a onclick="go('dashboard')">← العودة للرئيسية</a>
+        <div id="sub-content" style="padding:20px;background:var(--bg);border-radius:8px"></div>
+        <a onclick="nav('dashboard')" style="margin-top:20px;display:inline-block">← العودة للرئيسية</a>
     </section>
-
-    <!-- أقسام أخرى -->
-    <section id="sec-publish" class="hidden"><h2>📤 صفحة النشر</h2><p>محتوى النشر...</p><a onclick="go('dashboard')">عودة</a></section>
-    <section id="sec-stats" class="hidden"><h2>📊 الإحصائيات</h2><p>محتوى الإحصائيات...</p><a onclick="go('dashboard')">عودة</a></section>
-    <section id="sec-settings" class="hidden"><h2>⚙️ الإعدادات</h2><p>محتوى الإعدادات...</p><a onclick="go('dashboard')">عودة</a></section>
 
 </main>
 
+<footer style="text-align:center;padding:20px;color:var(--text-muted);border-top:1px solid var(--border);margin-top:30px">
+    © 2024 صندوق التحكم · <a onclick="alert('شروط الاستخدام')">الشروط</a> · <a onclick="alert('سياسة الخصوصية')">الخصوصية</a>
+</footer>
+
 <script>
-    console.log("✅ تم تحميل النظام بنجاح!");
+/* === 🔑 إعدادات النظام === */
+const BASE_URL = 'https://cbox-2.github.io/2026/';
+const $ = id => document.getElementById(id);
 
-    // === 1. دالة التنقل بين الأقسام ===
-    function go(sectionId) {
-        // إخفاء كل الأقسام
-        document.querySelectorAll('main section').forEach(sec => sec.classList.add('hidden'));
-        
-        // إظهار القسم المطلوب
-        const target = document.getElementById('sec-' + sectionId);
-        if (target) {
-            target.classList.remove('hidden');
-            console.log("تم الانتقال إلى:", sectionId);
-        } else {
-            console.error("القسم غير موجود:", sectionId);
-        }
-        
-        // إغلاق القوائم
-        closeAll();
+/* === 🌐 بيانات وهمية للتجربة (يمكن ربطها بـ Firebase لاحقاً) === */
+let currentUser = null;
+let userRole = 'user'; // 'admin' or 'user'
+let boxes = []; // [{id, name, createdAt, messages:[]}]
+let allMessages = []; // [{id, boxId, sender, text, timestamp}]
+
+/* === 🧭 نظام التنقل === */
+function nav(section) {
+    console.log('🔀 Navigation:', section);
+    // إخفاء كل الأقسام
+    document.querySelectorAll('main section').forEach(sec => sec.classList.add('hidden'));
+    // إظهار القسم المطلوب
+    const target = $('sec-' + section);
+    if (target) {
+        target.classList.remove('hidden');
+        if (section === 'dashboard' && currentUser) loadDashboard();
+        if (section === 'publish') updateCode();
+        if (section === 'stats') loadStats();
     }
+    closeAll();
+}
 
-    // === 2. دالة القوائم المنسدلة (الحل الجذري) ===
-    function toggleMenu(btnElement) {
-        console.log("تم الضغط على الزر");
-        // العثور على القائمة المرتبطة بهذا الزر (تأتي بعده مباشرة)
-        const menu = btnElement.nextElementSibling;
-        
-        // هل القائمة مفتوحة حالياً؟
-        const isOpen = menu.classList.contains('active');
-        
-        // إغلاق كل القوائم أولاً
-        closeAll();
-        
-        // إذا كانت مغلقة، نفتحها الآن
-        if (!isOpen) {
-            menu.classList.add('active');
-            console.log("تم فتح القائمة");
-        }
+/* === 🔐 تسجيل الدخول (محاكاة) === */
+function doLogin() {
+    const email = $('login-email')?.value.trim();
+    const pass = $('login-pass')?.value.trim();
+    if (!email || !pass) return alert('⚠️ املأ جميع الحقول');
+    
+    // محاكاة الدخول الناجح
+    currentUser = { email, name: email.split('@')[0], id: Date.now() };
+    userRole = email === 'admin@cbox.com' ? 'admin' : 'user';
+    
+    // تحديث الواجهة
+    $('user-display').textContent = currentUser.name;
+    $('dash-name').textContent = currentUser.name;
+    $('set-email').value = currentUser.email;
+    $('logout-link').classList.remove('hidden');
+    
+    // إنشاء لوحة تجريبية إذا كانت جديدة
+    if (boxes.length === 0) {
+        boxes.push({ id: 'box-' + Date.now(), name: 'دردشة تجريبية', createdAt: new Date(), messages: [] });
     }
+    
+    nav('dashboard');
+    alert('✅ مرحباً، ' + currentUser.name + '!');
+    console.log('✅ Logged in:', currentUser);
+}
 
-    function closeAll() {
-        document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('active'));
-    }
+/* === 🚪 تسجيل الخروج === */
+function doLogout() {
+    currentUser = null;
+    $('user-display').textContent = 'ضيف';
+    $('logout-link').classList.add('hidden');
+    nav('login');
+    alert('✅ تم تسجيل الخروج');
+}
 
-    // إغلاق القوائم عند النقر في أي مكان خارجها
-    document.addEventListener('click', function(e) {
-        // إذا لم يكن النقر داخل "menu-item"، أغلق القوائم
-        if (!e.target.closest('.menu-item')) {
-            closeAll();
-        }
-    });
+/* === 📋 القوائم المنسدلة === */
+function toggleMenu(btn) {
+    const menu = btn.nextElementSibling;
+    const isOpen = menu.classList.contains('active');
+    closeAll();
+    if (!isOpen) menu.classList.add('active');
+}
+function closeAll() {
+    document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('active'));
+}
+document.addEventListener('click', e => {
+    if (!e.target.closest('.menu-item')) closeAll();
+});
 
-    // === 3. دالة الصفحات الفرعية ===
-    const pages = {
-        'style': '<h3>🎨 تعديل السمات</h3><p>يمكنك هنا تغيير ألوان الموقع.</p>',
-        'layout': '<h3>📐 خيارات التخطيط</h3><p>تحكم في عرض الصفحات.</p>',
-        'filter': '<h3>🔍 التصفية</h3><p>فلترة الرسائل والكلمات.</p>',
-        'smilies': '<h3>😊 الرموز التعبيرية</h3><p>إدارة الرموز.</p>',
-        'users': '<h3>👥 المسجلون</h3><p>قائمة المستخدمين.</p>',
-        'bans': '<h3>🚫 المحظورون</h3><p>قائمة الحظر.</p>',
-        'msgs': '<h3>📩 إدارة الرسائل</h3><p>عرض وحذف الرسائل.</p>',
-        'archive': '<h3>🗄️ الأرشيف</h3><p>الرسائل القديمة.</p>'
+/* === 📄 الصفحات الفرعية === */
+const subPages = {
+    'style': '<h3>🎨 تعديل السمات</h3><p>تخصيص ألوان وخطوط لوحة الدردشة.</p><label>لون الخلفية: <input type="color" value="#ffffff" style="width:60px"></label><button class="btn btn-sm" style="margin-top:10px" onclick="alert(\'✅ تم الحفظ\')">معاينة</button>',
+    'layout': '<h3>📐 خيارات التخطيط</h3><label>عرض اللوحة: <select class="input"><option>كامل</option><option>متوسط</option><option>ضيق</option></select></label><button class="btn btn-sm" style="margin-top:10px" onclick="alert(\'✅ تم التطبيق\')">تطبيق</button>',
+    'filter': '<h3>🔍 التصفية</h3><textarea class="input" rows="3" placeholder="كلمات محظورة (مفصولة بفاصلة)..."></textarea><button class="btn btn-sm" style="margin-top:10px" onclick="alert(\'✅ تم الحفظ\')">حفظ</button>',
+    'smilies': '<h3>😊 الرموز التعبيرية</h3><label><input type="checkbox" checked> تفعيل الرموز تلقائياً</label><button class="btn btn-sm" style="margin-top:10px" onclick="alert(\'✅ تم الحفظ\')">حفظ</button>',
+    'users': '<h3>👥 المستخدمون المسجلون</h3><table><tr><th>الاسم</th><th>البريد</th><th>تاريخ التسجيل</th></tr><tr><td>مستخدم</td><td>user@example.com</td><td>2024-01-15</td></tr></table>',
+    'bans': '<h3>🚫 المستخدمون المحظورون</h3><p style="color:var(--text-muted)">لا يوجد مستخدمون محظورون حالياً.</p><button class="btn btn-sm btn-danger" onclick="alert(\'➕ إضافة حظر\')">إضافة حظر</button>',
+    'msgs': '<h3>📩 إدارة الرسائل</h3><p style="color:var(--text-muted)">لا توجد رسائل جديدة.</p>',
+    'archive': '<h3>🗄️ الأرشيف</h3><p style="color:var(--text-muted)">الأرشيف فارغ.</p>'
+};
+function showSub(key) {
+    nav('sub');
+    $('sub-title').textContent = subPages[key].split('>')[1]?.split('<')[0] || 'صفحة فرعية';
+    $('sub-content').innerHTML = subPages[key];
+}
+
+/* === 📦 إدارة اللوحات === */
+function createBox() {
+    const name = $('new-box-name')?.value.trim();
+    if (!name || !currentUser) return alert('⚠️ أدخل اسم اللوحة');
+    
+    const newBox = {
+        id: 'box-' + Math.random().toString(36).slice(2, 8),
+        name,
+        createdAt: new Date(),
+        messages: [],
+        settings: { theme: 'light', width: '400px', height: '400px' }
     };
+    boxes.push(newBox);
+    $('new-box-name').value = '';
+    loadDashboard();
+    alert('✅ تم إنشاء اللوحة: ' + name);
+}
 
-    function showSub(pageKey) {
-        // تغيير محتوى صفحة الـ sub
-        document.getElementById('sub-title').innerText = pages[pageKey].split('>')[1].split('<')[0]; // استخراج العنوان تقريباً
-        document.getElementById('sub-content').innerHTML = pages[pageKey];
-        // الذهاب لصفحة sub
-        go('sub');
+function loadDashboard() {
+    if (!currentUser) return;
+    $('stat-boxes').textContent = boxes.filter(b => true).length; // كل اللوحات للمستخدم الحالي
+    $('stat-msgs').textContent = allMessages.length;
+    $('stat-users').textContent = new Set(boxes.flatMap(b => b.messages?.map(m => m.sender))).size || 1;
+    
+    const list = $('boxes-list');
+    if (boxes.length === 0) {
+        list.innerHTML = '<p style="color:var(--text-muted)">لا توجد لوحات بعد</p>';
+        return;
     }
+    list.innerHTML = boxes.map(box => `
+        <div class="card" style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+            <div>
+                <strong>${box.name}</strong><br>
+                <small style="color:var(--text-muted)">ID: ${box.id}</small>
+            </div>
+            <div style="display:flex;gap:8px">
+                <button class="btn btn-sm" onclick="getEmbed('${box.id}')">📤 تضمين</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteBox('${box.id}')">🗑️ حذف</button>
+            </div>
+        </div>
+    `).join('');
+}
 
-    // === 4. الدخول والخروج ===
-    function doLogin(e) {
-        e.preventDefault();
-        // محاكاة الدخول
-        document.getElementById('user-name').innerText = "مدير النظام";
-        document.getElementById('user-label').innerText = "admin@cbox.com";
-        go('dashboard');
-        alert("✅ تم تسجيل الدخول بنجاح!");
-    }
+function deleteBox(id) {
+    if (!confirm('هل تريد حذف هذه اللوحة نهائياً؟')) return;
+    boxes = boxes.filter(b => b.id !== id);
+    loadDashboard();
+    alert('✅ تم حذف اللوحة');
+}
 
-    function doLogout() {
-        document.getElementById('user-label').innerText = "ضيف";
-        go('login');
-        alert("👋 تم الخروج");
-    }
+/* === 📤 صفحة النشر - توليد الأكواد === */
+function generateTag() {
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let tag = '';
+    for (let i = 0; i < 6; i++) tag += chars.charAt(Math.floor(Math.random() * chars.length));
+    $('security-tag').value = tag;
+    updateCode();
+    alert('✅ New tag: ' + tag);
+}
 
-    // === 5. دردشة بسيطة ===
-    function sendMessage() {
-        const input = document.getElementById('chat-input');
-        const box = document.getElementById('chat-box');
-        if(input.value.trim() !== "") {
-            const msgDiv = document.createElement('div');
-            msgDiv.style.cssText = "background:#eef; padding:8px; margin:5px 0; border-radius:4px; text-align:right;";
-            msgDiv.innerText = "👤 " + input.value;
-            box.appendChild(msgDiv);
-            box.scrollTop = box.scrollHeight; // النزول للأسفل
-            input.value = "";
-        }
+function updateCode() {
+    const varType = $('code-var')?.value || 'inline';
+    const tag = $('security-tag')?.value || '52gxr7';
+    const ssl = $('ssl-chk')?.checked;
+    const proto = ssl ? 'https' : 'http';
+    const YOUR_URL = `${proto}://cbox-2.github.io/2026/?box=YOUR_BOX_ID`;
+    
+    const codes = {
+        'inline': `<!-- BEGIN CHAT BOX - ${BASE_URL} -->
+<div id="cboxdiv" style="position:relative;margin:0 auto;width:400px">
+<iframe src="${YOUR_URL}&sec=main" width="100%" height="293" frameborder="0" scrolling="auto"></iframe>
+<iframe src="${YOUR_URL}&sec=form" width="100%" height="107" frameborder="0" scrolling="no"></iframe>
+</div>
+<!-- END CHAT BOX -->`,
+        'popup': `<script>
+function popchat(){window.open("${YOUR_URL}","Chat","width=400,height=400");}
+<\/script>
+<a href="JavaScript:popchat()">Open my Chat Box</a>`,
+        'button': `<div id="chatbtn" style="position:fixed;bottom:10px;right:10px;padding:8px 16px;background:#2563eb;color:#fff;border-radius:6px;cursor:pointer">💬 Chat</div>
+<script>
+document.getElementById('chatbtn').onclick=function(){window.open("${YOUR_URL}","Chat","width=400,height=450");};
+<\/script>`
+    };
+    if ($('code-box')) $('code-box').value = codes[varType] || codes['inline'];
+}
+
+function copyCode() {
+    const box = $('code-box');
+    if (!box) return;
+    box.select();
+    try {
+        document.execCommand('copy');
+        alert('✅ Code copied to clipboard!');
+    } catch (e) {
+        alert('Press Ctrl+C (or Cmd+C) to copy manually.');
     }
+}
+
+function previewCode() {
+    const code = $('code-box')?.value;
+    if (!code) return;
+    const win = window.open('', '_blank', 'width=500,height=500');
+    win.document.write('<html><head><title>Preview</title><style>body{font-family:sans-serif;padding:20px}</style></head><body><h3>👁️ Embed Code Preview</h3><pre style="background:var(--bg);padding:15px;border-radius:6px;overflow-x:auto;font-size:11px;direction:ltr;text-align:left">' + escapeHtml(code) + '</pre></body></html>');
+    win.document.close();
+}
+
+function updateInstructions() {
+    const plat = $('platform-sel')?.value || 'generic';
+    document.querySelectorAll('.instructions').forEach(el => el.style.display = 'none');
+    const target = $('instr-' + plat);
+    if (target) target.style.display = 'block';
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+/* === 📊 الإحصائيات === */
+function loadStats() {
+    $('stat-total').textContent = allMessages.length.toLocaleString('ar-EG');
+    $('stat-today').textContent = allMessages.filter(m => {
+        const d = m.timestamp || new Date();
+        return new Date(d).toDateString() === new Date().toDateString();
+    }).length.toLocaleString('ar-EG');
+    $('stat-active').textContent = new Set(allMessages.map(m => m.sender)).size || 1;
+    
+    // رسم بياني بسيط
+    const chart = $('chart');
+    chart.innerHTML = '';
+    const days = ['أحد','إثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
+    const counts = [12, 8, 15, 3, 20, 10, 5]; // بيانات تجريبية
+    const max = Math.max(...counts);
+    counts.forEach((c, i) => {
+        const h = Math.max(5, (c / max) * 100);
+        chart.innerHTML += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">
+            <div style="width:100%;background:var(--primary);border-radius:4px 4px 0 0;transition:height 0.5s" style="height:${h}%"></div>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:4px">${days[i]}</div>
+        </div>`;
+    });
+}
+
+function exportCSV() {
+    let csv = '"التاريخ","الوقت","المرسل","الرسالة"\n';
+    allMessages.forEach(m => {
+        const d = m.timestamp ? new Date(m.timestamp) : new Date();
+        csv += `"${d.toLocaleDateString('ar-EG')}","${d.toLocaleTimeString('ar-EG')}","${m.sender}","${(m.text||'').replace(/"/g,'""')}"\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `chat-export-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    alert('✅ تم تصدير البيانات');
+}
+
+/* === ⚙️ الإعدادات === */
+function saveSettings() {
+    const name = $('set-name')?.value.trim();
+    if (!name) return alert('⚠️ أدخل اسماً');
+    $('dash-name').textContent = name;
+    $('user-display').textContent = name;
+    alert('✅ تم حفظ التغييرات');
+}
+
+/* === 🌙 الوضع الليلي === */
+function toggleTheme() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    localStorage.setItem('theme', isDark ? 'light' : 'dark');
+}
+// تحميل التفضيل المحفوظ
+if (localStorage.getItem('theme') === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+}
+
+/* === بدء النظام === */
+console.log('✅ نظام لوحات الدردشة جاهز على:', BASE_URL);
 </script>
 
 </body>
