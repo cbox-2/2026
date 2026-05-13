@@ -2,71 +2,92 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>صندوق التحكم</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="style.css?v=3">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صندوق التحكم - القوائم تعمل 100%</title>
     <style>
-        /* === تنسيقات القوائم المنسدلة (مضمونة) === */
-        .drop { position: relative; display: inline-block; cursor: pointer; padding: 4px 8px; font-size: 11px; }
-        .drop:hover { background: #e2e8f0; border-radius: 3px; }
-        .drop-c { 
-            display: none; 
-            position: absolute; 
-            top: 100%; 
-            right: 0; 
-            background: #fff; 
-            border: 1px solid #cbd5e1; 
-            border-radius: 4px; 
-            min-width: 120px; 
-            z-index: 9999; 
-            padding: 4px 0;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        /* ✅ هذه هي النقطة الحاسمة: إظهار القائمة عند إضافة كلاس أو تغيير الـ display */
-        .drop-c.show, .drop-c[style*="display: block"] { display: block !important; }
-        .drop-c a { display: block; padding: 6px 12px; font-size: 11px; color: #333; text-decoration: none; }
-        .drop-c a:hover { background: #f1f5f9; color: #2563eb; }
+        /* === 1. التنسيقات الأساسية === */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Tahoma, sans-serif; }
+        body { background: #f4f6f9; color: #333; direction: rtl; }
+        a { text-decoration: none; cursor: pointer; color: #2563eb; }
+        a:hover { text-decoration: underline; }
+        .wrap { max-width: 960px; margin: 0 auto; padding: 0 15px; }
+
+        /* === 2. الهيدر === */
+        header { background: #fff; padding: 12px 0; border-bottom: 1px solid #ddd; }
+        header .wrap { display: flex; justify-content: space-between; align-items: center; }
+        header nav span { font-weight: bold; margin-left: 10px; color: #555; }
+        header nav a { margin-right: 15px; font-size: 13px; }
+
+        /* === 3. شريط القوائم (الجزء المهم) === */
+        .menus { background: #e2e8f0; padding: 0; border-bottom: 1px solid #ccc; }
+        .menus .wrap { display: flex; align-items: center; gap: 5px; overflow: visible !important; } /* مهم جداً للظهور */
+
+        /* حاوية القائمة - تجعل الزر والقائمة مرتبطين */
+        .menu-item { position: relative; display: inline-block; }
         
-        /* باقي التنسيقات */
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:Tahoma,Arial,sans-serif;font-size:13px;background:#f8fafc;color:#333;direction:rtl;text-align:right}
-        a{color:#2563eb;text-decoration:none;cursor:pointer}
-        a:hover{text-decoration:underline}
-        .wrap{max-width:900px;margin:0 auto;padding:0 15px}
-        header{background:#fff;border-bottom:1px solid #e2e8f0;padding:10px 0}
-        header .wrap{display:flex;justify-content:space-between;align-items:center}
-        header nav a, header nav span{margin-left:12px;font-size:12px}
-        .menus{background:#f1f5f9;border-bottom:1px solid #cbd5e1;padding:6px 0}
-        .menus .wrap{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-        .menus a{padding:4px 8px;font-size:11px}
-        main{padding:20px 0;min-height:300px}
-        h2{font-size:16px;margin-bottom:12px;border-bottom:1px solid #e2e8f0;padding-bottom:8px}
-        section{margin-bottom:20px}
-        form{background:#fff;border:1px solid #e2e8f0;padding:15px;border-radius:6px;margin-bottom:15px}
-        input{width:100%;padding:8px;margin:5px 0;border:1px solid #cbd5e1;border-radius:4px;font-size:12px}
-        .inp{padding:5px 8px;border:1px solid #94a3b8;border-radius:3px;font-size:11px;margin:3px;background:#fff}
-        .btn{padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px}
-        .btn:hover{opacity:0.9}
-        .chat{border:1px solid #94a3b8;padding:0;margin:15px 0;background:#fff;border-radius:4px}
-        footer{text-align:center;padding:15px;font-size:11px;color:#64748b;border-top:1px solid #e2e8f0;margin-top:20px}
-        @media(max-width:600px){
-            header .wrap{flex-direction:column;gap:8px}
-            .menus .wrap{justify-content:center}
-            .drop-c{width:100%;right:auto;left:0}
-            .inp{width:100%!important;display:block;margin:4px 0}
+        /* زر القائمة */
+        .menu-btn { 
+            padding: 10px 12px; 
+            cursor: pointer; 
+            font-size: 13px; 
+            display: block; 
+            font-weight: bold;
+            transition: background 0.2s;
         }
+        .menu-btn:hover { background: #cbd5e1; color: #1e293b; }
+        .menu-btn:active { background: #94a3b8; }
+
+        /* القائمة المنسدلة - مخفية افتراضياً */
+        .dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: #fff;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            min-width: 160px;
+            z-index: 9999; /* رقم عالي جداً لتظهر فوق كل شيء */
+            border-radius: 0 0 4px 4px;
+        }
+
+        /* الكلاس الذي سيضيفه الجافاسكربت لإظهار القائمة */
+        .dropdown.active { display: block !important; } /* !important لضمان التغلب على أي ستايل آخر */
+
+        .dropdown a {
+            display: block;
+            padding: 10px 15px;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            font-size: 12px;
+        }
+        .dropdown a:hover { background: #f1f5f9; color: #000; }
+
+        /* === 4. المحتوى والأقسام === */
+        main { padding: 20px 0; min-height: 400px; }
+        section { background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
+        h2 { margin-bottom: 15px; color: #1e293b; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
+        
+        /* إخفاء الأقسام غير النشطة */
+        .hidden { display: none !important; }
+
+        /* تنسيقات مساعدة للنموذج والدردشة */
+        .form-box { max-width: 300px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .input { width: 100%; padding: 8px; margin: 5px 0 15px; border: 1px solid #ccc; border-radius: 4px; }
+        .btn { background: #2563eb; color: #fff; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; }
+        .chat-area { height: 200px; border: 1px solid #ccc; background: #f9f9f9; padding: 10px; margin-bottom: 10px; overflow-y: auto; }
     </style>
 </head>
 <body>
+
 <header>
     <div class="wrap">
         <strong>📦 صندوق التحكم</strong>
         <nav>
-            <span id="userDisplay">ضيف</span>
-            <a onclick="nav('mailbox')">صناديق</a>
-            <a onclick="nav('stats')">إحصائيات</a>
-            <a onclick="nav('publish')">انشر</a>
-            <a onclick="nav('settings')">حسابي</a>
+            <span id="user-label">ضيف</span>
+            <a onclick="go('stats')">إحصائيات</a>
+            <a onclick="go('publish')">انشر</a>
+            <a onclick="go('settings')">حسابي</a>
             <a onclick="doLogout()">خروج</a>
         </nav>
     </div>
@@ -74,246 +95,195 @@
 
 <nav class="menus">
     <div class="wrap">
-        <a onclick="nav('dashboard')"><b>الرئيسية</b></a>
-        
-        <!-- قائمة 1: المظهر ▼ -->
-        <span class="drop" onclick="toggleMenu('m1')">المظهر ▼</span>
-        <div id="m1" class="drop-c">
-            <a onclick="sub('style');hideAllMenus()">سمات</a>
-            <a onclick="sub('layout');hideAllMenus()">تخطيط</a>
+        <a onclick="go('dashboard')" style="padding: 10px 15px; display:block; font-weight:bold">🏠 الرئيسية</a>
+
+        <!-- 🟢 القائمة 1: المظهر -->
+        <div class="menu-item">
+            <div class="menu-btn" onclick="toggleMenu(this)">المظهر ▼</div>
+            <div class="dropdown">
+                <a onclick="showSub('style'); closeAll()">🎨 تعديل السمات</a>
+                <a onclick="showSub('layout'); closeAll()">📐 خيارات التخطيط</a>
+            </div>
         </div>
-        
-        <!-- قائمة 2: خيارات ▼ -->
-        <span class="drop" onclick="toggleMenu('m2')">خيارات ▼</span>
-        <div id="m2" class="drop-c">
-            <a onclick="sub('filter');hideAllMenus()">تصفية</a>
-            <a onclick="sub('smilies');hideAllMenus()">رموز</a>
+
+        <!-- 🟢 القائمة 2: خيارات -->
+        <div class="menu-item">
+            <div class="menu-btn" onclick="toggleMenu(this)">خيارات ▼</div>
+            <div class="dropdown">
+                <a onclick="showSub('filter'); closeAll()">🔍 التصفية</a>
+                <a onclick="showSub('smilies'); closeAll()">😊 الرموز التعبيرية</a>
+            </div>
         </div>
-        
-        <!-- قائمة 3: مستخدمون ▼ -->
-        <span class="drop" onclick="toggleMenu('m3')">مستخدمون ▼</span>
-        <div id="m3" class="drop-c">
-            <a onclick="sub('users');hideAllMenus()">مسجلون</a>
-            <a onclick="sub('bans');hideAllMenus()">محظورون</a>
+
+        <!-- 🟢 القائمة 3: مستخدمون -->
+        <div class="menu-item">
+            <div class="menu-btn" onclick="toggleMenu(this)">مستخدمون ▼</div>
+            <div class="dropdown">
+                <a onclick="showSub('users'); closeAll()">👥 المسجلون</a>
+                <a onclick="showSub('bans'); closeAll()">🚫 المحظورون</a>
+            </div>
         </div>
-        
-        <!-- قائمة 4: رسائل ▼ -->
-        <span class="drop" onclick="toggleMenu('m4')">رسائل ▼</span>
-        <div id="m4" class="drop-c">
-            <a onclick="sub('msgs');hideAllMenus()">رسائل</a>
-            <a onclick="sub('archive');hideAllMenus()">أرشيف</a>
+
+        <!-- 🟢 القائمة 4: رسائل -->
+        <div class="menu-item">
+            <div class="menu-btn" onclick="toggleMenu(this)">رسائل ▼</div>
+            <div class="dropdown">
+                <a onclick="showSub('msgs'); closeAll()">📩 إدارة الرسائل</a>
+                <a onclick="showSub('archive'); closeAll()">🗄️ الأرشيف</a>
+            </div>
         </div>
     </div>
 </nav>
 
 <main class="wrap">
-    <section id="login">
-        <h2>تسجيل الدخول</h2>
-        <form onsubmit="return doLogin(event)">
-            <input type="email" id="em" placeholder="البريد" value="admin@cbox.com" required>
-            <input type="password" id="pw" placeholder="كلمة المرور" value="123456" required>
-            <button type="submit">دخول</button>
-        </form>
-        <p><small style="cursor:pointer;color:#2563eb" onclick="alert('وضع إنشاء حساب')">إنشاء حساب جديد</small></p>
-    </section>
 
-    <section id="dashboard" style="display:none">
-        <h2>👋 أهلاً، <span id="name">مستخدم</span>!</h2>
-        <fieldset class="chat">
-            <div id="chatBox" style="height:250px;overflow-y:auto;padding:10px;background:#fff;border:1px solid #ddd">
-                <p style="text-align:center;color:#888;padding:40px">مرحباً! ابدأ المحادثة...</p>
-            </div>
-            <div style="padding:8px;background:#f8f8f8;border-top:1px solid #ddd">
-                <input type="text" id="cName" placeholder="الاسم" class="inp" readonly>
-                <input type="text" id="cEmail" placeholder="البريد" class="inp" readonly>
-                <br>
-                <input type="text" id="cMsg" placeholder="اكتب رسالتك..." class="inp" style="width:70%">
-                <button onclick="send()" class="btn">إرسال</button>
-            </div>
-        </fieldset>
-        <div style="background:#f1f5f9;padding:6px 10px;font-size:11px;border:1px solid #ddd;border-top:none">
-            <a onclick="alert('اكتب اسمك ثم رسالتك')">❓ مساعدة</a> · 
-            <a onclick="toggleSmilies()">😊 رموز</a> · 
-            <a onclick="alert('👤 '+document.getElementById('cName').value)">👤 ملفي</a>
+    <!-- 1. قسم الدخول -->
+    <section id="sec-login">
+        <div class="form-box">
+            <h2 style="text-align:center">تسجيل الدخول</h2>
+            <form onsubmit="doLogin(event)">
+                <label>البريد الإلكتروني:</label>
+                <input type="email" class="input" value="admin@cbox.com" required>
+                <label>كلمة المرور:</label>
+                <input type="password" class="input" value="123456" required>
+                <button type="submit" class="btn" style="width:100%">دخول</button>
+            </form>
         </div>
-        <div id="smBox" style="display:none;background:#fff;border:1px solid #ddd;padding:10px;margin:10px 0">
-            <span onclick="ins('🙂')" style="cursor:pointer;font-size:18px;margin:3px">🙂</span>
-            <span onclick="ins('😂')" style="cursor:pointer;font-size:18px;margin:3px">😂</span>
-            <span onclick="ins('❤️')" style="cursor:pointer;font-size:18px;margin:3px">❤️</span>
-            <button onclick="toggleSmilies()" style="margin-right:10px;font-size:11px">✕ إغلاق</button>
+    </section>
+
+    <!-- 2. لوحة التحكم -->
+    <section id="sec-dashboard" class="hidden">
+        <h2>👋 مرحباً، <span id="user-name">مدير</span></h2>
+        <div class="chat-area" id="chat-box">
+            <p style="text-align:center; color:#888; padding-top:80px;">لا توجد رسائل...</p>
         </div>
-        <button onclick="test()" class="btn" style="background:#7c3aed;margin-top:15px">🧪 اختبار</button>
-        <div id="out" style="margin:10px 0;font-size:12px;color:#666"></div>
-        <button onclick="doLogout()" class="btn" style="background:#dc2626;margin-top:10px">خروج</button>
+        <div style="display:flex; gap:10px;">
+            <input type="text" class="input" id="chat-input" placeholder="اكتب رسالة..." style="margin:0">
+            <button class="btn" onclick="sendMessage()">إرسال</button>
+        </div>
+        <br>
+        <button class="btn" style="background:#ef4444" onclick="doLogout()">تسجيل خروج</button>
     </section>
 
-    <section id="publish" style="display:none">
-        <h2>📤 انشر</h2>
-        <fieldset>
-            <legend>رمز التضمين</legend>
-            <select id="codeType" class="inp" onchange="swapCode()">
-                <option value="inline">مضمن</option>
-                <option value="popup">منبثق</option>
-            </select>
-            <textarea id="codeBox" class="inp" readonly style="width:100%;min-height:100px;font-family:monospace">&lt;iframe src="https://cbox-2.github.io/2026/?#chat" width="400" height="400"&gt;&lt;/iframe&gt;</textarea>
-            <button onclick="copyCode()" class="btn" style="margin-top:10px">📋 نسخ</button>
-        </fieldset>
-        <a onclick="nav('dashboard')">← عودة</a>
+    <!-- 3. الصفحات الفرعية (للقوائم) -->
+    <section id="sec-sub" class="hidden">
+        <h2 id="sub-title">عنوان الصفحة</h2>
+        <div id="sub-content" style="padding:20px; background:#f8fafc; border-radius:8px;">
+            المحتوى يظهر هنا
+        </div>
+        <br>
+        <a onclick="go('dashboard')">← العودة للرئيسية</a>
     </section>
 
-    <section id="stats" style="display:none"><h2>📊 إحصائيات</h2><p>العدادات هنا</p><a onclick="nav('dashboard')">← عودة</a></section>
-    <section id="mailbox" style="display:none"><h2>📦 صندوق</h2><p>محتوى الصندوق</p><a onclick="nav('dashboard')">← عودة</a></section>
-    <section id="settings" style="display:none"><h2>⚙️ إعدادات</h2><p>إعدادات الحساب</p><a onclick="nav('dashboard')">← عودة</a></section>
-    <section id="sub" style="display:none"></section>
+    <!-- أقسام أخرى -->
+    <section id="sec-publish" class="hidden"><h2>📤 صفحة النشر</h2><p>محتوى النشر...</p><a onclick="go('dashboard')">عودة</a></section>
+    <section id="sec-stats" class="hidden"><h2>📊 الإحصائيات</h2><p>محتوى الإحصائيات...</p><a onclick="go('dashboard')">عودة</a></section>
+    <section id="sec-settings" class="hidden"><h2>⚙️ الإعدادات</h2><p>محتوى الإعدادات...</p><a onclick="go('dashboard')">عودة</a></section>
+
 </main>
 
-<footer>© 2024 صندوق التحكم</footer>
-
 <script>
-console.log("✅ النظام يبدأ مع قوائم مضمونة...");
-const $=id=>document.getElementById(id);
-let user=null;
+    console.log("✅ تم تحميل النظام بنجاح!");
 
-// 🧭 التنقل
-window.nav=function(sec){
-    console.log("🔀 إلى:",sec);
-    ['login','dashboard','publish','stats','mailbox','settings','sub'].forEach(s=>{
-        const e=$(s); if(e)e.style.display='none';
+    // === 1. دالة التنقل بين الأقسام ===
+    function go(sectionId) {
+        // إخفاء كل الأقسام
+        document.querySelectorAll('main section').forEach(sec => sec.classList.add('hidden'));
+        
+        // إظهار القسم المطلوب
+        const target = document.getElementById('sec-' + sectionId);
+        if (target) {
+            target.classList.remove('hidden');
+            console.log("تم الانتقال إلى:", sectionId);
+        } else {
+            console.error("القسم غير موجود:", sectionId);
+        }
+        
+        // إغلاق القوائم
+        closeAll();
+    }
+
+    // === 2. دالة القوائم المنسدلة (الحل الجذري) ===
+    function toggleMenu(btnElement) {
+        console.log("تم الضغط على الزر");
+        // العثور على القائمة المرتبطة بهذا الزر (تأتي بعده مباشرة)
+        const menu = btnElement.nextElementSibling;
+        
+        // هل القائمة مفتوحة حالياً؟
+        const isOpen = menu.classList.contains('active');
+        
+        // إغلاق كل القوائم أولاً
+        closeAll();
+        
+        // إذا كانت مغلقة، نفتحها الآن
+        if (!isOpen) {
+            menu.classList.add('active');
+            console.log("تم فتح القائمة");
+        }
+    }
+
+    function closeAll() {
+        document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('active'));
+    }
+
+    // إغلاق القوائم عند النقر في أي مكان خارجها
+    document.addEventListener('click', function(e) {
+        // إذا لم يكن النقر داخل "menu-item"، أغلق القوائم
+        if (!e.target.closest('.menu-item')) {
+            closeAll();
+        }
     });
-    const t=$(sec); if(t)t.style.display='block';
-    hideAllMenus(); // إغلاق القوائم عند التنقل
-};
 
-// 📋 الصفحات الفرعية
-window.sub=function(pg){
-    console.log("📄 فرعي:",pg);
-    nav('sub');
-    const c=$('sub'); if(!c)return;
-    const pages={
-        'style':'<div><h3>🎨 سمات</h3><p>تخصيص الألوان</p><a onclick="nav(\'dashboard\')">← عودة</a></div>',
-        'layout':'<div><h3>📐 تخطيط</h3><p>خيارات العرض</p><a onclick="nav(\'dashboard\')">← عودة</a></div>',
-        'filter':'<div><h3>🔍 تصفية</h3><p>كلمات محظورة</p><a onclick="nav(\'dashboard\')">← عودة</a></div>',
-        'smilies':'<div><h3>😊 رموز</h3><p>إدارة الابتسامات</p><a onclick="nav(\'dashboard\')">← عودة</a></div>',
-        'users':'<div><h3>👥 مسجلون</h3><p>قائمة المستخدمين</p><a onclick="nav(\'dashboard\')">← عودة</a></div>',
-        'bans':'<div><h3>🚫 محظورون</h3><p>قائمة الحظر</p><a onclick="nav(\'dashboard\')">← عودة</a></div>',
-        'msgs':'<div><h3>📩 رسائل</h3><p>إدارة الرسائل</p><a onclick="nav(\'dashboard\')">← عودة</a></div>',
-        'archive':'<div><h3>🗄️ أرشيف</h3><p>المؤرشف</p><a onclick="nav(\'dashboard\')">← عودة</a></div>'
+    // === 3. دالة الصفحات الفرعية ===
+    const pages = {
+        'style': '<h3>🎨 تعديل السمات</h3><p>يمكنك هنا تغيير ألوان الموقع.</p>',
+        'layout': '<h3>📐 خيارات التخطيط</h3><p>تحكم في عرض الصفحات.</p>',
+        'filter': '<h3>🔍 التصفية</h3><p>فلترة الرسائل والكلمات.</p>',
+        'smilies': '<h3>😊 الرموز التعبيرية</h3><p>إدارة الرموز.</p>',
+        'users': '<h3>👥 المسجلون</h3><p>قائمة المستخدمين.</p>',
+        'bans': '<h3>🚫 المحظورون</h3><p>قائمة الحظر.</p>',
+        'msgs': '<h3>📩 إدارة الرسائل</h3><p>عرض وحذف الرسائل.</p>',
+        'archive': '<h3>🗄️ الأرشيف</h3><p>الرسائل القديمة.</p>'
     };
-    c.innerHTML=pages[pg]||'<p>غير متاح</p>';
-};
 
-// 🔐 تسجيل الدخول
-window.doLogin=function(e){
-    e.preventDefault();
-    const em=$('em')?.value.trim(), pw=$('pw')?.value.trim();
-    if(!em||!pw||!em.includes('@'))return alert("⚠️ بيانات خاطئة");
-    user={email:em,name:em.split('@')[0]};
-    $('name').textContent=user.name;
-    $('userDisplay').textContent=em;
-    $('cName').value=user.name;
-    $('cEmail').value=em;
-    nav('dashboard');
-    alert("✅ مرحباً، "+user.name+"!");
-    console.log("✅ مستخدم:",user);
-    return false;
-};
-
-// 🚪 تسجيل الخروج
-window.doLogout=function(){
-    user=null;
-    $('userDisplay').textContent='ضيف';
-    $('chatBox').innerHTML='<p style="text-align:center;color:#888;padding:40px">مرحباً! ابدأ المحادثة...</p>';
-    nav('login');
-    alert("✅ تم الخروج");
-    console.log("🚪 خروج");
-};
-
-// 💬 دردشة
-window.send=function(){
-    const msg=$('cMsg')?.value.trim();
-    if(!msg||!user)return alert("⚠️ اكتب رسالة");
-    const box=$('chatBox');
-    const div=document.createElement('div');
-    div.style.cssText='margin:8px 0;padding:8px;background:#dbeafe;border-radius:6px';
-    div.innerHTML=`<strong style="color:#2563eb">${user.name}</strong>: ${msg}`;
-    box.appendChild(div);
-    $('cMsg').value='';
-    box.scrollTop=box.scrollHeight;
-    console.log("💬 أرسل:",msg);
-};
-window.toggleSmilies=function(){
-    const b=$('smBox');
-    b.style.display=(b.style.display==='none'||!b.style.display)?'block':'none';
-};
-window.ins=function(em){
-    const i=$('cMsg');
-    if(i){i.value+=' '+em+' ';i.focus();}
-};
-window.test=function(){
-    const t=new Date().toLocaleTimeString('ar-EG');
-    $('out').innerHTML=`✅ يعمل!<br>⏰ ${t}<br>👤 ${user?.name||'ضيف'}`;
-    alert("✅ النظام يعمل!\n"+t);
-};
-
-// 📋 القوائم المنسدلة - النسخة المضمونة 100%
-window.toggleMenu=function(id){
-    console.log("🔽 تبديل القائمة:",id);
-    
-    // 1. أغلق كل القوائم الأخرى أولاً
-    hideAllMenus();
-    
-    // 2. افتح/أغلق القائمة المطلوبة
-    const menu=document.getElementById(id);
-    if(menu){
-        // ✅ الطريقة المضمونة: التحكم المباشر في الـ style.display
-        if(menu.style.display==='block'){
-            menu.style.display='none';
-            console.log("  → أُغلقت");
-        }else{
-            menu.style.display='block';
-            console.log("  → فُتحت");
-        }
-    }else{
-        console.error("❌ القائمة غير موجودة:",id);
+    function showSub(pageKey) {
+        // تغيير محتوى صفحة الـ sub
+        document.getElementById('sub-title').innerText = pages[pageKey].split('>')[1].split('<')[0]; // استخراج العنوان تقريباً
+        document.getElementById('sub-content').innerHTML = pages[pageKey];
+        // الذهاب لصفحة sub
+        go('sub');
     }
-};
 
-window.hideAllMenus=function(){
-    console.log("🔽 إغلاق كل القوائم");
-    ['m1','m2','m3','m4'].forEach(id=>{
-        const el=document.getElementById(id);
-        if(el){
-            el.style.display='none';
-            console.log("  → "+id+" أُغلق");
-        }
-    });
-};
-
-// إغلاق القوائم عند النقر خارجها
-document.addEventListener('click',function(e){
-    // إذا النقرة ليست على زر القائمة ولا داخل القائمة نفسها
-    if(!e.target.closest('.drop') && !e.target.closest('.drop-c')){
-        hideAllMenus();
-        console.log("🔽 أُغلقت القوائم (نقر خارجي)");
+    // === 4. الدخول والخروج ===
+    function doLogin(e) {
+        e.preventDefault();
+        // محاكاة الدخول
+        document.getElementById('user-name').innerText = "مدير النظام";
+        document.getElementById('user-label').innerText = "admin@cbox.com";
+        go('dashboard');
+        alert("✅ تم تسجيل الدخول بنجاح!");
     }
-});
 
-// 📤 صفحة انشر
-window.swapCode=function(){
-    const v=$('codeType')?.value||'inline', b=$('codeBox');
-    if(!b)return;
-    b.value = v==='inline' 
-        ? '<iframe src="https://cbox-2.github.io/2026/?#chat" width="400" height="400"></iframe>'
-        : '<a href="#" onclick="window.open(\'https://cbox-2.github.io/2026/?#chat\',\'Chat\',\'width=400,height=400\')">افتح الدردشة</a>';
-};
-window.copyCode=function(){
-    const b=$('codeBox'); if(!b)return;
-    b.select();
-    try{document.execCommand('copy');alert("✅ تم النسخ")}catch{alert("Ctrl+C للنسخ")}
-};
+    function doLogout() {
+        document.getElementById('user-label').innerText = "ضيف";
+        go('login');
+        alert("👋 تم الخروج");
+    }
 
-// بدء النظام
-console.log("✅ جاهز تماماً!");
+    // === 5. دردشة بسيطة ===
+    function sendMessage() {
+        const input = document.getElementById('chat-input');
+        const box = document.getElementById('chat-box');
+        if(input.value.trim() !== "") {
+            const msgDiv = document.createElement('div');
+            msgDiv.style.cssText = "background:#eef; padding:8px; margin:5px 0; border-radius:4px; text-align:right;";
+            msgDiv.innerText = "👤 " + input.value;
+            box.appendChild(msgDiv);
+            box.scrollTop = box.scrollHeight; // النزول للأسفل
+            input.value = "";
+        }
+    }
 </script>
+
 </body>
 </html>
