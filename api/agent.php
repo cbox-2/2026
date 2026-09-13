@@ -154,7 +154,10 @@ $T = [
         copy($target,$bf);return['success'=>true,'backup_created'=>$bf];
     }],
     'project-scan'=>['desc'=>'فحص شامل للمشروع','perm'=>'READ','fn'=>function($a){
-        $p=escapeshellarg($a['path']??'/var/www/html');
+        $path=$a['path']??'/var/www/html';
+        if($path==='.'||$path==='./'||empty($path))$path='/var/www/html';
+        elseif($path[0]!=='/')$path='/var/www/html/'.ltrim($path,'/');
+        $p=escapeshellarg($path);
         $files=(int)trim(shell_exec("find $p -type f 2>/dev/null | wc -l"));
         $php=(int)trim(shell_exec("find $p -name '*.php' 2>/dev/null | wc -l"));
         $js=(int)trim(shell_exec("find $p -name '*.js' 2>/dev/null | wc -l"));
