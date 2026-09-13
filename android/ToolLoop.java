@@ -26,7 +26,7 @@ public class ToolLoop {
     private static final int MAX_ITERATIONS = 50;
 
     public static void initialize(LoopCallback cb) {
-        cb.onFinalAnswer("✅ SeaBox Engineer Pro جاهز - 104 أداة\n📡 الذاكرة: GitHub Memory");
+        cb.onFinalAnswer("✅ SeaBox Engineer Pro جاهز - 102 أداة\n📡 GitHub Memory + Key Rotation + 3 أدوات هندسية جديدة");
     }
 
     public static void run(String sessionId, String userPrompt, List<String> history, LoopCallback cb) {
@@ -34,9 +34,8 @@ public class ToolLoop {
             try {
                 cb.onProgress("🧠 يفكر...");
                 
-                String prompt = "المهمة: " + userPrompt + "\nاستدع الادوات ثم قدم تقرير. تنسيق: TOOL: اسم\nARGS: {}";
-                
-                cb.onProgress("📡 يرسل لـ AI...");
+                // الخطوة 1: فهم المهمة واستدعاء الأدوات
+                String prompt = buildPrompt(userPrompt, history);
                 String aiResp = httpPost(SERVER + "/api/ai.php?token=" + TOKEN, "prompt=" + enc(prompt));
                 
                 if (aiResp.contains("EXCEPTION") || aiResp.contains("ERROR")) {
@@ -48,12 +47,12 @@ public class ToolLoop {
                 try {
                     json = new JSONObject(aiResp);
                 } catch (Exception e) {
-                    cb.onError("رد غير صالح: " + aiResp.substring(0, Math.min(200, aiResp.length())));
+                    cb.onError("رد غير صالح");
                     return;
                 }
                 
                 if (!json.optBoolean("success")) {
-                    cb.onError("فشل AI: " + json.optString("error", "غير معروف"));
+                    cb.onError("فشل AI: " + json.optString("error", ""));
                     return;
                 }
                 
@@ -63,6 +62,7 @@ public class ToolLoop {
                     return;
                 }
                 
+                // الخطوة 2: استخراج الأدوات
                 List<String[]> calls = extractTools(text);
                 
                 if (calls.isEmpty()) {
@@ -70,6 +70,7 @@ public class ToolLoop {
                     return;
                 }
 
+                // الخطوة 3: تنفيذ الأدوات
                 cb.onProgress("🔧 تنفيذ " + calls.size() + " أداة...");
                 StringBuilder results = new StringBuilder();
                 
@@ -84,39 +85,85 @@ public class ToolLoop {
                     String resp = httpGet(url);
 
                     cb.onToolResult(tool, "OK");
-                    
-                    try {
-                        JSONObject rj = new JSONObject(resp);
-                        if (rj.optBoolean("success")) {
-                            JSONObject res = rj.optJSONObject("result");
-                            if (res != null) {
-                                if (res.has("preview")) {
-                                    results.append("**").append(i+1).append(". ").append(tool).append(":**\n```php\n")
-                                        .append(res.optString("preview")).append("\n```\n\n");
-                                } else if (res.has("result")) {
-                                    String r = res.optString("result");
-                                    results.append("**").append(i+1).append(". ").append(tool).append(":**\n```\n")
-                                        .append(r.length() > 500 ? r.substring(0, 500) + "..." : r).append("\n```\n\n");
-                                } else if (res.has("schema")) {
-                                    results.append("**").append(i+1).append(". ").append(tool).append(":**\n```\n")
-                                        .append(res.optString("schema")).append("\n```\n\n");
-                                } else {
-                                    results.append("**").append(i+1).append(". ").append(tool).append(":** ✅\n\n");
-                                }
-                            }
-                        } else {
-                            results.append("**").append(i+1).append(". ").append(tool).append(":** ❌ ").append(rj.optString("error", "خطأ")).append("\n\n");
-                        }
-                    } catch (Exception e) {
-                        results.append("**").append(i+1).append(". ").append(tool).append(":** ").append(resp.substring(0, Math.min(200, resp.length()))).append("\n\n");
-                    }
+                    results.append(formatResult(i+1, tool, resp));
                 }
 
+                // الخطوة 4: تقديم التقرير النهائي
                 cb.onFinalAnswer("📊 **النتائج:**\n\n" + results.toString() + "\n---\n\n📝 **تقرير Qwen:**\n" + text);
             } catch (Exception e) {
                 cb.onError("خطأ: " + e.getMessage());
             }
         }).start();
+    }
+
+    private static String buildPrompt(String userPrompt, List<String> history) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("المهمة: ").append(userPrompt).append("\n\n");
+        sb.append("🎯 الأدوات الهندسية المتاحة:\n");
+        sb.append("- project-scan: فحص شامل للمشروع\n");
+        sb.append("- impact-analysis: تحليل تأثير التعديل\n");
+        sb.append("- dependency-graph: رسم العلاقات\n");
+        sb.append("- rollback: استعادة من backup\n");
+        sb.append("- production-readiness: فحص جاهزية الإنتاج\n");
+        sb.append("- link-checker: فحص الروابط\n");
+        sb.append("- page-validator: فحص الصفحات\n");
+        sb.append("- api-tester: اختبار APIs\n");
+        sb.append("- crud-tester: اختبار CRUD\n");
+        sb.append("- final-package: إنشاء ZIP\n");
+        sb.append("- auto-fix: إصلاح تلقائي\n");
+        sb.append("- test-runner: تشغيل اختبارات\n");
+        sb.append("- code-review: مراجعة كود\n");
+        sb.append("- security-audit: تدقيق أمني\n");
+        sb.append("- health, system-info, memory, disk, services, network\n");
+        sb.append("- db-schema, db-query, db-query-write\n");
+        sb.append("- code-generate, refactor-code, debug-code\n");
+        sb.append("- github-store, github-read, github-list\n\n");
+        sb.append("🔧 تنسيق:\nTOOL: اسم_الأداة\nARGS: {\"param\": \"value\"}\n\n");
+        sb.append("⚠️ استخدم أسماء الأدوات الصحيحة. لا تخترع أسماء.\n");
+        
+        if (!history.isEmpty()) {
+            sb.append("\n📜 السياق السابق:\n");
+            for (String h : history) {
+                sb.append(h).append("\n");
+            }
+        }
+        
+        return sb.toString();
+    }
+
+    private static String formatResult(int num, String tool, String resp) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("**").append(num).append(". ").append(tool).append(":**\n");
+        try {
+            JSONObject rj = new JSONObject(resp);
+            if (rj.optBoolean("success")) {
+                JSONObject res = rj.optJSONObject("result");
+                if (res != null) {
+                    if (res.has("preview")) {
+                        sb.append("```php\n").append(res.optString("preview")).append("\n```\n\n");
+                    } else if (res.has("result")) {
+                        String r = res.optString("result");
+                        sb.append("```\n").append(r.length() > 500 ? r.substring(0, 500) + "..." : r).append("\n```\n\n");
+                    } else if (res.has("schema")) {
+                        sb.append("```\n").append(res.optString("schema")).append("\n```\n\n");
+                    } else if (res.has("checks")) {
+                        JSONObject checks = res.optJSONObject("checks");
+                        sb.append("| الفحص | الحالة |\n|-------|:---:|\n");
+                        for (String key : checks.keySet()) {
+                            sb.append("| ").append(key).append(" | ").append(checks.optString(key)).append(" |\n");
+                        }
+                        sb.append("\n");
+                    } else {
+                        sb.append("✅\n\n");
+                    }
+                }
+            } else {
+                sb.append("❌ ").append(rj.optString("error", "خطأ")).append("\n\n");
+            }
+        } catch (Exception e) {
+            sb.append(resp.substring(0, Math.min(200, resp.length()))).append("\n\n");
+        }
+        return sb.toString();
     }
 
     private static List<String[]> extractTools(String text) {
