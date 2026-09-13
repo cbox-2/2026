@@ -1,137 +1,42 @@
 <?php
-
-// Smart Caching - حفظ الردود في GitHub
-function getCachedResponse($prompt) {
-    $hash = md5($prompt);
-    // Cache محلي (سريع - ساعة)
-    $cache_file = '/tmp/ai_cache_' . $hash . '.json';
-    if (file_exists($cache_file) && (time() - filemtime($cache_file)) < 3600) {
-        return json_decode(file_get_contents($cache_file), true);
-    }
-    // Cache GitHub (دائم - 24 ساعة)
-    $token = trim(@file_get_contents('/var/www/html/.github_token') ?: '');
-    $repo = trim(@file_get_contents('/var/www/html/.github_repo') ?: '');
-    if ($token && $repo) {
-        $path = 'memory/cache/' . $hash . '.json';
-        $ch = curl_init("https://api.github.com/repos/$repo/contents/$path");
-        curl_setopt_array($ch, [
-            CURLOPT_HTTPHEADER => ['Authorization: token '.$token, 'User-Agent: SeaBox', 'Accept: application/vnd.github.v3.raw'],
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 10
-        ]);
-        $resp = curl_exec($ch);
-        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-        if ($code == 200 && !empty($resp)) {
-            $data = json_decode($resp, true);
-            if (isset($data['timestamp']) && (time() - $data['timestamp']) < 86400) {
-                return $data['response'];
-            }
-        }
-    }
-    return null;
-}
-
-function saveCachedResponse($prompt, $response) {
-    $hash = md5($prompt);
-    // حفظ محلي
-    $cache_file = '/tmp/ai_cache_' . $hash . '.json';
-    file_put_contents($cache_file, json_encode($response));
-    // حفظ GitHub (دائم)
-    $token = trim(@file_get_contents('/var/www/html/.github_token') ?: '');
-    $repo = trim(@file_get_contents('/var/www/html/.github_repo') ?: '');
-    if ($token && $repo) {
-        $path = 'memory/cache/' . $hash . '.json';
-        $data = json_encode(['timestamp' => time(), 'prompt' => substr($prompt, 0, 200), 'response' => $response]);
-        $ch = curl_init("https://api.github.com/repos/$repo/contents/$path");
-        curl_setopt_array($ch, [
-            CURLOPT_CUSTOMREQUEST => 'PUT',
-            CURLOPT_POSTFIELDS => json_encode(['message' => 'Cache '.$hash, 'content' => base64_encode($data), 'branch' => 'main']),
-            CURLOPT_HTTPHEADER => ['Authorization: token '.$token, 'Content-Type: application/json', 'User-Agent: SeaBox'],
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 10
-        ]);
-        curl_exec($ch);
-        curl_close($ch);
-    }
-}
-
-header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: *');
-$token = $_GET['token'] ?? '';
-if ($token !== 'seabox-agent-2026') { echo json_encode(['success'=>false,'message'=>'Unauthorized']); exit; }
-$prompt = $_POST['prompt'] ?? $_GET['prompt'] ?? '';
-if (empty($prompt)) { echo json_encode(['success'=>false,'message'=>'Empty prompt']); exit; }
-
-$SYSTEM_PROMPT = <<<EOT
-أنت SeaBox Engineer - نظام بـ 100 أداة.
-
-🎯 قواعد صارمة (اتبعها حرفياً):
-1. حلل المهمة → حدد الأدوات المطلوبة فقط
-2. استدعِ كل الأدوات دفعة واحدة (لا تستدعِ نفس الأداة مرتين)
-3. بعد تنفيذ الأدوات → قدم تقرير نهائي فوراً
-4. **لا تكرر أي أداة** - إذا استدعيت أداة مرة، لا تستدعها مرة أخرى
-5. **لا تستدعِ db-schema أكثر من مرة واحدة**
-6. إذا المهمة "ولّد كود" → استدعِ code-generate مباشرة
-
-📋 أمثلة صحيحة:
-
-مثال 1: "كم عدد المستخدمين؟"
-TOOL: db-query
-ARGS: {"query": "SELECT COUNT(*) as total FROM users"}
-[بعد النتيجة: قدم التقرير النهائي]
-
-مثال 2: "ولّد كود تسجيل دخول"
-TOOL: db-schema
-ARGS: {"table": "users"}
-
-TOOL: code-generate
-ARGS: {"type": "php", "description": "دالة تسجيل دخول آمنة تستخدم بنية جدول users"}
-[بعد النتائج: قدم التقرير النهائي مع الكود]
-
-مثال 3: "إحصائيات شاملة"
-TOOL: db-query
-ARGS: {"query": "SELECT COUNT(*) as total FROM users"}
-
-TOOL: db-query
-ARGS: {"query": "SELECT COUNT(*) as total FROM messages"}
-
-TOOL: db-query
-ARGS: {"query": "SELECT COUNT(*) as total FROM channels"}
-
-TOOL: db-query
-ARGS: {"query": "SELECT COUNT(*) as total FROM boxes"}
-
-TOOL: db-query
-ARGS: {"query": "SELECT COUNT(*) as total FROM bans"}
-[بعد النتائج: قدم التقرير النهائي]
-
-🔧 الأدوات المتاحة (100 أداة):
-- db-query, db-query-write, db-schema
-- code-generate, refactor-code, architecture-design, debug-code, generate-tests
-- deploy-app, ci-cd-pipeline, code-review, generate-docs, manage-dependencies
-- security-audit, performance-profile, database-migrate
-- memory, disk, services, health, network, system-info
-- alert-system, get-alerts, check-health-alerts
-- backup-now, list-backups, cleanup-logs, cleanup-temp
-
-⚠️ تنسيق استدعاء الأدوات:
-TOOL: اسم_الأداة
-ARGS: {"parameter": "value"}
-
-🚀 ابدأ الآن. استدعِ الأدوات المطلوبة فقط، ثم قدم تقرير نهائي.
-EOT;
-
-// Key Rotation - 5 مفاتيح بالتناوب
+// Key Rotation + Smart Caching + Fallback
 $keysFile = '/var/www/html/.groq_api_keys';
 $keys = file_exists($keysFile) ? json_decode(file_get_contents($keysFile), true) : [];
-if (empty($keys)) { $keys = [trim(@file_get_contents('/home/cboxms0/.groq_api_key') ?: '')]; }
-$keyIndex = abs(crc32($prompt ?? '')) % count($keys);
+if (empty($keys)) {
+    $keys = [trim(@file_get_contents('/home/cboxms0/.groq_api_key') ?: '')];
+}
+
+// اختيار مفتاح عشوائي
+$keyIndex = array_rand($keys);
 $api_key = $keys[$keyIndex];
-if (!$api_key) { echo json_encode(['success'=>false,'error'=>'API key missing']); exit; }
+
+if (!$api_key) {
+    echo json_encode(['success'=>false,'error'=>'API key missing']);
+    exit;
+}
+
+header('Content-Type: application/json');
+
+// قراءة المدخلات
+$prompt = $_POST['prompt'] ?? $_GET['prompt'] ?? '';
+$session = $_POST['session'] ?? $_GET['session'] ?? '';
+$token = $_GET['token'] ?? $_POST['token'] ?? '';
+
+if ($token !== 'seabox-agent-2026') {
+    echo json_encode(['success'=>false,'error'=>'Invalid token']);
+    exit;
+}
+
+if (empty($prompt)) {
+    echo json_encode(['success'=>false,'error'=>'Empty prompt']);
+    exit;
+}
+
+// System Prompt
+$systemPrompt = "أنت SeaBox Engineer Pro - مهندس برمجيات AI احترافي.\n\n🎯 قواعد:\n1. افهم المشروع أولاً (project-scan)\n2. اكتشف النواقص (link-checker, page-validator)\n3. ابنِ خطة ثم نفّذ\n4. اختبر كل تعديل (Test-Fix-Test)\n5. لا تكرر أي أداة\n6. قدّم تقرير نهائي\n\n🔧 تنسيق استدعاء الأدوات:\nTOOL: اسم_الأداة\nARGS: {\"param\": \"value\"}\n\n🛡️ قبل أي تعديل خطير: Backup → Modify → Test → Verify\n\nقاعدة البيانات: nexusbox_db\nالأدوات المتاحة: 104 أداة (agent.php?action=tools)";
 
 $messages = [
-    ['role' => 'system', 'content' => $SYSTEM_PROMPT],
+    ['role' => 'system', 'content' => $systemPrompt],
     ['role' => 'user', 'content' => $prompt]
 ];
 
@@ -142,29 +47,78 @@ $data = [
     'temperature' => 0.3
 ];
 
-
-// محاولة الحصول من Cache أولاً
-$cached = getCachedResponse($prompt);
-if ($cached && isset($cached['choices'][0]['message']['content'])) {
-    $response = $cached;
-} else {
-    $ch = curl_init('https://api.groq.com/openai/v1/chat/completions');
-curl_setopt_array($ch, [
-    CURLOPT_POST => true,
-    CURLOPT_POSTFIELDS => json_encode($data),
-    CURLOPT_HTTPHEADER => ['Content-Type: application/json','Authorization: Bearer ' . $api_key],
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_TIMEOUT => 90
-]);
-
-$response = curl_exec($ch);
-$http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-curl_close($ch);
-    saveCachedResponse($prompt, $response);
+// Caching محلي (سريع - ساعة)
+$hash = md5($prompt);
+$cache_file = '/tmp/ai_cache_' . $hash . '.json';
+if (file_exists($cache_file) && (time() - filemtime($cache_file)) < 3600) {
+    $cached = json_decode(file_get_contents($cache_file), true);
+    if ($cached && isset($cached['choices'][0]['message']['content'])) {
+        $text = $cached['choices'][0]['message']['content'];
+        echo json_encode(['success' => true, 'text' => $text, 'cached' => true]);
+        exit;
+    }
 }
 
-if ($http !== 200) { echo json_encode(['success'=>false,'error'=>'فشل','http'=>$http]); exit; }
+// Fallback حقيقي - جرب كل المفاتيح عند 429
+$response = null;
+$http = 0;
+$usedKey = -1;
+
+for ($i = 0; $i < count($keys); $i++) {
+    $keyIdx = ($keyIndex + $i) % count($keys);
+    $key = $keys[$keyIdx];
+    
+    $ch = curl_init('https://api.groq.com/openai/v1/chat/completions');
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => json_encode($data),
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $key
+        ],
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 90
+    ]);
+    
+    $resp = curl_exec($ch);
+    $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    
+    if ($http === 200) {
+        $response = $resp;
+        $usedKey = $keyIdx;
+        break;
+    }
+    
+    if ($http !== 429) {
+        $response = $resp;
+        $usedKey = $keyIdx;
+        break;
+    }
+    // 429 → جرب المفتاح التالي
+}
+
+// حفظ في Cache عند النجاح
+if ($http === 200 && $response) {
+    file_put_contents($cache_file, $response);
+}
+
+if ($http !== 200 || !$response) {
+    echo json_encode(['success'=>false,'error'=>'كل المفاتيح Rate Limited','http'=>$http]);
+    exit;
+}
 
 $json = json_decode($response, true);
 $text = $json['choices'][0]['message']['content'] ?? '';
-echo json_encode(['success' => true, 'text' => $text]);
+
+if (empty($text)) {
+    echo json_encode(['success'=>false,'error'=>'Empty response','http'=>$http]);
+    exit;
+}
+
+echo json_encode([
+    'success' => true,
+    'text' => $text,
+    'key_used' => $usedKey,
+    'cached' => false
+]);
