@@ -24,10 +24,10 @@ public class ToolLoop {
 
     private static final String SERVER = "http://34.61.70.211";
     private static final String TOKEN = "seabox-agent-2026";
-    private static final int MAX_ITERATIONS = 8;
+    private static final int MAX_ITERATIONS = 3;  // ✅ تقليل من 8 إلى 3
 
     public static void initialize(LoopCallback cb) {
-        cb.onFinalAnswer("✅ SeaBox Engineer Pro - 109 أداة\n🔄 Multi-step Loop حقيقي (حتى 8 iterations)");
+        cb.onFinalAnswer("✅ SeaBox Engineer Pro - 109 أداة\n🔄 Multi-step Loop (3 iterations - سريع)");
     }
 
     public static void run(String sessionId, String userPrompt, List<String> history, LoopCallback cb) {
@@ -39,46 +39,49 @@ public class ToolLoop {
                 }
 
                 StringBuilder context = new StringBuilder();
-                context.append("المهمة الأصلية: ").append(userPrompt).append("\n\n");
+                context.append("المهمة: ").append(userPrompt).append("\n\n");
 
-                if (history != null && !history.isEmpty()) {
-                    context.append("📜 المحادثة السابقة:\n");
-                    for (String h : history) context.append(h).append("\n");
-                    context.append("\n");
-                }
-
-                context.append("🎯 الأدوات المتاحة:\n");
-                context.append("- project-scan, production-readiness, impact-analysis\n");
-                context.append("- dependency-graph, rollback, link-checker\n");
-                context.append("- page-validator, api-tester, crud-tester, final-package\n");
-                context.append("- auto-fix, test-runner, code-review, code-generate\n");
-                context.append("- security-audit, health, system-info, memory, disk\n");
-                context.append("- db-schema, db-query, architecture-design\n");
-                context.append("- github-store, github-read, github-list\n\n");
-                context.append("🔧 تنسيق استدعاء الأدوات:\n");
-                context.append("TOOL: اسم_الأداة\n");
-                context.append("ARGS: {\"param\": \"value\"}\n\n");
-                context.append("⚠️ قواعد:\n");
-                context.append("1. استدعي أداة واحدة أو أكثر في كل رد\n");
-                context.append("2. استخدم أسماء الأدوات الصحيحة فقط\n");
-                context.append("3. بعد ما تجمع كل المعلومات، قدّم التقرير النهائي\n");
-                context.append("4. التقرير النهائي يبدأ بـ: FINAL_REPORT:\n");
+                context.append("🎯 الأدوات الأساسية:\n");
+                context.append("- project-scan, production-readiness, code-generate\n");
+                context.append("- security-audit, db-schema, health\n");
+                context.append("- impact-analysis, dependency-graph, rollback\n\n");
+                context.append("🔧 تنسيق:\nTOOL: اسم_الأداة\nARGS: {\"param\": \"value\"}\n\n");
+                context.append("⚠️ قواعد صارمة:\n");
+                context.append("1. استدعي 1-2 أدوات فقط في كل رد\n");
+                context.append("2. في الرد الأول: ابدأ بفحص سريع (project-scan أو db-schema)\n");
+                context.append("3. في الرد الثاني: نفّذ المهمة الرئيسية\n");
+                context.append("4. في الرد الثالث: اكتب FINAL_REPORT: ثم التقرير النهائي\n");
+                context.append("5. لا تكرر نفس الأداة\n");
+                context.append("6. كن مختصراً في التقرير\n");
 
                 StringBuilder fullAnswer = new StringBuilder();
                 List<String> iterationLogs = new ArrayList<>();
 
                 for (int iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
-                    cb.onProgress("🔄 Iteration " + iteration + "/" + MAX_ITERATIONS);
+                    cb.onProgress("🔄 [" + iteration + "/" + MAX_ITERATIONS + "]");
 
                     String currentPrompt = context.toString();
                     if (!iterationLogs.isEmpty()) {
-                        currentPrompt += "\n\n📊 نتائج الـ iterations السابقة:\n";
-                        for (String log : iterationLogs) {
-                            currentPrompt += log + "\n";
+                        currentPrompt += "\n📊 نتائج سابقة (مختصرة):\n";
+                        for (int i = 0; i < iterationLogs.size(); i++) {
+                            String log = iterationLogs.get(i);
+                            // اختصار النتائج - أول 300 حرف فقط
+                            if (log.length() > 300) {
+                                log = log.substring(0, 300) + "...";
+                            }
+                            currentPrompt += "Iter " + (i+1) + ": " + log + "\n";
                         }
-                        currentPrompt += "\n\nالآن، بناءً على النتائج أعلاه، قرر:\n";
-                        currentPrompt += "- إذا تحتاج معلومات إضافية → استدعي أدوات\n";
-                        currentPrompt += "- إذا عندك كل المعلومات → اكتب FINAL_REPORT: ثم التقرير\n";
+                        currentPrompt += "\n";
+                        if (iteration == MAX_ITERATIONS) {
+                            currentPrompt += "⚠️ آخر iteration! اكتب FINAL_REPORT: الآن مع كل المعلومات.\n";
+                        } else {
+                            currentPrompt += "الخطوة التالية (1-2 أدوات فقط):\n";
+                        }
+                    }
+
+                    // تأخير بين iterations لتجنب Rate Limit
+                    if (iteration > 1) {
+                        try { Thread.sleep(2000); } catch (InterruptedException e) {}
                     }
 
                     String aiResp = httpPost(SERVER + "/api/ai.php?token=" + TOKEN, "prompt=" + enc(currentPrompt));
@@ -87,18 +90,23 @@ public class ToolLoop {
                     try {
                         json = new JSONObject(aiResp);
                     } catch (Exception e) {
-                        cb.onError("رد غير صالح في iteration " + iteration);
+                        cb.onError("رد غير صالح");
                         return;
                     }
 
                     if (!json.optBoolean("success")) {
-                        cb.onError("فشل AI في iteration " + iteration + ": " + json.optString("error", ""));
+                        String err = json.optString("error", "");
+                        if (err.contains("Rate Limited") || err.contains("429")) {
+                            cb.onError("⏸️ Rate Limit - انتظر دقيقة ثم حاول مرة أخرى");
+                        } else {
+                            cb.onError("فشل: " + err);
+                        }
                         return;
                     }
 
                     String text = json.optString("text", "");
                     if (text.isEmpty()) {
-                        cb.onError("Qwen ما رجع رد في iteration " + iteration);
+                        cb.onError("Qwen ما رجع رد");
                         return;
                     }
 
@@ -117,9 +125,8 @@ public class ToolLoop {
                         return;
                     }
 
-                    cb.onProgress("🔧 Iteration " + iteration + ": تنفيذ " + calls.size() + " أداة");
+                    cb.onProgress("🔧 [" + iteration + "] " + calls.size() + " أداة");
                     StringBuilder iterResult = new StringBuilder();
-                    iterResult.append("=== Iteration ").append(iteration).append(" ===\n");
 
                     for (int i = 0; i < calls.size(); i++) {
                         String tool = calls.get(i)[0];
@@ -131,20 +138,19 @@ public class ToolLoop {
                         String resp = httpGet(url);
                         cb.onToolResult(tool, "OK");
 
-                        iterResult.append("TOOL_RESULT: ").append(tool).append("\n");
-                        iterResult.append(resp).append("\n\n");
+                        iterResult.append(tool).append(": ").append(resp.substring(0, Math.min(200, resp.length()))).append("\n");
                     }
 
                     iterationLogs.add(iterResult.toString());
 
-                    fullAnswer.append("🔄 **Iteration ").append(iteration).append("**: ");
+                    fullAnswer.append("✅ ").append(iteration).append(": ");
                     for (String[] call : calls) {
                         fullAnswer.append(call[0]).append(" ");
                     }
                     fullAnswer.append("\n");
                 }
 
-                cb.onFinalAnswer(fullAnswer.toString() + "\n\n⚠️ وصلنا للحد الأقصى (8 iterations)");
+                cb.onFinalAnswer(fullAnswer.toString() + "\n\n⚠️ وصلنا للحد (3 iterations)");
 
             } catch (Exception e) {
                 cb.onError("خطأ: " + e.getMessage());
