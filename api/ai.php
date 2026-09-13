@@ -1,4 +1,61 @@
 <?php
+
+// Smart Caching - حفظ الردود في GitHub
+function getCachedResponse($prompt) {
+    $hash = md5($prompt);
+    // Cache محلي (سريع - ساعة)
+    $cache_file = '/tmp/ai_cache_' . $hash . '.json';
+    if (file_exists($cache_file) && (time() - filemtime($cache_file)) < 3600) {
+        return json_decode(file_get_contents($cache_file), true);
+    }
+    // Cache GitHub (دائم - 24 ساعة)
+    $token = trim(@file_get_contents('/var/www/html/.github_token') ?: '');
+    $repo = trim(@file_get_contents('/var/www/html/.github_repo') ?: '');
+    if ($token && $repo) {
+        $path = 'memory/cache/' . $hash . '.json';
+        $ch = curl_init("https://api.github.com/repos/$repo/contents/$path");
+        curl_setopt_array($ch, [
+            CURLOPT_HTTPHEADER => ['Authorization: token '.$token, 'User-Agent: SeaBox', 'Accept: application/vnd.github.v3.raw'],
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 10
+        ]);
+        $resp = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        if ($code == 200 && !empty($resp)) {
+            $data = json_decode($resp, true);
+            if (isset($data['timestamp']) && (time() - $data['timestamp']) < 86400) {
+                return $data['response'];
+            }
+        }
+    }
+    return null;
+}
+
+function saveCachedResponse($prompt, $response) {
+    $hash = md5($prompt);
+    // حفظ محلي
+    $cache_file = '/tmp/ai_cache_' . $hash . '.json';
+    file_put_contents($cache_file, json_encode($response));
+    // حفظ GitHub (دائم)
+    $token = trim(@file_get_contents('/var/www/html/.github_token') ?: '');
+    $repo = trim(@file_get_contents('/var/www/html/.github_repo') ?: '');
+    if ($token && $repo) {
+        $path = 'memory/cache/' . $hash . '.json';
+        $data = json_encode(['timestamp' => time(), 'prompt' => substr($prompt, 0, 200), 'response' => $response]);
+        $ch = curl_init("https://api.github.com/repos/$repo/contents/$path");
+        curl_setopt_array($ch, [
+            CURLOPT_CUSTOMREQUEST => 'PUT',
+            CURLOPT_POSTFIELDS => json_encode(['message' => 'Cache '.$hash, 'content' => base64_encode($data), 'branch' => 'main']),
+            CURLOPT_HTTPHEADER => ['Authorization: token '.$token, 'Content-Type: application/json', 'User-Agent: SeaBox'],
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 10
+        ]);
+        curl_exec($ch);
+        curl_close($ch);
+    }
+}
+
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 $token = $_GET['token'] ?? '';
@@ -80,7 +137,13 @@ $data = [
     'temperature' => 0.3
 ];
 
-$ch = curl_init('https://api.groq.com/openai/v1/chat/completions');
+
+// محاولة الحصول من Cache أولاً
+$cached = getCachedResponse($prompt);
+if ($cached && isset($cached['choices'][0]['message']['content'])) {
+    $response = $cached;
+} else {
+    $ch = curl_init('https://api.groq.com/openai/v1/chat/completions');
 curl_setopt_array($ch, [
     CURLOPT_POST => true,
     CURLOPT_POSTFIELDS => json_encode($data),
@@ -92,6 +155,8 @@ curl_setopt_array($ch, [
 $response = curl_exec($ch);
 $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
+    saveCachedResponse($prompt, $response);
+}
 
 if ($http !== 200) { echo json_encode(['success'=>false,'error'=>'فشل','http'=>$http]); exit; }
 
