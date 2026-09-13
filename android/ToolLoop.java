@@ -24,10 +24,9 @@ public class ToolLoop {
 
     private static final String SERVER = "http://34.61.70.211";
     private static final String TOKEN = "seabox-agent-2026";
-    private static final int MAX_ITERATIONS = 50;
 
     public static void initialize(LoopCallback cb) {
-        cb.onFinalAnswer("✅ SeaBox Engineer Pro جاهز - 109 أداة\n📡 GitHub Memory + Key Rotation + 10 أدوات هندسية (project-scan, production-readiness, impact-analysis, dependency-graph, rollback, link-checker, page-validator, api-tester, crud-tester, final-package)");
+        cb.onFinalAnswer("✅ SeaBox Engineer Pro جاهز - 109 أداة\n📡 GitHub Memory + Key Rotation + 10 أدوات هندسية");
     }
 
     public static void run(String sessionId, String userPrompt, List<String> history, LoopCallback cb) {
@@ -41,14 +40,10 @@ public class ToolLoop {
                 cb.onProgress("🧠 يفكر...");
                 String prompt = buildPrompt(userPrompt, history);
                 
-                // إرسال POST بشكل صحيح
+                // إرسال POST
                 String aiResp = httpPost(SERVER + "/api/ai.php?token=" + TOKEN, "prompt=" + enc(prompt));
                 
-                if (aiResp.contains("EXCEPTION") || aiResp.contains("ERROR")) {
-                    cb.onError("فشل الاتصال: " + aiResp);
-                    return;
-                }
-                
+                // فحص JSON فقط (لا string search)
                 JSONObject json;
                 try {
                     json = new JSONObject(aiResp);
@@ -69,6 +64,7 @@ public class ToolLoop {
                     return;
                 }
                 
+                // استخراج الأدوات
                 List<String[]> calls = extractTools(text);
                 
                 if (calls.isEmpty()) {
@@ -76,6 +72,7 @@ public class ToolLoop {
                     return;
                 }
 
+                // تنفيذ الأدوات
                 cb.onProgress("🔧 تنفيذ " + calls.size() + " أداة...");
                 StringBuilder results = new StringBuilder();
                 
@@ -102,10 +99,10 @@ public class ToolLoop {
     private static String buildPrompt(String userPrompt, List<String> history) {
         StringBuilder sb = new StringBuilder();
         sb.append("المهمة: ").append(userPrompt).append("\n\n");
-        sb.append("🎯 الأدوات الهندسية المتاحة:\n");
-        sb.append("- project-scan, impact-analysis, dependency-graph, rollback\n");
-        sb.append("- production-readiness, link-checker, page-validator\n");
-        sb.append("- api-tester, crud-tester, final-package\n");
+        sb.append("🎯 الأدوات المتاحة:\n");
+        sb.append("- project-scan, production-readiness, impact-analysis\n");
+        sb.append("- dependency-graph, rollback, link-checker\n");
+        sb.append("- page-validator, api-tester, crud-tester, final-package\n");
         sb.append("- auto-fix, test-runner, code-review\n");
         sb.append("- security-audit, health, system-info, memory, disk\n");
         sb.append("- db-schema, db-query, code-generate\n");
@@ -202,7 +199,7 @@ public class ToolLoop {
             c.disconnect();
             return response;
         } catch (Exception e) {
-            return "EXCEPTION: " + e.getMessage();
+            return "{\"success\":false,\"error\":\"" + e.getMessage() + "\"}";
         }
     }
 
