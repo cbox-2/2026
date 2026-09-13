@@ -122,7 +122,12 @@ ARGS: {"parameter": "value"}
 🚀 ابدأ الآن. استدعِ الأدوات المطلوبة فقط، ثم قدم تقرير نهائي.
 EOT;
 
-$api_key = trim(file_get_contents('/home/cboxms0/.groq_api_key'));
+// Key Rotation - 5 مفاتيح بالتناوب
+$keysFile = '/var/www/html/.groq_api_keys';
+$keys = file_exists($keysFile) ? json_decode(file_get_contents($keysFile), true) : [];
+if (empty($keys)) { $keys = [trim(@file_get_contents('/home/cboxms0/.groq_api_key') ?: '')]; }
+$keyIndex = abs(crc32($prompt ?? '')) % count($keys);
+$api_key = $keys[$keyIndex];
 if (!$api_key) { echo json_encode(['success'=>false,'error'=>'API key missing']); exit; }
 
 $messages = [
