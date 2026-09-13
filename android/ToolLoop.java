@@ -27,7 +27,7 @@ public class ToolLoop {
     private static final int MAX_ITERATIONS = 50;
 
     public static void initialize(LoopCallback cb) {
-        cb.onFinalAnswer("✅ SeaBox Engineer Pro جاهز - 102 أداة\n📡 GitHub Memory + Key Rotation + 3 أدوات هندسية جديدة");
+        cb.onFinalAnswer("✅ SeaBox Engineer Pro جاهز - 109 أداة\n📡 GitHub Memory + Key Rotation + 10 أدوات هندسية (project-scan, production-readiness, impact-analysis, dependency-graph, rollback, link-checker, page-validator, api-tester, crud-tester, final-package)");
     }
 
     public static void run(String sessionId, String userPrompt, List<String> history, LoopCallback cb) {
