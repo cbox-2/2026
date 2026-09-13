@@ -153,6 +153,89 @@ $T = [
         $bf="$dir/".basename($file).'.'.date('Y-m-d_H-i-s').'.bak';
         copy($target,$bf);return['success'=>true,'backup_created'=>$bf];
     }],
+    'project-scan'=>['desc'=>'فحص شامل للمشروع','perm'=>'READ','fn'=>function($a){
+        $p=escapeshellarg($a['path']??'/var/www/html');
+        $files=(int)trim(shell_exec("find $p -type f 2>/dev/null | wc -l"));
+        $php=(int)trim(shell_exec("find $p -name '*.php' 2>/dev/null | wc -l"));
+        $js=(int)trim(shell_exec("find $p -name '*.js' 2>/dev/null | wc -l"));
+        $css=(int)trim(shell_exec("find $p -name '*.css' 2>/dev/null | wc -l"));
+        $html=(int)trim(shell_exec("find $p -name '*.html' 2>/dev/null | wc -l"));
+        $dirs=(int)trim(shell_exec("find $p -type d 2>/dev/null | wc -l"));
+        $writable=(int)trim(shell_exec("find $p -writable -type f 2>/dev/null | wc -l"));
+        global $MYSQL,$DB_NAME;
+        $tables=trim(shell_exec("$MYSQL ".escapeshellarg($DB_NAME)." -N -e 'SHOW TABLES;' 2>&1"));
+        $table_count=substr_count($tables,"\n")+($tables?1:0);
+        $tree=shell_exec("find $p -maxdepth 2 -type d 2>/dev/null | head -30");
+        return['success'=>true,'total_files'=>$files,'php'=>$php,'js'=>$js,'css'=>$css,'html'=>$html,'dirs'=>$dirs,'writable_files'=>$writable,'db_tables'=>$table_count,'tree'=>$tree];
+    }],
+    'link-checker'=>['desc'=>'فحص الروابط المعطلة','perm'=>'READ','fn'=>function($a){
+        $p=escapeshellarg($a['path']??'/var/www/html');
+        $links=shell_exec("grep -roh 'href=[\"'\"''][^\"'\"'']*[\"'\"'']' $p --include='*.php' --include='*.html' 2>/dev/null | sort -u | head -50");
+        $broken=[];
+        foreach(explode("\n",$links) as $l){
+            $l=trim(trim($l,"href=\"'"));
+            if(empty($l)||strpos($l,'http')===0||strpos($l,'#')===0)continue;
+            $fp=realpath('/var/www/html/'.ltrim($l,'/'));
+            if(!$fp||!file_exists($fp))$broken[]=$l;
+        }
+        return['success'=>true,'broken'=>$broken,'broken_count'=>count($broken)];
+    }],
+    'page-validator'=>['desc'=>'فحص الصفحات','perm'=>'READ','fn'=>function($a){
+        $pages=[];
+        foreach(['index.php','login.php','register.php','dashboard.php','api/agent.php','api/ai.php'] as $pg){
+            $code=trim(shell_exec("curl -s -o /dev/null -w '%{http_code}' http://localhost/$pg 2>&1"));
+            $pages[$pg]=['status'=>$code,'ok'=>$code=='200'];
+        }
+        return['success'=>true,'pages'=>$pages];
+    }],
+    'api-tester'=>['desc'=>'اختبار APIs','perm'=>'READ','fn'=>function($a){
+        $apis=['agent-tools'=>"/api/agent.php?action=tools&token=seabox-agent-2026",'ai-hello'=>"/api/ai.php?token=seabox-agent-2026",'dashboard'=>"/dashboard.php"];
+        $results=[];
+        foreach($apis as $name=>$path){
+            $code=trim(shell_exec("curl -s -o /dev/null -w '%{http_code}' http://localhost$path 2>&1"));
+            $results[$name]=['status'=>$code,'ok'=>$code=='200'];
+        }
+        return['success'=>true,'apis'=>$results];
+    }],
+    'crud-tester'=>['desc'=>'اختبار CRUD','perm'=>'READ','fn'=>function($a){
+        global $MYSQL,$DB_NAME;
+        $tests=[];
+        $tests['users']=trim(shell_exec("$MYSQL $DB_NAME -N -e 'SELECT COUNT(*) FROM users;' 2>&1"));
+        $tests['tables']=trim(shell_exec("$MYSQL $DB_NAME -N -e 'SHOW TABLES;' 2>&1"));
+        $ok=strpos($tests['users'],'Error')===false;
+        return['success'=>true,'tests'=>$tests,'all_pass'=>$ok];
+    }],
+    'production-readiness'=>['desc'=>'فحص جاهزية الإنتاج','perm'=>'READ','fn'=>function($a){
+        $checks=[];
+        $php_ok=trim(shell_exec('find /var/www/html -name "*.php" -exec php -l {} \; 2>&1 | grep -c "No syntax errors"'));
+        $checks['Code']=$php_ok>0?'PASS':'FAIL';
+        $db_test=trim(shell_exec("mysql -u seabox_agent -p'SeaBox2026!Secure' nexusbox_db -N -e 'SELECT 1;' 2>&1"));
+        $checks['Database']=$db_test=='1'?'PASS':'FAIL';
+        $home_code=trim(shell_exec("curl -s -o /dev/null -w '%{http_code}' http://localhost/ 2>&1"));
+        $checks['Pages']=$home_code=='200'?'PASS':'FAIL';
+        $api_code=trim(shell_exec("curl -s -o /dev/null -w '%{http_code}' 'http://localhost/api/agent.php?action=tools&token=seabox-agent-2026' 2>&1"));
+        $checks['API']=$api_code=='200'?'PASS':'FAIL';
+        $writable=(int)trim(shell_exec('find /var/www/html -perm -o+w -type f 2>/dev/null | wc -l'));
+        $checks['Security']=$writable<5?'PASS':'FAIL';
+        $svc=trim(shell_exec('systemctl is-active apache2 2>/dev/null'));
+        $checks['Services']=$svc=='active'?'PASS':'FAIL';
+        $checks['Configuration']=file_exists('/var/www/html/.groq_api_keys')?'PASS':'FAIL';
+        $checks['Dependencies']=file_exists('/var/www/html/api/agent.php')?'PASS':'FAIL';
+        $dash_code=trim(shell_exec("curl -s -o /dev/null -w '%{http_code}' http://localhost/dashboard.php 2>&1"));
+        $checks['Deployment']=$dash_code=='200'?'PASS':'FAIL';
+        $all_pass=true;$fails=[];foreach($checks as $k=>$v){if($v=='FAIL'){$all_pass=false;$fails[]=$k;}}
+        return['success'=>true,'checks'=>$checks,'ready'=>$all_pass,'fails'=>$fails,'summary'=>$all_pass?'جاهز للإنتاج':'يحتاج إصلاحات: '.implode(', ',$fails)];
+    }],
+    'final-package'=>['desc'=>'إنشاء ZIP نهائي','perm'=>'WRITE','fn'=>function($a){
+        $name=$a['name']??'Production-'.date('Y-m-d');
+        $dir='/home/cboxms0/seabox-backups';
+        shell_exec("mkdir -p $dir");
+        $zip="$dir/$name.zip";
+        shell_exec("cd /var/www/html && zip -r ".escapeshellarg($zip)." . -x '*.env' '*node_modules*' '*.git*' '*secrets*' '*.groq*' '*.github*' 2>&1");
+        $sha=trim(shell_exec("sha256sum ".escapeshellarg($zip)." 2>/dev/null | awk '{print $1}'"));
+        $size=trim(shell_exec("du -h ".escapeshellarg($zip)." 2>/dev/null | awk '{print $1}'"));
+        return['success'=>file_exists($zip),'file'=>$zip,'sha256'=>$sha,'size'=>$size];
+    }],
 ];
 if ($action === 'tools') { $tools = []; foreach ($T as $name => $t) $tools[$name] = ['description' => $t['desc'], 'permission' => $t['perm']]; echo json_encode(['success' => true, 'tools' => $tools]); exit; }
 if ($action === 'execute') { $tool = $_GET['tool'] ?? ''; $args = json_decode($_GET['args'] ?? '{}', true) ?: []; $approved = $_GET['approved'] ?? 'false'; if (!isset($T[$tool])) { echo json_encode(['success' => false, 'message' => 'Unknown tool: ' . $tool]); exit; } $t = $T[$tool]; if (($t['perm'] === 'WRITE' || $t['perm'] === 'DANGEROUS') && $approved !== 'true') { echo json_encode(['success' => false, 'requires_approval' => true, 'permission' => $t['perm']]); exit; } try { $result = $t['fn']($args); echo json_encode(['success' => true, 'result' => $result]); } catch (Exception $e) { echo json_encode(['success' => false, 'message' => $e->getMessage()]); } exit; }
