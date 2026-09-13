@@ -1,6 +1,7 @@
 package com.seabox.engineer;
 
 import org.json.JSONObject;
+import org.json.JSONArray;
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -33,8 +34,6 @@ public class ToolLoop {
         new Thread(() -> {
             try {
                 cb.onProgress("🧠 يفكر...");
-                
-                // الخطوة 1: فهم المهمة واستدعاء الأدوات
                 String prompt = buildPrompt(userPrompt, history);
                 String aiResp = httpPost(SERVER + "/api/ai.php?token=" + TOKEN, "prompt=" + enc(prompt));
                 
@@ -62,7 +61,6 @@ public class ToolLoop {
                     return;
                 }
                 
-                // الخطوة 2: استخراج الأدوات
                 List<String[]> calls = extractTools(text);
                 
                 if (calls.isEmpty()) {
@@ -70,7 +68,6 @@ public class ToolLoop {
                     return;
                 }
 
-                // الخطوة 3: تنفيذ الأدوات
                 cb.onProgress("🔧 تنفيذ " + calls.size() + " أداة...");
                 StringBuilder results = new StringBuilder();
                 
@@ -83,12 +80,10 @@ public class ToolLoop {
                     String url = SERVER + "/api/agent.php?action=execute&tool=" + enc(tool) +
                         "&args=" + enc(args) + "&approved=true&token=" + TOKEN;
                     String resp = httpGet(url);
-
                     cb.onToolResult(tool, "OK");
                     results.append(formatResult(i+1, tool, resp));
                 }
 
-                // الخطوة 4: تقديم التقرير النهائي
                 cb.onFinalAnswer("📊 **النتائج:**\n\n" + results.toString() + "\n---\n\n📝 **تقرير Qwen:**\n" + text);
             } catch (Exception e) {
                 cb.onError("خطأ: " + e.getMessage());
@@ -100,34 +95,19 @@ public class ToolLoop {
         StringBuilder sb = new StringBuilder();
         sb.append("المهمة: ").append(userPrompt).append("\n\n");
         sb.append("🎯 الأدوات الهندسية المتاحة:\n");
-        sb.append("- project-scan: فحص شامل للمشروع\n");
-        sb.append("- impact-analysis: تحليل تأثير التعديل\n");
-        sb.append("- dependency-graph: رسم العلاقات\n");
-        sb.append("- rollback: استعادة من backup\n");
-        sb.append("- production-readiness: فحص جاهزية الإنتاج\n");
-        sb.append("- link-checker: فحص الروابط\n");
-        sb.append("- page-validator: فحص الصفحات\n");
-        sb.append("- api-tester: اختبار APIs\n");
-        sb.append("- crud-tester: اختبار CRUD\n");
-        sb.append("- final-package: إنشاء ZIP\n");
-        sb.append("- auto-fix: إصلاح تلقائي\n");
-        sb.append("- test-runner: تشغيل اختبارات\n");
-        sb.append("- code-review: مراجعة كود\n");
-        sb.append("- security-audit: تدقيق أمني\n");
-        sb.append("- health, system-info, memory, disk, services, network\n");
-        sb.append("- db-schema, db-query, db-query-write\n");
-        sb.append("- code-generate, refactor-code, debug-code\n");
+        sb.append("- project-scan, impact-analysis, dependency-graph, rollback\n");
+        sb.append("- production-readiness, link-checker, page-validator\n");
+        sb.append("- api-tester, crud-tester, final-package\n");
+        sb.append("- auto-fix, test-runner, code-review\n");
+        sb.append("- security-audit, health, system-info, memory, disk\n");
+        sb.append("- db-schema, db-query, code-generate\n");
         sb.append("- github-store, github-read, github-list\n\n");
         sb.append("🔧 تنسيق:\nTOOL: اسم_الأداة\nARGS: {\"param\": \"value\"}\n\n");
-        sb.append("⚠️ استخدم أسماء الأدوات الصحيحة. لا تخترع أسماء.\n");
-        
+        sb.append("⚠️ استخدم أسماء الأدوات الصحيحة فقط.\n");
         if (!history.isEmpty()) {
-            sb.append("\n📜 السياق السابق:\n");
-            for (String h : history) {
-                sb.append(h).append("\n");
-            }
+            sb.append("\n📜 السياق:\n");
+            for (String h : history) sb.append(h).append("\n");
         }
-        
         return sb.toString();
     }
 
@@ -144,15 +124,20 @@ public class ToolLoop {
                     } else if (res.has("result")) {
                         String r = res.optString("result");
                         sb.append("```\n").append(r.length() > 500 ? r.substring(0, 500) + "..." : r).append("\n```\n\n");
-                    } else if (res.has("schema")) {
-                        sb.append("```\n").append(res.optString("schema")).append("\n```\n\n");
                     } else if (res.has("checks")) {
+                        // استخدام names() بشكل صحيح
                         JSONObject checks = res.optJSONObject("checks");
+                        JSONArray names = checks.names();
                         sb.append("| الفحص | الحالة |\n|-------|:---:|\n");
-                        for (String key : checks.keySet()) {
-                            sb.append("| ").append(key).append(" | ").append(checks.optString(key)).append(" |\n");
+                        if (names != null) {
+                            for (int i = 0; i < names.length(); i++) {
+                                String key = names.getString(i);
+                                sb.append("| ").append(key).append(" | ").append(checks.optString(key)).append(" |\n");
+                            }
                         }
                         sb.append("\n");
+                    } else if (res.has("summary")) {
+                        sb.append(res.optString("summary")).append("\n\n");
                     } else {
                         sb.append("✅\n\n");
                     }
