@@ -33,8 +33,15 @@ public class ToolLoop {
     public static void run(String sessionId, String userPrompt, List<String> history, LoopCallback cb) {
         new Thread(() -> {
             try {
+                if (userPrompt == null || userPrompt.trim().isEmpty()) {
+                    cb.onError("Empty prompt");
+                    return;
+                }
+                
                 cb.onProgress("🧠 يفكر...");
                 String prompt = buildPrompt(userPrompt, history);
+                
+                // إرسال POST بشكل صحيح
                 String aiResp = httpPost(SERVER + "/api/ai.php?token=" + TOKEN, "prompt=" + enc(prompt));
                 
                 if (aiResp.contains("EXCEPTION") || aiResp.contains("ERROR")) {
@@ -46,12 +53,13 @@ public class ToolLoop {
                 try {
                     json = new JSONObject(aiResp);
                 } catch (Exception e) {
-                    cb.onError("رد غير صالح");
+                    cb.onError("رد غير صالح: " + aiResp.substring(0, Math.min(200, aiResp.length())));
                     return;
                 }
                 
                 if (!json.optBoolean("success")) {
-                    cb.onError("فشل AI: " + json.optString("error", ""));
+                    String error = json.optString("error", "غير معروف");
+                    cb.onError("فشل AI: " + error);
                     return;
                 }
                 
@@ -104,7 +112,7 @@ public class ToolLoop {
         sb.append("- github-store, github-read, github-list\n\n");
         sb.append("🔧 تنسيق:\nTOOL: اسم_الأداة\nARGS: {\"param\": \"value\"}\n\n");
         sb.append("⚠️ استخدم أسماء الأدوات الصحيحة فقط.\n");
-        if (!history.isEmpty()) {
+        if (history != null && !history.isEmpty()) {
             sb.append("\n📜 السياق:\n");
             for (String h : history) sb.append(h).append("\n");
         }
@@ -125,7 +133,6 @@ public class ToolLoop {
                         String r = res.optString("result");
                         sb.append("```\n").append(r.length() > 500 ? r.substring(0, 500) + "..." : r).append("\n```\n\n");
                     } else if (res.has("checks")) {
-                        // استخدام names() بشكل صحيح
                         JSONObject checks = res.optJSONObject("checks");
                         JSONArray names = checks.names();
                         sb.append("| الفحص | الحالة |\n|-------|:---:|\n");
@@ -173,20 +180,27 @@ public class ToolLoop {
 
     private static String httpPost(String urlStr, String data) {
         try {
-            HttpURLConnection c = (HttpURLConnection) new URL(urlStr).openConnection();
+            URL url = new URL(urlStr);
+            HttpURLConnection c = (HttpURLConnection) url.openConnection();
             c.setRequestMethod("POST");
             c.setDoOutput(true);
             c.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+            c.setRequestProperty("Content-Length", String.valueOf(data.getBytes("UTF-8").length));
             c.setConnectTimeout(15000);
             c.setReadTimeout(90000);
             c.setUseCaches(false);
+            
             try (OutputStream os = c.getOutputStream()) {
-                os.write(data.getBytes("UTF-8"));
+                byte[] input = data.getBytes("UTF-8");
+                os.write(input, 0, input.length);
                 os.flush();
             }
+            
             int code = c.getResponseCode();
             InputStream is = (code >= 200 && code < 400) ? c.getInputStream() : c.getErrorStream();
-            return rs(is);
+            String response = rs(is);
+            c.disconnect();
+            return response;
         } catch (Exception e) {
             return "EXCEPTION: " + e.getMessage();
         }
