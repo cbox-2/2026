@@ -24,10 +24,10 @@ public class ToolLoop {
 
     private static final String SERVER = "http://34.61.70.211";
     private static final String TOKEN = "seabox-agent-2026";
-    private static final int MAX_ITERATIONS = 3;  // ✅ تقليل من 8 إلى 3
+    private static final int MAX_ITERATIONS = 4;
 
     public static void initialize(LoopCallback cb) {
-        cb.onFinalAnswer("✅ SeaBox Engineer Pro - 109 أداة\n🔄 Multi-step Loop (3 iterations - سريع)");
+        cb.onFinalAnswer("✅ SeaBox Engineer Pro - 109 أداة\n🔄 Multi-step Loop (4 iterations)");
     }
 
     public static void run(String sessionId, String userPrompt, List<String> history, LoopCallback cb) {
@@ -46,40 +46,32 @@ public class ToolLoop {
                 context.append("- security-audit, db-schema, health\n");
                 context.append("- impact-analysis, dependency-graph, rollback\n\n");
                 context.append("🔧 تنسيق:\nTOOL: اسم_الأداة\nARGS: {\"param\": \"value\"}\n\n");
-                context.append("⚠️ قواعد صارمة:\n");
-                context.append("1. استدعي 1-2 أدوات فقط في كل رد\n");
-                context.append("2. في الرد الأول: ابدأ بفحص سريع (project-scan أو db-schema)\n");
-                context.append("3. في الرد الثاني: نفّذ المهمة الرئيسية\n");
-                context.append("4. في الرد الثالث: اكتب FINAL_REPORT: ثم التقرير النهائي\n");
-                context.append("5. لا تكرر نفس الأداة\n");
-                context.append("6. كن مختصراً في التقرير\n");
+                context.append("⚠️ قواعد:\n");
+                context.append("1. استدعي 1-2 أدوات في كل رد\n");
+                context.append("2. بعد ما تجمع المعلومات، اكتب: FINAL_REPORT: ثم التقرير\n");
+                context.append("3. التقرير يجب أن يحتوي على: الكود المولّد، التحليل، التوصيات\n");
 
                 StringBuilder fullAnswer = new StringBuilder();
                 List<String> iterationLogs = new ArrayList<>();
+                String lastQwenResponse = "";
 
                 for (int iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
                     cb.onProgress("🔄 [" + iteration + "/" + MAX_ITERATIONS + "]");
 
                     String currentPrompt = context.toString();
                     if (!iterationLogs.isEmpty()) {
-                        currentPrompt += "\n📊 نتائج سابقة (مختصرة):\n";
+                        currentPrompt += "\n📊 نتائج سابقة:\n";
                         for (int i = 0; i < iterationLogs.size(); i++) {
                             String log = iterationLogs.get(i);
-                            // اختصار النتائج - أول 300 حرف فقط
-                            if (log.length() > 300) {
-                                log = log.substring(0, 300) + "...";
-                            }
+                            if (log.length() > 400) log = log.substring(0, 400) + "...";
                             currentPrompt += "Iter " + (i+1) + ": " + log + "\n";
                         }
                         currentPrompt += "\n";
                         if (iteration == MAX_ITERATIONS) {
-                            currentPrompt += "⚠️ آخر iteration! اكتب FINAL_REPORT: الآن مع كل المعلومات.\n";
-                        } else {
-                            currentPrompt += "الخطوة التالية (1-2 أدوات فقط):\n";
+                            currentPrompt += "⚠️ آخر iteration! اكتب FINAL_REPORT: الآن.\n";
                         }
                     }
 
-                    // تأخير بين iterations لتجنب Rate Limit
                     if (iteration > 1) {
                         try { Thread.sleep(2000); } catch (InterruptedException e) {}
                     }
@@ -96,8 +88,8 @@ public class ToolLoop {
 
                     if (!json.optBoolean("success")) {
                         String err = json.optString("error", "");
-                        if (err.contains("Rate Limited") || err.contains("429")) {
-                            cb.onError("⏸️ Rate Limit - انتظر دقيقة ثم حاول مرة أخرى");
+                        if (err.contains("Rate Limited")) {
+                            cb.onError("⏸️ Rate Limit - انتظر دقيقة");
                         } else {
                             cb.onError("فشل: " + err);
                         }
@@ -109,6 +101,8 @@ public class ToolLoop {
                         cb.onError("Qwen ما رجع رد");
                         return;
                     }
+
+                    lastQwenResponse = text;
 
                     if (text.contains("FINAL_REPORT:")) {
                         String report = text.substring(text.indexOf("FINAL_REPORT:") + "FINAL_REPORT:".length()).trim();
@@ -138,7 +132,7 @@ public class ToolLoop {
                         String resp = httpGet(url);
                         cb.onToolResult(tool, "OK");
 
-                        iterResult.append(tool).append(": ").append(resp.substring(0, Math.min(200, resp.length()))).append("\n");
+                        iterResult.append(tool).append(": ").append(resp.substring(0, Math.min(300, resp.length()))).append("\n");
                     }
 
                     iterationLogs.add(iterResult.toString());
@@ -150,7 +144,19 @@ public class ToolLoop {
                     fullAnswer.append("\n");
                 }
 
-                cb.onFinalAnswer(fullAnswer.toString() + "\n\n⚠️ وصلنا للحد (3 iterations)");
+                // وصلنا للحد - نعرض آخر رد من Qwen + نتائج آخر iteration
+                fullAnswer.append("\n---\n\n");
+                fullAnswer.append("**آخر رد من Qwen:**\n");
+                fullAnswer.append(lastQwenResponse).append("\n\n");
+                
+                if (!iterationLogs.isEmpty()) {
+                    fullAnswer.append("**نتائج آخر iteration:**\n```\n");
+                    String lastLog = iterationLogs.get(iterationLogs.size() - 1);
+                    fullAnswer.append(lastLog.length() > 500 ? lastLog.substring(0, 500) + "..." : lastLog);
+                    fullAnswer.append("\n```\n");
+                }
+
+                cb.onFinalAnswer(fullAnswer.toString());
 
             } catch (Exception e) {
                 cb.onError("خطأ: " + e.getMessage());
