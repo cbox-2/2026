@@ -5,7 +5,6 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.regex.*;
-import java.text.SimpleDateFormat;
 
 public class ToolLoop {
     public interface LoopCallback {
@@ -27,77 +26,93 @@ public class ToolLoop {
     private static final int MAX_ITERATIONS = 50;
 
     public static void initialize(LoopCallback cb) {
-        new Thread(() -> {
-            try {
-                String resp = httpGet(SERVER + "/api/agent.php?action=tools&token=" + TOKEN);
-                JSONObject json = new JSONObject(resp);
-                int count = json.optJSONObject("tools") != null ? json.optJSONObject("tools").length() : 0;
-                cb.onFinalAnswer("✅ SeaBox Engineer Pro جاهز - " + count + " أداة\n📡 الذاكرة: GitHub Memory");
-            } catch (Exception e) {
-                cb.onFinalAnswer("✅ SeaBox Engineer Pro جاهز - 104 أداة\n📡 الذاكرة: GitHub Memory");
-            }
-        }).start();
+        cb.onFinalAnswer("✅ SeaBox Engineer Pro جاهز - 104 أداة\n📡 الذاكرة: GitHub Memory");
     }
 
     public static void run(String sessionId, String userPrompt, List<String> history, LoopCallback cb) {
         new Thread(() -> {
             try {
-                String sid = "s" + System.currentTimeMillis();
-                cb.onProgress("🧠 Planning...");
-
-                String planPrompt = "أنت SeaBox Engineer Pro. المهمة: " + userPrompt + "\n\nدورة العمل:\n1. project-scan\n2. اكتشاف النواقص\n3. بناء خطة\n4. تنفيذ\n5. اختبار\n6. production-readiness\n\nاستدعِ الأدوات المطلوبة فقط. لا تكرر. ابدأ:";
-                String planResp = callAI(planPrompt);
-
-                if (planResp.startsWith("ERROR")) {
-                    cb.onError(planResp);
+                cb.onProgress("🧠 يفكر...");
+                
+                String prompt = "المهمة: " + userPrompt + "\nاستدع الادوات ثم قدم تقرير. تنسيق: TOOL: اسم\nARGS: {}";
+                
+                cb.onProgress("📡 يرسل لـ AI...");
+                String aiResp = httpPost(SERVER + "/api/ai.php?token=" + TOKEN, "prompt=" + enc(prompt));
+                
+                if (aiResp.contains("EXCEPTION") || aiResp.contains("ERROR")) {
+                    cb.onError("فشل الاتصال: " + aiResp);
+                    return;
+                }
+                
+                JSONObject json;
+                try {
+                    json = new JSONObject(aiResp);
+                } catch (Exception e) {
+                    cb.onError("رد غير صالح: " + aiResp.substring(0, Math.min(200, aiResp.length())));
+                    return;
+                }
+                
+                if (!json.optBoolean("success")) {
+                    cb.onError("فشل AI: " + json.optString("error", "غير معروف"));
+                    return;
+                }
+                
+                String text = json.optString("text", "");
+                if (text.isEmpty()) {
+                    cb.onError("Qwen ما رجع رد");
+                    return;
+                }
+                
+                List<String[]> calls = extractTools(text);
+                
+                if (calls.isEmpty()) {
+                    cb.onFinalAnswer(text);
                     return;
                 }
 
-                cb.onProgress("📋 تنفيذ الخطة...");
+                cb.onProgress("🔧 تنفيذ " + calls.size() + " أداة...");
+                StringBuilder results = new StringBuilder();
+                
+                for (int i = 0; i < calls.size(); i++) {
+                    String tool = calls.get(i)[0];
+                    String args = calls.get(i)[1];
+                    cb.onProgress("🔧 [" + (i+1) + "/" + calls.size() + "] " + tool);
+                    cb.onToolCall(tool, "READ");
 
-                List<String> toolHistory = new ArrayList<>();
-                Map<String, Integer> toolCount = new HashMap<>();
+                    String url = SERVER + "/api/agent.php?action=execute&tool=" + enc(tool) +
+                        "&args=" + enc(args) + "&approved=true&token=" + TOKEN;
+                    String resp = httpGet(url);
 
-                for (int iter = 0; iter < MAX_ITERATIONS; iter++) {
-                    cb.onProgress("🔄 " + (iter + 1) + "/" + MAX_ITERATIONS);
-
-                    String iterPrompt = iter == 0 ?
-                        "المهمة: " + userPrompt + "\n\nالخطة:\n" + planResp + "\n\nابدأ:" :
-                        "المهمة: " + userPrompt + "\n\nالمنفذ:\n" + String.join("\n", toolHistory) + "\n\nالخطوة التالية (أو تقرير نهائي):";
-
-                    String aiResp = callAI(iterPrompt);
-                    if (aiResp.startsWith("ERROR")) {
-                        cb.onError(aiResp);
-                        return;
-                    }
-
-                    List<String[]> calls = extractTools(aiResp);
-                    if (calls.isEmpty()) {
-                        cb.onFinalAnswer(aiResp);
-                        return;
-                    }
-
-                    for (String[] call : calls) {
-                        String tool = call[0];
-                        String args = call[1];
-                        int count = toolCount.getOrDefault(tool, 0);
-                        if (count >= 3) continue;
-                        toolCount.put(tool, count + 1);
-
-                        cb.onProgress("🔧 " + tool);
-                        cb.onToolCall(tool, "READ");
-
-                        String url = SERVER + "/api/agent.php?action=execute&tool=" + enc(tool) +
-                            "&args=" + enc(args) + "&approved=true&token=" + TOKEN;
-                        String resp = httpGet(url);
-
-                        cb.onToolResult(tool, "OK");
-                        String shortResp = resp.length() > 200 ? resp.substring(0, 200) + "..." : resp;
-                        toolHistory.add(tool + " → " + shortResp);
+                    cb.onToolResult(tool, "OK");
+                    
+                    try {
+                        JSONObject rj = new JSONObject(resp);
+                        if (rj.optBoolean("success")) {
+                            JSONObject res = rj.optJSONObject("result");
+                            if (res != null) {
+                                if (res.has("preview")) {
+                                    results.append("**").append(i+1).append(". ").append(tool).append(":**\n```php\n")
+                                        .append(res.optString("preview")).append("\n```\n\n");
+                                } else if (res.has("result")) {
+                                    String r = res.optString("result");
+                                    results.append("**").append(i+1).append(". ").append(tool).append(":**\n```\n")
+                                        .append(r.length() > 500 ? r.substring(0, 500) + "..." : r).append("\n```\n\n");
+                                } else if (res.has("schema")) {
+                                    results.append("**").append(i+1).append(". ").append(tool).append(":**\n```\n")
+                                        .append(res.optString("schema")).append("\n```\n\n");
+                                } else {
+                                    results.append("**").append(i+1).append(". ").append(tool).append(":** ✅\n\n");
+                                }
+                            }
+                        } else {
+                            results.append("**").append(i+1).append(". ").append(tool).append(":** ❌ ").append(rj.optString("error", "خطأ")).append("\n\n");
+                        }
+                    } catch (Exception e) {
+                        results.append("**").append(i+1).append(". ").append(tool).append(":** ").append(resp.substring(0, Math.min(200, resp.length()))).append("\n\n");
                     }
                 }
 
-                cb.onFinalAnswer("📊 النتائج:\n" + String.join("\n", toolHistory));
+                cb.onFinalAnswer("📊 **النتائج:**\n\n" + results.toString() + "\n---\n\n📝 **تقرير Qwen:**\n" + text);
             } catch (Exception e) {
                 cb.onError("خطأ: " + e.getMessage());
             }
@@ -111,19 +126,6 @@ public class ToolLoop {
             calls.add(new String[]{m.group(1).trim(), m.group(2).trim()});
         }
         return calls;
-    }
-
-    private static String callAI(String prompt) {
-        try {
-            String resp = httpPost(SERVER + "/api/ai.php?token=" + TOKEN, "prompt=" + enc(prompt));
-            JSONObject json = new JSONObject(resp);
-            if (!json.optBoolean("success")) {
-                return "ERROR: " + json.optString("error", "فشل AI");
-            }
-            return json.optString("text", "ERROR: لا رد");
-        } catch (Exception e) {
-            return "ERROR: " + e.getMessage();
-        }
     }
 
     private static String httpGet(String urlStr) {
@@ -145,17 +147,21 @@ public class ToolLoop {
             c.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
             c.setConnectTimeout(15000);
             c.setReadTimeout(90000);
+            c.setUseCaches(false);
             try (OutputStream os = c.getOutputStream()) {
                 os.write(data.getBytes("UTF-8"));
                 os.flush();
             }
-            return rs(c.getInputStream());
+            int code = c.getResponseCode();
+            InputStream is = (code >= 200 && code < 400) ? c.getInputStream() : c.getErrorStream();
+            return rs(is);
         } catch (Exception e) {
-            return "{\"error\":\"" + e.getMessage() + "\"}";
+            return "EXCEPTION: " + e.getMessage();
         }
     }
 
     private static String rs(InputStream is) throws Exception {
+        if (is == null) return "null stream";
         BufferedReader r = new BufferedReader(new InputStreamReader(is, "UTF-8"));
         StringBuilder sb = new StringBuilder();
         String line;
