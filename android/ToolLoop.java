@@ -12,14 +12,19 @@ public class ToolLoop {
         void onProgress(String status);
         void onToolCall(String tool, String permission);
         void onToolResult(String tool, String status);
-        void onIteration(int iteration, String summary);
+        void onApprovalNeeded(String tool, String permission, ApprovalHandler handler);
         void onFinalAnswer(String answer);
         void onError(String error);
     }
 
+    public interface ApprovalHandler {
+        void approve();
+        void deny();
+    }
+
     private static final String SERVER = "http://34.61.70.211";
     private static final String TOKEN = "seabox-agent-2026";
-    private static final int MAX_ITERATIONS = 8;  // صادق - ما نبي نبالغ
+    private static final int MAX_ITERATIONS = 8;
 
     public static void initialize(LoopCallback cb) {
         cb.onFinalAnswer("✅ SeaBox Engineer Pro - 109 أداة\n🔄 Multi-step Loop حقيقي (حتى 8 iterations)");
@@ -33,7 +38,6 @@ public class ToolLoop {
                     return;
                 }
 
-                // بناء السياق التراكمي (هذا هو الـ Loop الحقيقي)
                 StringBuilder context = new StringBuilder();
                 context.append("المهمة الأصلية: ").append(userPrompt).append("\n\n");
 
@@ -63,11 +67,9 @@ public class ToolLoop {
                 StringBuilder fullAnswer = new StringBuilder();
                 List<String> iterationLogs = new ArrayList<>();
 
-                // الـ Loop الحقيقي
                 for (int iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
                     cb.onProgress("🔄 Iteration " + iteration + "/" + MAX_ITERATIONS);
 
-                    // بناء prompt للـ iteration الحالية
                     String currentPrompt = context.toString();
                     if (!iterationLogs.isEmpty()) {
                         currentPrompt += "\n\n📊 نتائج الـ iterations السابقة:\n";
@@ -79,7 +81,6 @@ public class ToolLoop {
                         currentPrompt += "- إذا عندك كل المعلومات → اكتب FINAL_REPORT: ثم التقرير\n";
                     }
 
-                    // استدعاء Qwen
                     String aiResp = httpPost(SERVER + "/api/ai.php?token=" + TOKEN, "prompt=" + enc(currentPrompt));
 
                     JSONObject json;
@@ -101,28 +102,22 @@ public class ToolLoop {
                         return;
                     }
 
-                    // فحص إذا وصلنا للتقرير النهائي
                     if (text.contains("FINAL_REPORT:")) {
                         String report = text.substring(text.indexOf("FINAL_REPORT:") + "FINAL_REPORT:".length()).trim();
                         fullAnswer.append(report);
-                        cb.onIteration(iteration, "✅ تقرير نهائي");
                         cb.onFinalAnswer(fullAnswer.toString());
                         return;
                     }
 
-                    // استخراج الأدوات
                     List<String[]> calls = extractTools(text);
 
                     if (calls.isEmpty()) {
-                        // ما في أدوات → هذا هو التقرير النهائي
                         fullAnswer.append(text);
-                        cb.onIteration(iteration, "✅ رد مباشر");
                         cb.onFinalAnswer(fullAnswer.toString());
                         return;
                     }
 
-                    // تنفيذ الأدوات
-                    cb.onIteration(iteration, "🔧 تنفيذ " + calls.size() + " أداة");
+                    cb.onProgress("🔧 Iteration " + iteration + ": تنفيذ " + calls.size() + " أداة");
                     StringBuilder iterResult = new StringBuilder();
                     iterResult.append("=== Iteration ").append(iteration).append(" ===\n");
 
@@ -136,15 +131,12 @@ public class ToolLoop {
                         String resp = httpGet(url);
                         cb.onToolResult(tool, "OK");
 
-                        // حفظ نتيجة الأداة
                         iterResult.append("TOOL_RESULT: ").append(tool).append("\n");
                         iterResult.append(resp).append("\n\n");
                     }
 
-                    // إضافة نتائج الـ iteration للسياق
                     iterationLogs.add(iterResult.toString());
 
-                    // إضافة ملخص للعرض
                     fullAnswer.append("🔄 **Iteration ").append(iteration).append("**: ");
                     for (String[] call : calls) {
                         fullAnswer.append(call[0]).append(" ");
@@ -152,8 +144,7 @@ public class ToolLoop {
                     fullAnswer.append("\n");
                 }
 
-                // وصلنا للحد الأقصى
-                cb.onFinalAnswer(fullAnswer.toString() + "\n\n⚠️ وصلنا للحد الأقصى (8 iterations) بدون تقرير نهائي");
+                cb.onFinalAnswer(fullAnswer.toString() + "\n\n⚠️ وصلنا للحد الأقصى (8 iterations)");
 
             } catch (Exception e) {
                 cb.onError("خطأ: " + e.getMessage());
